@@ -13,7 +13,12 @@ import {
   Layers,
   ChefHat,
   ExternalLink,
-  ShieldCheck
+  ShieldCheck,
+  Save,
+  Phone,
+  MapPin,
+  Globe,
+  Instagram
 } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 
@@ -25,14 +30,23 @@ export default function Dashboard() {
     subtitle: 'Lezzet, Manzara ve Huzurun Adresi',
     phone: '0533 866 52 78',
     whatsapp: '905338665278',
+    address: 'Lefke, Kıbrıs',
+    instagram: '',
     description: 'Nefis lezzetler ve huzurlu ortam.'
   });
   const [categories, setCategories] = useState<any[]>([]);
   const [newCatName, setNewCatName] = useState('');
+  const [saveStatus, setSaveStatus] = useState('');
 
   useEffect(() => {
     fetchCategories();
+    fetchRestaurant();
   }, []);
+
+  const fetchRestaurant = async () => {
+    const { data } = await supabase.from('restaurants').select('*').limit(1).single();
+    if (data) setRestaurant(data);
+  };
 
   const fetchCategories = async () => {
     const { data } = await supabase.from('categories').select('*');
@@ -40,10 +54,14 @@ export default function Dashboard() {
   };
 
   const addCategory = async () => {
-    if (!newCatName) return;
-    await supabase.from('categories').insert([{ name: newCatName }]);
-    setNewCatName('');
-    fetchCategories();
+    if (!newCatName.trim()) return;
+    const { error } = await supabase.from('categories').insert([{ name: newCatName }]);
+    if (error) {
+      alert('Hata: ' + error.message);
+    } else {
+      setNewCatName('');
+      fetchCategories();
+    }
   };
 
   const deleteCategory = async (id: string) => {
@@ -51,14 +69,25 @@ export default function Dashboard() {
     fetchCategories();
   };
 
+  const saveRestaurant = async () => {
+    setSaveStatus('Kaydediliyor...');
+    const { error } = await supabase.from('restaurants').upsert([restaurant], { onConflict: 'slug' });
+    if (!error) {
+      setSaveStatus('Başarıyla Kaydedildi! ✓');
+      setTimeout(() => setSaveStatus(''), 3000);
+    } else {
+      setSaveStatus('Hata oluştu!');
+    }
+  };
+
   const liveMenuUrl = `https://qr-menu-app-three-beta.vercel.app/m/${restaurant.slug}`;
 
   return (
     <div className="flex min-h-screen bg-slate-950 text-slate-100 font-sans">
-      {/* Sol Özel Sidebar */}
+      {/* Sol Sidebar */}
       <aside className="w-64 bg-slate-900/80 backdrop-blur-md border-r border-slate-800/80 flex flex-col justify-between">
         <div>
-          {/* Kişiselleştirilmiş Logo */}
+          {/* Logo */}
           <div className="p-6 border-b border-slate-800/60 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 via-purple-600 to-pink-500 flex items-center justify-center shadow-lg shadow-indigo-500/20 font-black text-white text-lg">
@@ -77,35 +106,34 @@ export default function Dashboard() {
             
             <button 
               onClick={() => setActiveTab('dashboard')} 
-              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all duration-200 ${activeTab === 'dashboard' ? 'bg-indigo-600/20 text-indigo-400 border border-indigo-500/30 font-semibold' : 'text-slate-400 hover:bg-slate-800/60 hover:text-slate-200'}`}
+              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition ${activeTab === 'dashboard' ? 'bg-indigo-600/20 text-indigo-400 border border-indigo-500/30 font-semibold' : 'text-slate-400 hover:bg-slate-800/60'}`}
             >
               <LayoutDashboard size={18} /> Gösterge Paneli
             </button>
 
             <button 
               onClick={() => setActiveTab('restaurant')} 
-              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all duration-200 ${activeTab === 'restaurant' ? 'bg-indigo-600/20 text-indigo-400 border border-indigo-500/30 font-semibold' : 'text-slate-400 hover:bg-slate-800/60 hover:text-slate-200'}`}
+              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition ${activeTab === 'restaurant' ? 'bg-indigo-600/20 text-indigo-400 border border-indigo-500/30 font-semibold' : 'text-slate-400 hover:bg-slate-800/60'}`}
             >
               <Store size={18} /> Restoran Bilgileri
             </button>
 
             <button 
               onClick={() => setActiveTab('menu')} 
-              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all duration-200 ${activeTab === 'menu' ? 'bg-indigo-600/20 text-indigo-400 border border-indigo-500/30 font-semibold' : 'text-slate-400 hover:bg-slate-800/60 hover:text-slate-200'}`}
+              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition ${activeTab === 'menu' ? 'bg-indigo-600/20 text-indigo-400 border border-indigo-500/30 font-semibold' : 'text-slate-400 hover:bg-slate-800/60'}`}
             >
               <UtensilsCrossed size={18} /> Menü & Kategoriler
             </button>
 
             <button 
               onClick={() => setActiveTab('qr')} 
-              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all duration-200 ${activeTab === 'qr' ? 'bg-indigo-600/20 text-indigo-400 border border-indigo-500/30 font-semibold' : 'text-slate-400 hover:bg-slate-800/60 hover:text-slate-200'}`}
+              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition ${activeTab === 'qr' ? 'bg-indigo-600/20 text-indigo-400 border border-indigo-500/30 font-semibold' : 'text-slate-400 hover:bg-slate-800/60'}`}
             >
               <QrCode size={18} /> QR Stüdyo
             </button>
           </nav>
         </div>
 
-        {/* Alt Bilgi */}
         <div className="p-4 border-t border-slate-800/60">
           <div className="bg-slate-800/40 border border-slate-800 p-3 rounded-xl flex items-center gap-3">
             <div className="p-2 bg-indigo-500/10 text-indigo-400 rounded-lg">
@@ -142,10 +170,8 @@ export default function Dashboard() {
               </a>
             </div>
 
-            {/* İstatistik Kartları */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-              <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl relative overflow-hidden group">
-                <div className="absolute top-0 right-0 w-24 h-24 bg-indigo-500/10 rounded-full blur-2xl group-hover:bg-indigo-500/20 transition"></div>
+              <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl relative overflow-hidden">
                 <div className="flex items-center justify-between">
                   <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Aktif Kategoriler</p>
                   <div className="p-2.5 bg-indigo-500/10 text-indigo-400 rounded-xl border border-indigo-500/20">
@@ -156,8 +182,7 @@ export default function Dashboard() {
                 <p className="text-xs text-slate-500 mt-2">Sistemde ekli dinamik başlık</p>
               </div>
 
-              <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl relative overflow-hidden group">
-                <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/10 rounded-full blur-2xl group-hover:bg-emerald-500/20 transition"></div>
+              <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl relative overflow-hidden">
                 <div className="flex items-center justify-between">
                   <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">İşletme Durumu</p>
                   <div className="p-2.5 bg-emerald-500/10 text-emerald-400 rounded-xl border border-emerald-500/20">
@@ -168,8 +193,7 @@ export default function Dashboard() {
                 <p className="text-xs text-slate-500 mt-1">{restaurant.name}</p>
               </div>
 
-              <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl relative overflow-hidden group">
-                <div className="absolute top-0 right-0 w-24 h-24 bg-purple-500/10 rounded-full blur-2xl group-hover:bg-purple-500/20 transition"></div>
+              <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl relative overflow-hidden">
                 <div className="flex items-center justify-between">
                   <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Mimar Altyapı</p>
                   <div className="p-2.5 bg-purple-500/10 text-purple-400 rounded-xl border border-purple-500/20">
@@ -183,7 +207,72 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* TAB 2: Menü Yönetimi */}
+        {/* TAB 2: Restoran Bilgileri */}
+        {activeTab === 'restaurant' && (
+          <div className="max-w-3xl space-y-6">
+            <div className="flex justify-between items-center">
+              <div>
+                <h1 className="text-2xl font-bold text-white tracking-tight">Restoranı Yönet</h1>
+                <p className="text-slate-400 text-sm mt-0.5">Menüde görünecek temel işletme bilgileri.</p>
+              </div>
+              <button 
+                onClick={saveRestaurant}
+                className="bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-2.5 rounded-xl text-sm font-semibold flex items-center gap-2 transition"
+              >
+                <Save size={18} /> Kaydet
+              </button>
+            </div>
+
+            {saveStatus && (
+              <p className="text-sm font-semibold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 p-3 rounded-xl">{saveStatus}</p>
+            )}
+
+            <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-4">
+              <div>
+                <label className="text-xs font-semibold text-slate-400 uppercase block mb-1.5">Firma Adı</label>
+                <input 
+                  type="text" 
+                  value={restaurant.name} 
+                  onChange={(e) => setRestaurant({...restaurant, name: e.target.value})}
+                  className="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 text-white rounded-xl text-sm outline-none focus:border-indigo-500" 
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold text-slate-400 uppercase block mb-1.5">Firma Alt Başlığı</label>
+                <input 
+                  type="text" 
+                  value={restaurant.subtitle} 
+                  onChange={(e) => setRestaurant({...restaurant, subtitle: e.target.value})}
+                  className="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 text-white rounded-xl text-sm outline-none focus:border-indigo-500" 
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-xs font-semibold text-slate-400 uppercase block mb-1.5">Telefon</label>
+                  <input 
+                    type="text" 
+                    value={restaurant.phone} 
+                    onChange={(e) => setRestaurant({...restaurant, phone: e.target.value})}
+                    className="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 text-white rounded-xl text-sm outline-none focus:border-indigo-500" 
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-slate-400 uppercase block mb-1.5">Adres</label>
+                  <input 
+                    type="text" 
+                    value={restaurant.address} 
+                    onChange={(e) => setRestaurant({...restaurant, address: e.target.value})}
+                    className="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 text-white rounded-xl text-sm outline-none focus:border-indigo-500" 
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 3: Menü Yönetimi */}
         {activeTab === 'menu' && (
           <div className="max-w-4xl space-y-6">
             <div className="flex justify-between items-center">
@@ -197,7 +286,7 @@ export default function Dashboard() {
                   placeholder="Kategori Adı..." 
                   value={newCatName}
                   onChange={(e) => setNewCatName(e.target.value)}
-                  className="px-4 py-2.5 bg-slate-900 border border-slate-800 text-white rounded-xl text-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition"
+                  className="px-4 py-2.5 bg-slate-900 border border-slate-800 text-white rounded-xl text-sm outline-none focus:border-indigo-500 transition"
                 />
                 <button 
                   onClick={addCategory} 
@@ -210,7 +299,7 @@ export default function Dashboard() {
 
             <div className="space-y-3">
               {categories.map((cat) => (
-                <div key={cat.id} className="bg-slate-900/90 p-4 rounded-xl border border-slate-800/80 flex justify-between items-center hover:border-slate-700 transition">
+                <div key={cat.id} className="bg-slate-900 p-4 rounded-xl border border-slate-800 flex justify-between items-center">
                   <span className="font-semibold text-slate-200">{cat.name}</span>
                   <button onClick={() => deleteCategory(cat.id)} className="p-2 text-rose-400 hover:bg-rose-500/10 rounded-lg transition">
                     <Trash2 size={18} />
@@ -221,7 +310,7 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* TAB 3: QR Oluşturucu */}
+        {/* TAB 4: QR Oluşturucu */}
         {activeTab === 'qr' && (
           <div className="max-w-3xl space-y-6">
             <div>
@@ -230,7 +319,7 @@ export default function Dashboard() {
             </div>
 
             <div className="bg-slate-900 border border-slate-800 p-8 rounded-2xl w-fit flex flex-col items-center gap-5 shadow-xl">
-              <div className="p-4 bg-white rounded-2xl shadow-inner">
+              <div className="p-4 bg-white rounded-2xl">
                 <QRCodeSVG value={liveMenuUrl} size={220} />
               </div>
               <div className="text-center">
