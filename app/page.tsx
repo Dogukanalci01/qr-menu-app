@@ -1,9 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabase'; // lib/supabase.ts dosyasını import eder
+import { supabase } from '../lib/supabase'; // lib/supabase.ts dosyanın tam adresi
 
-// Kategori Arayüz Tipi
 interface Category {
   id: string;
   restaurant_id: string;
@@ -17,10 +16,10 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
 
-  // Kendi restoran UUID değerini veya test için bir string yazabilirsin
+  // Test için veya varsa dinamik ID (Örn: Supabase'deki bir restoran UUID'si)
   const restaurantId = "123e4567-e89b-12d3-a456-426614174000"; 
 
-  // 1. Kategorileri Supabase'den Çek
+  // 1. Kategorileri Çek
   const fetchCategories = async () => {
     setFetching(true);
     const { data, error } = await supabase
@@ -40,7 +39,7 @@ export default function Home() {
     fetchCategories();
   }, []);
 
-  // 2. Yeni Kategori Ekleme İşlemi
+  // 2. Yeni Kategori Ekle
   const handleAddCategory = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!categoryName.trim()) return;
@@ -64,7 +63,7 @@ export default function Home() {
       alert('Kategori eklenirken hata oluştu: ' + error.message);
     } else if (data) {
       setCategoryName('');
-      setCategories((prev) => [...prev, data[0]]); // Ekranı anında güncelle
+      setCategories((prev) => [...prev, data[0]]);
     }
   };
 
@@ -75,11 +74,11 @@ export default function Home() {
           QR Menü - Kategori Yönetimi
         </h1>
 
-        {/* Ekleme Formu */}
+        {/* Form */}
         <form onSubmit={handleAddCategory} className="flex gap-2 mb-6">
           <input
             type="text"
-            placeholder="Kategori Adı (Örn: İçecekler)"
+            placeholder="Kategori Adı (Örn: Tatlılar)"
             value={categoryName}
             onChange={(e) => setCategoryName(e.target.value)}
             className="border border-gray-300 p-2 rounded w-full text-black focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -95,7 +94,7 @@ export default function Home() {
 
         <hr className="my-6 border-gray-200" />
 
-        {/* Kategori Listesi */}
+        {/* Liste */}
         <div>
           <h2 className="text-lg font-bold text-gray-700 mb-3">Mevcut Kategoriler</h2>
           
