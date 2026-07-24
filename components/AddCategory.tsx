@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { supabase } from '@/lib/supabase'; // lib klasöründeki supabase istemcin
+import { supabase } from '../lib/supabase'; // '../lib/supabase' olarak güncellendi
 
 interface AddCategoryProps {
   restaurantId: string;
