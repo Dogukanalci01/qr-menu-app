@@ -52,7 +52,7 @@ export default function PublicMenu() {
     return (
       <div className="min-h-screen bg-white text-slate-800 flex items-center justify-center p-4 font-sans">
         <div className="flex flex-col items-center gap-3">
-          <div className="w-10 h-10 border-4 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
+          <div className="w-10 h-10 border-4 border-slate-300 border-t-slate-800 rounded-full animate-spin"></div>
           <p className="text-slate-500 text-xs font-semibold">Menü Yükleniyor...</p>
         </div>
       </div>
@@ -71,6 +71,8 @@ export default function PublicMenu() {
   }
 
   const template = restaurant.template || 'modern';
+  // Restoranın seçtiği renk, yoksa varsayılan olarak turuncu (#f97316)
+  const pColor = restaurant.primary_color || '#f97316'; 
 
   const filteredProducts = products.filter(p => {
     if (selectedCat !== 'all' && p.category_id !== selectedCat) return false;
@@ -83,16 +85,17 @@ export default function PublicMenu() {
       <div className="min-h-screen bg-slate-900 text-white font-sans flex flex-col items-center">
         <header className="w-full bg-slate-950 p-4 border-b border-slate-800 flex justify-between items-center max-w-md">
           <div className="flex items-center gap-3">
-            {/* LOGO EKLENDİ */}
             {restaurant.logo_url ? (
               <img src={restaurant.logo_url} alt="Logo" className="w-10 h-10 rounded-full object-cover border border-slate-700" />
             ) : (
-              <div className="w-10 h-10 bg-slate-800 rounded-full flex items-center justify-center font-bold text-orange-500">{restaurant.name[0]}</div>
+              <div className="w-10 h-10 bg-slate-800 rounded-full flex items-center justify-center font-bold" style={{ color: pColor }}>
+                {restaurant.name[0]}
+              </div>
             )}
             <h1 className="font-bold text-sm">{restaurant.name}</h1>
           </div>
           {restaurant.phone && (
-            <a href={`tel:${restaurant.phone}`} className="bg-orange-500 p-2 rounded-xl text-white">
+            <a href={`tel:${restaurant.phone}`} className="p-2 rounded-xl text-white" style={{ backgroundColor: pColor }}>
               <Phone size={16} />
             </a>
           )}
@@ -114,15 +117,14 @@ export default function PublicMenu() {
   if (template === 'custom_grid') {
     return (
       <div className="min-h-screen bg-slate-100 text-slate-900 font-sans pb-12">
-        <div className="bg-orange-500 text-white p-3 flex justify-between items-center px-4">
+        <div className="text-white p-3 flex justify-between items-center px-4" style={{ backgroundColor: pColor }}>
           <Info size={20} />
           <div className="flex gap-2">
             <button className="bg-white/20 p-1.5 rounded-lg"><Bell size={16} /></button>
-            <span className="bg-white text-orange-600 px-2 py-0.5 rounded text-xs font-bold">TR</span>
+            <span className="bg-white px-2 py-0.5 rounded text-xs font-bold" style={{ color: pColor }}>TR</span>
           </div>
         </div>
 
-        {/* KAPAK FOTOĞRAFI EKLENDİ */}
         {restaurant.cover_image && (
           <div 
             className="w-full h-36 bg-cover bg-center" 
@@ -132,7 +134,6 @@ export default function PublicMenu() {
 
         <div className="bg-white p-5 shadow-sm space-y-2 border-b">
           <div className="flex items-center gap-3">
-            {/* LOGO EKLENDİ */}
             {restaurant.logo_url && (
               <img src={restaurant.logo_url} alt="Logo" className="w-14 h-14 rounded-xl object-cover shadow-sm border border-slate-100" />
             )}
@@ -143,8 +144,8 @@ export default function PublicMenu() {
           </div>
 
           <div className="space-y-1 text-xs text-slate-600 pt-3 border-t mt-3">
-            <p className="flex items-center gap-1.5"><Clock size={14} className="text-orange-500" /> {restaurant.working_hours || '08:00 - 24:00'}</p>
-            {restaurant.address && <p className="flex items-center gap-1.5"><MapPin size={14} className="text-orange-500" /> {restaurant.address}</p>}
+            <p className="flex items-center gap-1.5"><Clock size={14} style={{ color: pColor }} /> {restaurant.working_hours || '08:00 - 24:00'}</p>
+            {restaurant.address && <p className="flex items-center gap-1.5"><MapPin size={14} style={{ color: pColor }} /> {restaurant.address}</p>}
           </div>
         </div>
 
@@ -165,7 +166,11 @@ export default function PublicMenu() {
           </div>
         ) : (
           <div className="max-w-md mx-auto p-4 space-y-3">
-            <button onClick={() => setSelectedCat('all')} className="text-xs font-bold text-orange-600 bg-orange-100 px-3 py-1.5 rounded-xl">
+            <button 
+              onClick={() => setSelectedCat('all')} 
+              className="text-xs font-bold px-3 py-1.5 rounded-xl"
+              style={{ color: pColor, backgroundColor: `${pColor}20` }}
+            >
               ← Kategorilere Dön
             </button>
             <div className="space-y-3">
@@ -175,7 +180,7 @@ export default function PublicMenu() {
                   <div className="flex-1 space-y-1">
                     <div className="flex justify-between items-start">
                       <h3 className="font-bold text-sm text-slate-900">{prod.name}</h3>
-                      <span className="font-extrabold text-orange-600 text-sm">₺{prod.price}</span>
+                      <span className="font-extrabold text-sm" style={{ color: pColor }}>₺{prod.price}</span>
                     </div>
                     <p className="text-[11px] text-slate-500 line-clamp-2">{prod.description}</p>
                   </div>
@@ -188,14 +193,13 @@ export default function PublicMenu() {
     );
   }
 
-  // 3. KLASİK TEMA (Zaten kapağı vardı, logoyu görselle değiştirdik)
+  // 3. KLASİK TEMA
   if (template === 'classic') {
     return (
       <div className="min-h-screen bg-slate-100 text-slate-900 font-sans pb-16">
         <div className="h-44 bg-slate-800 relative bg-cover bg-center" style={{ backgroundImage: restaurant.cover_image ? `url(${restaurant.cover_image})` : 'none' }}>
           <div className="absolute inset-0 bg-black/40" />
-          <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 w-20 h-20 rounded-full bg-white border-4 border-white shadow-lg overflow-hidden flex items-center justify-center font-bold text-orange-600 text-xl">
-            {/* LOGO GÖRSELİ EKLENDİ */}
+          <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 w-20 h-20 rounded-full bg-white border-4 border-white shadow-lg overflow-hidden flex items-center justify-center font-bold text-xl" style={{ color: pColor }}>
             {restaurant.logo_url ? (
               <img src={restaurant.logo_url} alt="Logo" className="w-full h-full object-cover" />
             ) : (
@@ -216,7 +220,7 @@ export default function PublicMenu() {
               <div className="flex-1 min-w-0 space-y-1">
                 <div className="flex justify-between items-start">
                   <h3 className="font-bold text-sm text-slate-900">{prod.name}</h3>
-                  <span className="font-extrabold text-orange-600 text-sm whitespace-nowrap">₺{prod.price}</span>
+                  <span className="font-extrabold text-sm whitespace-nowrap" style={{ color: pColor }}>₺{prod.price}</span>
                 </div>
                 <p className="text-[11px] text-slate-500 line-clamp-2">{prod.description}</p>
               </div>
@@ -227,18 +231,17 @@ export default function PublicMenu() {
     );
   }
 
-  // 4. MODERN TEMA (VARSAYILAN / ATTIĞIN İLK GÖRSEL)
+  // 4. MODERN TEMA (VARSAYILAN)
   return (
     <div className="min-h-screen bg-slate-100 text-slate-900 font-sans pb-16">
-      <header className="bg-orange-500 text-white p-3 px-4 flex justify-between items-center shadow-md">
+      <header className="text-white p-3 px-4 flex justify-between items-center shadow-md" style={{ backgroundColor: pColor }}>
         <span className="font-extrabold text-sm">≡</span>
         <div className="flex items-center gap-2">
           <button className="bg-white/20 p-1.5 rounded-lg"><Bell size={16} /></button>
-          <span className="bg-white text-orange-600 px-2 py-0.5 rounded text-xs font-bold">TR ▾</span>
+          <span className="bg-white px-2 py-0.5 rounded text-xs font-bold" style={{ color: pColor }}>TR ▾</span>
         </div>
       </header>
 
-      {/* KAPAK FOTOĞRAFI EKLENDİ */}
       {restaurant.cover_image && (
         <div 
           className="w-full h-32 bg-cover bg-center" 
@@ -248,11 +251,10 @@ export default function PublicMenu() {
 
       <div className="bg-white p-4 shadow-sm border-b space-y-3">
         <div className="flex gap-3 items-center">
-          {/* LOGO GÖRSELİ EKLENDİ */}
           {restaurant.logo_url ? (
             <img src={restaurant.logo_url} alt="Logo" className="w-16 h-16 object-cover rounded-xl border border-slate-100 shadow-sm" />
           ) : (
-            <div className="w-14 h-14 bg-orange-500 text-white font-extrabold text-xs rounded-xl flex items-center justify-center p-1 text-center">
+            <div className="w-14 h-14 text-white font-extrabold text-xs rounded-xl flex items-center justify-center p-1 text-center" style={{ backgroundColor: pColor }}>
               {restaurant.name[0]}
             </div>
           )}
@@ -264,15 +266,15 @@ export default function PublicMenu() {
         </div>
 
         <div className="flex flex-wrap gap-3 text-[11px] text-slate-600 pt-2 border-t mt-2">
-          <span className="flex items-center gap-1"><Clock size={12} className="text-orange-500" /> {restaurant.working_hours || '08:00 - 24:00'}</span>
-          {restaurant.address && <span className="flex items-center gap-1"><MapPin size={12} className="text-orange-500" /> {restaurant.address}</span>}
+          <span className="flex items-center gap-1"><Clock size={12} style={{ color: pColor }} /> {restaurant.working_hours || '08:00 - 24:00'}</span>
+          {restaurant.address && <span className="flex items-center gap-1"><MapPin size={12} style={{ color: pColor }} /> {restaurant.address}</span>}
         </div>
       </div>
 
       <main className="max-w-md mx-auto p-3 space-y-3">
         {categories.map((cat) => {
           const catProducts = products.filter(p => p.category_id === cat.id);
-          if (catProducts.length === 0) return null; // İçi boş kategorileri gizle (İsteğe bağlı)
+          if (catProducts.length === 0) return null;
           
           return (
             <div key={cat.id} className="bg-white rounded-2xl border shadow-sm overflow-hidden">
@@ -288,11 +290,11 @@ export default function PublicMenu() {
                     <div className="flex-1 min-w-0 space-y-1">
                       <div className="flex justify-between items-start gap-1">
                         <h3 className="font-bold text-xs text-slate-900 leading-snug">{prod.name}</h3>
-                        <button className="bg-slate-100 hover:bg-orange-500 hover:text-white text-slate-700 text-[10px] font-bold px-2 py-1 rounded border transition flex-shrink-0">
+                        <button className="bg-slate-100 text-[10px] font-bold px-2 py-1 rounded border transition flex-shrink-0" style={{ color: pColor }}>
                           EKLE +
                         </button>
                       </div>
-                      <p className="font-extrabold text-xs text-slate-900">₺{prod.price}</p>
+                      <p className="font-extrabold text-xs" style={{ color: pColor }}>₺{prod.price}</p>
                       <p className="text-[10px] text-slate-400 line-clamp-2">{prod.description}</p>
                     </div>
                   </div>
