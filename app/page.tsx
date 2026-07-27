@@ -409,6 +409,7 @@ export default function Dashboard() {
     });
   };
 
+  // --- RESTORAN BİLGİLERİ VE RESİMLERİ KAYDETME GÜNCELLENDİ ---
   const saveRestaurant = async () => {
     setSaveStatus('Kaydediliyor...');
     let updatedLogoUrl = restaurant.logo_url;
@@ -1610,7 +1611,7 @@ export default function Dashboard() {
                     <LayoutTemplate size={18} className="text-indigo-600" /> Masa QR Şablonu
                   </h2>
 
-                  <div className="bg-gradient-to-b from-slate-900 to-slate-950 p-6 rounded-2xl text-white flex flex-col items-center text-center gap-4 relative overflow-hidden shadow-lg border border-slate-800">
+                  <div className="bg-gradient-to-b from-slate-950 to-slate-900 p-6 rounded-2xl text-white flex flex-col items-center text-center gap-4 relative overflow-hidden shadow-lg border border-slate-800">
                     <div className="space-y-1">
                       <span className="bg-indigo-600 text-white text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">Masa 1</span>
                       <h3 className="font-black text-sm tracking-tight pt-1">QR KODU OKUTUN HEMEN SİPARİŞ VERİN</h3>
