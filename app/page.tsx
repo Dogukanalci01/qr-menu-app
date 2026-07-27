@@ -43,15 +43,20 @@ export default function Dashboard() {
   }, []);
 
   const fetchRestaurant = async () => {
-    const { data } = await supabase.from('restaurants').select('*').limit(1).single();
-    if (data) setRestaurant(data);
+    try {
+      const { data } = await supabase.from('restaurants').select('*').limit(1).maybeSingle();
+      if (data) setRestaurant(data);
+    } catch (err) {
+      console.error('Restaurant fetch error:', err);
+    }
   };
 
+  // KATEGORİLERİ ÇEKME (created_at yerine sort_order kullanıldı)
   const fetchCategories = async () => {
     const { data, error } = await supabase
       .from('categories')
       .select('*')
-      .order('created_at', { ascending: false });
+      .order('sort_order', { ascending: true }); // created_at hatasını önlemek için sort_order'a geçtik
 
     if (error) {
       console.error('Fetch Error:', error.message);
@@ -60,6 +65,7 @@ export default function Dashboard() {
     }
   };
 
+  // KATEGORİ EKLEME
   const addCategory = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (!newCatName.trim()) {
@@ -69,12 +75,11 @@ export default function Dashboard() {
 
     setLoading(true);
 
-    // Kategori objesini hazırlıyoruz
     const insertData: any = {
-      name: newCatName.trim()
+      name: newCatName.trim(),
+      sort_order: categories.length + 1
     };
 
-    // Eğer veritabanından gelen restoran ID'si varsa onu ekliyoruz
     if (restaurant?.id) {
       insertData.restaurant_id = restaurant.id;
     }
@@ -91,10 +96,11 @@ export default function Dashboard() {
       alert('Ekleme Hatası: ' + error.message);
     } else {
       setNewCatName('');
-      fetchCategories(); // Listeyi anında yenile
+      fetchCategories(); // Listeyi yenile
     }
   };
 
+  // KATEGORİ SİLME
   const deleteCategory = async (id: string) => {
     const { error } = await supabase.from('categories').delete().eq('id', id);
     if (error) {
