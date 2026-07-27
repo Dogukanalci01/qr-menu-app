@@ -19,7 +19,14 @@ import {
   Building2,
   Download,
   LayoutTemplate,
-  Clock
+  Clock,
+  Instagram,
+  Facebook,
+  Globe,
+  Youtube,
+  Phone,
+  MapPin,
+  Image as ImageIcon
 } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 
@@ -54,11 +61,16 @@ export default function Dashboard() {
   const [restaurant, setRestaurant] = useState<any>({
     name: 'Livadya Restaurant',
     slug: 'livadya-restaurant',
-    subtitle: 'Yemek Bizim İşimiz',
+    subtitle: 'Lezzet, Manzara ve Huzurun Adresi',
     phone: '0533 866 52 78',
     whatsapp: '905338665278',
-    address: 'Lefke, Kıbrıs',
+    address: 'Livadya Restaurant, Gaziveren, Lefke',
     working_hours: '08:00 - 24:00',
+    description: '',
+    instagram: '',
+    facebook: '',
+    website: '',
+    youtube: '',
     template: 'modern',
     cover_image: '',
     logo_url: '',
@@ -74,10 +86,7 @@ export default function Dashboard() {
   
   const [newCatName, setNewCatName] = useState('');
   
-  const [subCatForm, setSubCatForm] = useState({
-    name: '',
-    category_id: ''
-  });
+  const [subCatForm, setSubCatForm] = useState({ name: '', category_id: '' });
 
   const [productForm, setProductForm] = useState({
     name: '',
@@ -91,10 +100,18 @@ export default function Dashboard() {
   });
 
   const [showAllergenDropdown, setShowAllergenDropdown] = useState(false);
+  
+  // Ürün Fotoğrafı State'leri
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>('');
-  const [uploadingImage, setUploadingImage] = useState(false);
 
+  // Restoran Logo ve Kapak Yükleme State'leri
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [logoPreview, setLogoPreview] = useState<string>('');
+  const [coverFile, setCoverFile] = useState<File | null>(null);
+  const [coverPreview, setCoverPreview] = useState<string>('');
+
+  const [uploadingImage, setUploadingImage] = useState(false);
   const [saveStatus, setSaveStatus] = useState('');
   const [loadingCat, setLoadingCat] = useState(false);
   const [loadingSubCat, setLoadingSubCat] = useState(false);
@@ -102,7 +119,6 @@ export default function Dashboard() {
 
   const qrRef = useRef<HTMLDivElement>(null);
 
-  // Doğrudan yeni açtığımız /menu sayfasına yönlendirir
   const liveMenuUrl = `${MAIN_DOMAIN}/menu`;
 
   useEffect(() => {
@@ -112,7 +128,11 @@ export default function Dashboard() {
   useEffect(() => {
     if (selectedRestaurantId) {
       const active = restaurantsList.find(r => r.id === selectedRestaurantId);
-      if (active) setRestaurant(active);
+      if (active) {
+        setRestaurant(active);
+        setLogoPreview(active.logo_url || '');
+        setCoverPreview(active.cover_image || '');
+      }
 
       fetchCategories(selectedRestaurantId);
       fetchSubcategories(selectedRestaurantId);
@@ -126,11 +146,13 @@ export default function Dashboard() {
       setRestaurantsList(data);
       setSelectedRestaurantId(data[0].id);
       setRestaurant(data[0]);
+      setLogoPreview(data[0].logo_url || '');
+      setCoverPreview(data[0].cover_image || '');
     } else {
       const { data: newRest } = await supabase.from('restaurants').insert([{
         name: 'Livadya Restaurant',
         slug: 'livadya-restaurant',
-        subtitle: 'Yemek Bizim İşimiz',
+        subtitle: 'Lezzet, Manzara ve Huzurun Adresi',
         template: 'modern'
       }]).select();
       if (newRest) {
@@ -175,6 +197,22 @@ export default function Dashboard() {
       .order('id', { ascending: false });
 
     if (data) setProducts(data);
+  };
+
+  // Supabase Storage Yükleme Fonksiyonu
+  const uploadToStorage = async (file: File, folder: string): Promise<string> => {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${folder}_${Date.now()}.${fileExt}`;
+    const filePath = `${folder}/${fileName}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('product-images')
+      .upload(filePath, file);
+
+    if (uploadError) return '';
+
+    const { data } = supabase.storage.from('product-images').getPublicUrl(filePath);
+    return data.publicUrl;
   };
 
   const handleCreateRestaurant = async (e: React.FormEvent) => {
@@ -240,34 +278,43 @@ export default function Dashboard() {
     });
   };
 
-  const handleImageChange = (file: File) => {
-    if (!file) return;
-    setImageFile(file);
-    const reader = new FileReader();
-    reader.onloadend = () => setImagePreview(reader.result as string);
-    reader.readAsDataURL(file);
-  };
+  // Restoran Bilgilerini Kaydetme (Logo ve Kapak Yüklemeli)
+  const saveRestaurant = async () => {
+    setSaveStatus('Kaydediliyor...');
+    let updatedLogoUrl = restaurant.logo_url;
+    let updatedCoverUrl = restaurant.cover_image;
 
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      handleImageChange(e.dataTransfer.files[0]);
+    if (logoFile) {
+      const uploadedUrl = await uploadToStorage(logoFile, 'logos');
+      if (uploadedUrl) updatedLogoUrl = uploadedUrl;
     }
-  };
 
-  const uploadImageToStorage = async (file: File): Promise<string> => {
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${Date.now()}.${fileExt}`;
-    const filePath = `products/${fileName}`;
+    if (coverFile) {
+      const uploadedUrl = await uploadToStorage(coverFile, 'covers');
+      if (uploadedUrl) updatedCoverUrl = uploadedUrl;
+    }
 
-    const { error: uploadError } = await supabase.storage
-      .from('product-images')
-      .upload(filePath, file);
+    const payload = { 
+      ...restaurant,
+      logo_url: updatedLogoUrl,
+      cover_image: updatedCoverUrl
+    };
 
-    if (uploadError) return imagePreview;
+    const { data, error } = await supabase
+      .from('restaurants')
+      .upsert([payload], { onConflict: 'id' })
+      .select();
 
-    const { data } = supabase.storage.from('product-images').getPublicUrl(filePath);
-    return data.publicUrl;
+    if (!error && data) {
+      setRestaurant(data[0]);
+      setSaveStatus('Başarıyla Kaydedildi! ✓');
+      setLogoFile(null);
+      setCoverFile(null);
+      fetchAllRestaurants();
+      setTimeout(() => setSaveStatus(''), 3000);
+    } else {
+      setSaveStatus('Hata oluştu: ' + (error?.message || 'Bilinmeyen hata'));
+    }
   };
 
   const addCategory = async (e?: React.FormEvent) => {
@@ -326,7 +373,7 @@ export default function Dashboard() {
 
     if (imageFile) {
       setUploadingImage(true);
-      finalImageUrl = await uploadImageToStorage(imageFile);
+      finalImageUrl = await uploadToStorage(imageFile, 'products');
       setUploadingImage(false);
     }
 
@@ -379,25 +426,6 @@ export default function Dashboard() {
   const deleteProduct = async (id: string) => {
     await supabase.from('products').delete().eq('id', id);
     fetchProducts(selectedRestaurantId);
-  };
-
-  const saveRestaurant = async () => {
-    setSaveStatus('Kaydediliyor...');
-    const payload = { ...restaurant };
-
-    const { data, error } = await supabase
-      .from('restaurants')
-      .upsert([payload], { onConflict: 'id' })
-      .select();
-
-    if (!error && data) {
-      setRestaurant(data[0]);
-      setSaveStatus('Başarıyla Kaydedildi! ✓');
-      fetchAllRestaurants();
-      setTimeout(() => setSaveStatus(''), 3000);
-    } else {
-      setSaveStatus('Hata oluştu: ' + (error?.message || 'Bilinmeyen hata'));
-    }
   };
 
   const filteredSubcategories = subcategories.filter(s => s.category_id === productForm.category_id);
@@ -522,51 +550,176 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* RESTORAN BİLGİLERİ VE ARAYÜZ ŞABLON SEÇİMİ */}
+        {/* RESTORAN BİLGİLERİ VE DETAYLI YÖNETİM */}
         {activeTab === 'restaurant' && (
           <div className="max-w-5xl space-y-6">
             <div className="flex justify-between items-center">
-              <h1 className="text-2xl font-bold text-white">Restoran Bilgileri & Menü Şablonu</h1>
+              <h1 className="text-2xl font-bold text-white">Restoranı Yönet</h1>
               <button onClick={saveRestaurant} className="bg-indigo-600 text-white px-5 py-2.5 rounded-xl text-sm font-semibold flex items-center gap-2 hover:bg-indigo-500 transition">
                 <Save size={18} /> Kaydet
               </button>
             </div>
             {saveStatus && <p className="text-sm text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 p-3 rounded-xl">{saveStatus}</p>}
             
+            {/* FİRMA BİLGİLERİ */}
             <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-4">
-              <h2 className="font-bold text-white text-base">Firma Detayları</h2>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <label className="text-xs text-slate-400 uppercase font-bold block mb-1">Firma Adı</label>
-                  <input type="text" value={restaurant?.name || ''} onChange={(e) => setRestaurant({...restaurant, name: e.target.value})} className="w-full p-2.5 bg-slate-950 border border-slate-800 text-white rounded-xl text-sm outline-none" />
-                </div>
-                <div>
-                  <label className="text-xs text-slate-400 uppercase font-bold block mb-1">Firma Alt Başlığı</label>
-                  <input type="text" value={restaurant?.subtitle || ''} onChange={(e) => setRestaurant({...restaurant, subtitle: e.target.value})} className="w-full p-2.5 bg-slate-950 border border-slate-800 text-white rounded-xl text-sm outline-none" />
-                </div>
-                <div>
-                  <label className="text-xs text-slate-400 uppercase font-bold block mb-1 flex items-center gap-1"><Clock size={12} /> Çalışma Saatleri</label>
-                  <input type="text" value={restaurant?.working_hours || ''} onChange={(e) => setRestaurant({...restaurant, working_hours: e.target.value})} className="w-full p-2.5 bg-slate-950 border border-slate-800 text-white rounded-xl text-sm outline-none" placeholder="08:00 - 24:00" />
-                </div>
-              </div>
+              <h2 className="font-bold text-white text-base">Firma Bilgileri</h2>
+              
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-xs text-slate-400 uppercase font-bold block mb-1">Kapak Fotoğrafı URL (Header İçin)</label>
-                  <input type="text" value={restaurant?.cover_image || ''} onChange={(e) => setRestaurant({...restaurant, cover_image: e.target.value})} className="w-full p-2.5 bg-slate-950 border border-slate-800 text-white rounded-xl text-sm outline-none" placeholder="https://..." />
+                  <label className="text-xs text-slate-400 uppercase font-bold block mb-1">Firma Adı</label>
+                  <input type="text" value={restaurant?.name || ''} onChange={(e) => setRestaurant({...restaurant, name: e.target.value})} className="w-full p-2.5 bg-slate-950 border border-slate-800 text-white rounded-xl text-sm outline-none" placeholder="Livadya Restaurant" />
                 </div>
+
                 <div>
-                  <label className="text-xs text-indigo-400 uppercase font-bold block mb-1">Özel URL (Slug)</label>
-                  <input type="text" value={restaurant?.slug || ''} onChange={(e) => setRestaurant({...restaurant, slug: e.target.value})} className="w-full p-2.5 bg-slate-950 border border-slate-800 text-indigo-300 font-mono rounded-xl text-sm outline-none" />
+                  <label className="text-xs text-indigo-400 uppercase font-bold block mb-1">Firma Bağlantısı (Slug)</label>
+                  <input type="text" value={restaurant?.slug || ''} onChange={(e) => setRestaurant({...restaurant, slug: e.target.value})} className="w-full p-2.5 bg-slate-950 border border-slate-800 text-indigo-300 font-mono rounded-xl text-sm outline-none" placeholder="livadya-restaurant" />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-xs text-slate-400 uppercase font-bold block mb-1">Firma Alt Başlığı</label>
+                  <input type="text" value={restaurant?.subtitle || ''} onChange={(e) => setRestaurant({...restaurant, subtitle: e.target.value})} className="w-full p-2.5 bg-slate-950 border border-slate-800 text-white rounded-xl text-sm outline-none" placeholder="Lezzet, Manzara ve Huzurun Adresi" />
+                </div>
+
+                <div>
+                  <label className="text-xs text-slate-400 uppercase font-bold block mb-1 flex items-center gap-1"><Clock size={12} /> Çalışma Zaman Aralığı</label>
+                  <input type="text" value={restaurant?.working_hours || ''} onChange={(e) => setRestaurant({...restaurant, working_hours: e.target.value})} className="w-full p-2.5 bg-slate-950 border border-slate-800 text-white rounded-xl text-sm outline-none" placeholder="Pazartesi: Kapalı, Salı-Pazar: 11:00 - 00:30" />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs text-slate-400 uppercase font-bold block mb-1">Firma Açıklaması</label>
+                <textarea 
+                  rows={3}
+                  value={restaurant?.description || ''} 
+                  onChange={(e) => setRestaurant({...restaurant, description: e.target.value})} 
+                  className="w-full p-3 bg-slate-950 border border-slate-800 text-white rounded-xl text-sm outline-none leading-relaxed" 
+                  placeholder="Lefke Gaziveren'in eşsiz sahilinde yer alan Livadya Restaurant, doğayla iç içe..."
+                />
+              </div>
+
+              <div>
+                <label className="text-xs text-slate-400 uppercase font-bold block mb-1 flex items-center gap-1"><MapPin size={12} /> Adresiniz</label>
+                <input type="text" value={restaurant?.address || ''} onChange={(e) => setRestaurant({...restaurant, address: e.target.value})} className="w-full p-2.5 bg-slate-950 border border-slate-800 text-white rounded-xl text-sm outline-none" placeholder="Livadya Restaurant, Gaziveren, Lefke" />
+              </div>
+            </div>
+
+            {/* SÜRÜKLE - BIRAK / FOTOĞRAF YÜKLEME ALANLARI (LOGO & KAPAK) */}
+            <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-4">
+              <h2 className="font-bold text-white text-base">Görsel Yönetimi</h2>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* 1. LOGO YÜKLEME */}
+                <div className="space-y-2">
+                  <label className="text-xs text-slate-400 uppercase font-bold block">Logonuz</label>
+                  <div className="border-2 border-dashed border-slate-800 hover:border-indigo-500/50 bg-slate-950 p-4 rounded-2xl flex flex-col items-center justify-center gap-3 relative min-h-[160px]">
+                    <input 
+                      type="file" 
+                      accept="image/*"
+                      onChange={(e) => {
+                        if (e.target.files && e.target.files[0]) {
+                          const file = e.target.files[0];
+                          setLogoFile(file);
+                          const reader = new FileReader();
+                          reader.onloadend = () => setLogoPreview(reader.result as string);
+                          reader.readAsDataURL(file);
+                        }
+                      }}
+                      className="absolute inset-0 opacity-0 cursor-pointer z-10"
+                    />
+
+                    {logoPreview ? (
+                      <div className="relative w-full h-28 rounded-xl overflow-hidden flex items-center justify-center bg-white/5 border border-slate-800 p-2">
+                        <img src={logoPreview} alt="Logo" className="max-h-full max-w-full object-contain" />
+                      </div>
+                    ) : (
+                      <>
+                        <div className="w-10 h-10 rounded-full bg-indigo-600/10 text-indigo-400 flex items-center justify-center">
+                          <UploadCloud size={20} />
+                        </div>
+                        <p className="text-xs font-semibold text-slate-400 text-center">Logo Yüklemek İçin Tıklayın veya Sürükleyin</p>
+                      </>
+                    )}
+                  </div>
+                </div>
+
+                {/* 2. KAPAK RESMİ YÜKLEME */}
+                <div className="space-y-2">
+                  <label className="text-xs text-slate-400 uppercase font-bold block">Firma Kapak Resmi</label>
+                  <div className="border-2 border-dashed border-slate-800 hover:border-indigo-500/50 bg-slate-950 p-4 rounded-2xl flex flex-col items-center justify-center gap-3 relative min-h-[160px]">
+                    <input 
+                      type="file" 
+                      accept="image/*"
+                      onChange={(e) => {
+                        if (e.target.files && e.target.files[0]) {
+                          const file = e.target.files[0];
+                          setCoverFile(file);
+                          const reader = new FileReader();
+                          reader.onloadend = () => setCoverPreview(reader.result as string);
+                          reader.readAsDataURL(file);
+                        }
+                      }}
+                      className="absolute inset-0 opacity-0 cursor-pointer z-10"
+                    />
+
+                    {coverPreview ? (
+                      <div className="relative w-full h-28 rounded-xl overflow-hidden border border-slate-800">
+                        <img src={coverPreview} alt="Kapak" className="w-full h-full object-cover" />
+                      </div>
+                    ) : (
+                      <>
+                        <div className="w-10 h-10 rounded-full bg-orange-600/10 text-orange-400 flex items-center justify-center">
+                          <ImageIcon size={20} />
+                        </div>
+                        <p className="text-xs font-semibold text-slate-400 text-center">Kapak Yüklemek İçin Tıklayın veya Sürükleyin</p>
+                      </>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
 
-            {/* MENÜ ŞABLONU SEÇİMİ (BİREBİR İSTENEN GÖRSEL ARAYÜZÜ) */}
+            {/* İLETİŞİM & SOSYAL MEDYA LİNKLERİ */}
+            <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-4">
+              <h2 className="font-bold text-white text-base">İletişim & Sosyal Medya Linkleri</h2>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-xs text-slate-400 uppercase font-bold block mb-1 flex items-center gap-1.5"><Instagram size={14} className="text-pink-500" /> Instagram</label>
+                  <input type="text" value={restaurant?.instagram || ''} onChange={(e) => setRestaurant({...restaurant, instagram: e.target.value})} className="w-full p-2.5 bg-slate-950 border border-slate-800 text-white rounded-xl text-sm outline-none" placeholder="https://www.instagram.com/livadya_restoran/" />
+                </div>
+
+                <div>
+                  <label className="text-xs text-slate-400 uppercase font-bold block mb-1 flex items-center gap-1.5"><Facebook size={14} className="text-blue-500" /> Facebook</label>
+                  <input type="text" value={restaurant?.facebook || ''} onChange={(e) => setRestaurant({...restaurant, facebook: e.target.value})} className="w-full p-2.5 bg-slate-950 border border-slate-800 text-white rounded-xl text-sm outline-none" placeholder="https://www.facebook.com/p/Livadya-Restaurant..." />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-xs text-slate-400 uppercase font-bold block mb-1 flex items-center gap-1.5"><Phone size={14} className="text-emerald-500" /> WhatsApp Numarası</label>
+                  <input type="text" value={restaurant?.whatsapp || ''} onChange={(e) => setRestaurant({...restaurant, whatsapp: e.target.value})} className="w-full p-2.5 bg-slate-950 border border-slate-800 text-white rounded-xl text-sm outline-none" placeholder="05338665278" />
+                </div>
+
+                <div>
+                  <label className="text-xs text-slate-400 uppercase font-bold block mb-1 flex items-center gap-1.5"><Globe size={14} className="text-indigo-400" /> İnternet Sitesi</label>
+                  <input type="text" value={restaurant?.website || ''} onChange={(e) => setRestaurant({...restaurant, website: e.target.value})} className="w-full p-2.5 bg-slate-950 border border-slate-800 text-white rounded-xl text-sm outline-none" placeholder="https://..." />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs text-slate-400 uppercase font-bold block mb-1 flex items-center gap-1.5"><Youtube size={14} className="text-red-500" /> Youtube Sayfa Linkiniz</label>
+                <input type="text" value={restaurant?.youtube || ''} onChange={(e) => setRestaurant({...restaurant, youtube: e.target.value})} className="w-full p-2.5 bg-slate-950 border border-slate-800 text-white rounded-xl text-sm outline-none" placeholder="https://www.youtube.com/..." />
+              </div>
+            </div>
+
+            {/* MENÜ ŞABLONU SEÇİMİ */}
             <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-4">
               <h2 className="font-bold text-white text-base flex items-center gap-2">
                 <LayoutTemplate size={20} className="text-orange-400" /> Menü Şablonu Seçin
               </h2>
-              <p className="text-xs text-slate-400">Müşterilerin QR okuttuğunda göreceği tasarım düzenini seçin.</p>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-2">
                 {/* 1. Modern Tema */}
@@ -691,20 +844,6 @@ export default function Dashboard() {
                   )}
                 </div>
               </div>
-
-              {/* PDF / Görsel Menü Seçildiyse Yükleme Alanı */}
-              {restaurant?.template === 'pdf_image' && (
-                <div className="pt-3 border-t border-slate-800">
-                  <label className="text-xs text-orange-400 uppercase font-bold block mb-1">Görsel / Broşür Menü URL</label>
-                  <input 
-                    type="text" 
-                    value={restaurant?.custom_menu_image || ''} 
-                    onChange={(e) => setRestaurant({...restaurant, custom_menu_image: e.target.value})} 
-                    className="w-full p-2.5 bg-slate-950 border border-slate-800 text-white rounded-xl text-sm outline-none" 
-                    placeholder="https://.../menu-brosuru.jpg" 
-                  />
-                </div>
-              )}
             </div>
           </div>
         )}
@@ -919,13 +1058,30 @@ export default function Dashboard() {
                   <label className="text-xs text-slate-400 uppercase font-bold block mb-1">Ürün Fotoğrafı</label>
                   <div 
                     onDragOver={(e) => e.preventDefault()}
-                    onDrop={handleDrop}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                        const file = e.dataTransfer.files[0];
+                        setImageFile(file);
+                        const reader = new FileReader();
+                        reader.onloadend = () => setImagePreview(reader.result as string);
+                        reader.readAsDataURL(file);
+                      }
+                    }}
                     className="border-2 border-dashed border-slate-800 hover:border-indigo-500/50 bg-slate-950 p-6 rounded-2xl flex flex-col items-center justify-center gap-3 cursor-pointer transition relative group"
                   >
                     <input 
                       type="file" 
                       accept="image/*"
-                      onChange={(e) => e.target.files && handleImageChange(e.target.files[0])}
+                      onChange={(e) => {
+                        if (e.target.files && e.target.files[0]) {
+                          const file = e.target.files[0];
+                          setImageFile(file);
+                          const reader = new FileReader();
+                          reader.onloadend = () => setImagePreview(reader.result as string);
+                          reader.readAsDataURL(file);
+                        }
+                      }}
                       className="absolute inset-0 opacity-0 cursor-pointer"
                     />
 
