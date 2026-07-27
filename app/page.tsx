@@ -321,18 +321,26 @@ export default function Dashboard() {
   };
 
   const uploadToStorage = async (file: File, folder: string): Promise<string> => {
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${folder}_${Date.now()}.${fileExt}`;
-    const filePath = `${folder}/${fileName}`;
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${folder}_${Date.now()}_${Math.random().toString(36.substring(2, 7))}.${fileExt}`;
+      const filePath = `${folder}/${fileName}`;
 
-    const { error: uploadError } = await supabase.storage
-      .from('product-images')
-      .upload(filePath, file);
+      const { error: uploadError } = await supabase.storage
+        .from('product-images')
+        .upload(filePath, file);
 
-    if (uploadError) return '';
+      if (uploadError) {
+        console.error('Storage Upload Error:', uploadError.message);
+        return '';
+      }
 
-    const { data } = supabase.storage.from('product-images').getPublicUrl(filePath);
-    return data.publicUrl;
+      const { data } = supabase.storage.from('product-images').getPublicUrl(filePath);
+      return data.publicUrl;
+    } catch (err) {
+      console.error('Upload Exception:', err);
+      return '';
+    }
   };
 
   const handleCreateRestaurant = async (e: React.FormEvent) => {
@@ -429,6 +437,8 @@ export default function Dashboard() {
 
     if (!error && data) {
       setRestaurant(data[0]);
+      setLogoPreview(data[0].logo_url || '');
+      setCoverPreview(data[0].cover_image || '');
       setSaveStatus('Başarıyla Kaydedildi! ✓');
       setLogoFile(null);
       setCoverFile(null);
@@ -486,6 +496,7 @@ export default function Dashboard() {
     }
   };
 
+  // --- ÜRÜN EKLEME FONKSİYONU GÜNCELLENDİ (RESİM YÜKLEME GARANTİLİ) ---
   const addProduct = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!productForm.name.trim() || !productForm.price || !productForm.category_id || !selectedRestaurantId) {
@@ -494,13 +505,17 @@ export default function Dashboard() {
     }
 
     setLoadingProd(true);
+    setUploadingImage(true);
     let finalImageUrl = productForm.image_url;
 
+    // Eğer bir resim dosyası seçildiyse storage'a yükle
     if (imageFile) {
-      setUploadingImage(true);
-      finalImageUrl = await uploadToStorage(imageFile, 'products');
-      setUploadingImage(false);
+      const uploadedUrl = await uploadToStorage(imageFile, 'products');
+      if (uploadedUrl) {
+        finalImageUrl = uploadedUrl;
+      }
     }
+    setUploadingImage(false);
 
     const insertProduct: any = {
       name: productForm.name.trim(),
@@ -1135,14 +1150,17 @@ export default function Dashboard() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-2">
                   {/* 1. Bistro & Cafe */}
                   <div 
-                    onClick={() => setRestaurant({...restaurant, template: 'bistro'})}
+                    onClick={() => {
+                      setRestaurant({...restaurant, template: 'bistro'});
+                      logActivity('Şablon Değiştirildi', 'Bistro & Cafe şablonu seçildi.');
+                    }}
                     className={`border-2 rounded-2xl p-3 cursor-pointer transition flex flex-col justify-between relative overflow-hidden bg-slate-50 ${
                       (restaurant?.template || 'bistro') === 'bistro'
-                        ? 'border-indigo-600 ring-2 ring-indigo-600/20'
+                        ? 'border-indigo-600 ring-2 ring-indigo-600/20 bg-indigo-50/30'
                         : 'border-slate-200 hover:border-slate-300'
                     }`}
                   >
-                    <div className="h-44 bg-white rounded-xl p-2 flex flex-col gap-1.5 overflow-hidden text-slate-800 border border-slate-200 shadow-2xs">
+                    <div className="h-44 bg-white rounded-xl p-2 flex flex-col gap-1.5 overflow-hidden text-slate-800 border border-slate-200 shadow-2xs pointer-events-none">
                       <div className="bg-indigo-600 text-white p-1.5 rounded-lg text-[9px] font-extrabold flex justify-between items-center">
                         <span>≡ RESTORAN</span>
                         <span className="text-[7px] bg-white text-indigo-600 px-1 py-0.5 rounded font-bold">TR</span>
@@ -1170,14 +1188,17 @@ export default function Dashboard() {
 
                   {/* 2. DN Özel Teması */}
                   <div 
-                    onClick={() => setRestaurant({...restaurant, template: 'custom_grid'})}
+                    onClick={() => {
+                      setRestaurant({...restaurant, template: 'custom_grid'});
+                      logActivity('Şablon Değiştirildi', 'DN Özel Teması seçildi.');
+                    }}
                     className={`border-2 rounded-2xl p-3 cursor-pointer transition flex flex-col justify-between relative overflow-hidden bg-slate-50 ${
                       restaurant?.template === 'custom_grid'
-                        ? 'border-indigo-600 ring-2 ring-indigo-600/20'
+                        ? 'border-indigo-600 ring-2 ring-indigo-600/20 bg-indigo-50/30'
                         : 'border-slate-200 hover:border-slate-300'
                     }`}
                   >
-                    <div className="h-44 bg-white rounded-xl p-2 flex flex-col gap-1.5 overflow-hidden text-slate-800 border border-slate-200 shadow-2xs">
+                    <div className="h-44 bg-white rounded-xl p-2 flex flex-col gap-1.5 overflow-hidden text-slate-800 border border-slate-200 shadow-2xs pointer-events-none">
                       <div className="bg-indigo-600 text-white p-1 rounded-lg text-[8px] text-center font-extrabold">DN Özel Teması</div>
                       <div className="grid grid-cols-2 gap-1 mt-0.5">
                         <div className="h-10 bg-slate-800 rounded-lg text-white text-[7px] flex items-center justify-center font-bold">KAMPANYALAR</div>
@@ -1198,14 +1219,17 @@ export default function Dashboard() {
 
                   {/* 3. PDF / Broşür Menü */}
                   <div 
-                    onClick={() => setRestaurant({...restaurant, template: 'pdf_image'})}
+                    onClick={() => {
+                      setRestaurant({...restaurant, template: 'pdf_image'});
+                      logActivity('Şablon Değiştirildi', 'PDF / Broşür Menü şablonu seçildi.');
+                    }}
                     className={`border-2 rounded-2xl p-3 cursor-pointer transition flex flex-col justify-between relative overflow-hidden bg-slate-50 ${
                       restaurant?.template === 'pdf_image'
-                        ? 'border-indigo-600 ring-2 ring-indigo-600/20'
+                        ? 'border-indigo-600 ring-2 ring-indigo-600/20 bg-indigo-50/30'
                         : 'border-slate-200 hover:border-slate-300'
                     }`}
                   >
-                    <div className="h-44 bg-white rounded-xl p-2 flex flex-col items-center justify-center gap-2 border border-slate-200 shadow-2xs text-center">
+                    <div className="h-44 bg-white rounded-xl p-2 flex flex-col items-center justify-center gap-2 border border-slate-200 shadow-2xs text-center pointer-events-none">
                       <div className="w-12 h-16 bg-indigo-50 border-2 border-dashed border-indigo-400 rounded-lg flex flex-col items-center justify-center text-indigo-600">
                         <FileText size={18} />
                       </div>
@@ -1223,14 +1247,17 @@ export default function Dashboard() {
 
                   {/* 4. Gourmet & Dining */}
                   <div 
-                    onClick={() => setRestaurant({...restaurant, template: 'classic'})}
+                    onClick={() => {
+                      setRestaurant({...restaurant, template: 'classic'});
+                      logActivity('Şablon Değiştirildi', 'Gourmet & Dining şablonu seçildi.');
+                    }}
                     className={`border-2 rounded-2xl p-3 cursor-pointer transition flex flex-col justify-between relative overflow-hidden bg-slate-50 ${
                       restaurant?.template === 'classic'
-                        ? 'border-indigo-600 ring-2 ring-indigo-600/20'
+                        ? 'border-indigo-600 ring-2 ring-indigo-600/20 bg-indigo-50/30'
                         : 'border-slate-200 hover:border-slate-300'
                     }`}
                   >
-                    <div className="h-44 bg-white rounded-xl overflow-hidden border border-slate-200 shadow-2xs flex flex-col">
+                    <div className="h-44 bg-white rounded-xl overflow-hidden border border-slate-200 shadow-2xs flex flex-col pointer-events-none">
                       <div className="h-16 bg-slate-800 relative flex items-end justify-center pb-1">
                         <div className="w-8 h-8 rounded-full bg-white border border-slate-300 absolute -bottom-3 flex items-center justify-center text-[7px] font-bold text-indigo-600">
                           LOGO
@@ -1512,7 +1539,7 @@ export default function Dashboard() {
                     disabled={loadingProd || uploadingImage}
                     className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white py-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition shadow-xs"
                   >
-                    <Plus size={16} /> {loadingProd ? 'Ekleniyor...' : 'Ürünü Menüye Ekle'}
+                    <Plus size={16} /> {loadingProd || uploadingImage ? 'Yükleniyor & Ekleniyor...' : 'Ürünü Menüye Ekle'}
                   </button>
                 </form>
 
