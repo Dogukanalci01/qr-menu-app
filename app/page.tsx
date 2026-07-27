@@ -19,7 +19,6 @@ import { QRCodeSVG } from 'qrcode.react';
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState('menu');
   const [restaurant, setRestaurant] = useState<any>({
-    id: null,
     name: 'Livadya Restaurant',
     slug: 'livadya-restaurant',
     subtitle: 'Lezzet, Manzara ve Huzurun Adresi',
@@ -34,7 +33,6 @@ export default function Dashboard() {
   const [subcategories, setSubcategories] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
   
-  // State'ler
   const [newCatName, setNewCatName] = useState('');
   
   const [subCatForm, setSubCatForm] = useState({
@@ -73,11 +71,14 @@ export default function Dashboard() {
 
   const fetchRestaurant = async () => {
     try {
-      const { data } = await supabase.from('restaurants').select('*').eq('slug', 'livadya-restaurant').maybeSingle();
+      const { data } = await supabase
+        .from('restaurants')
+        .select('*')
+        .eq('slug', 'livadya-restaurant')
+        .maybeSingle();
+
       if (data) {
         setRestaurant(data);
-      } else {
-        await supabase.from('restaurants').upsert([restaurant], { onConflict: 'slug' });
       }
     } catch (err) {
       console.error('Restaurant fetch error:', err);
@@ -117,7 +118,6 @@ export default function Dashboard() {
     if (data) setProducts(data);
   };
 
-  // Görsel Sürükle - Bırak İşlemleri
   const handleImageChange = (file: File) => {
     if (!file) return;
     setImageFile(file);
@@ -148,7 +148,6 @@ export default function Dashboard() {
     return data.publicUrl;
   };
 
-  // 1. Ana Kategori Ekleme
   const addCategory = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (!newCatName.trim()) return;
@@ -166,7 +165,6 @@ export default function Dashboard() {
     }
   };
 
-  // 2. Alt Kategori Ekleme
   const addSubcategory = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!subCatForm.name.trim() || !subCatForm.category_id) {
@@ -193,7 +191,6 @@ export default function Dashboard() {
     }
   };
 
-  // 3. Ürün Ekleme
   const addProduct = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!productForm.name.trim() || !productForm.price || !productForm.category_id) {
@@ -257,14 +254,26 @@ export default function Dashboard() {
     fetchProducts();
   };
 
+  // RESTORAN KAYDETME DÜZELTMESİ (id null ise göndermiyoruz)
   const saveRestaurant = async () => {
     setSaveStatus('Kaydediliyor...');
-    const { error } = await supabase.from('restaurants').upsert([restaurant], { onConflict: 'slug' });
-    if (!error) {
+    
+    const payload = { ...restaurant };
+    if (!payload.id) {
+      delete payload.id; // null id hatasını önler
+    }
+
+    const { data, error } = await supabase
+      .from('restaurants')
+      .upsert([payload], { onConflict: 'slug' })
+      .select();
+
+    if (!error && data) {
+      setRestaurant(data[0]);
       setSaveStatus('Başarıyla Kaydedildi! ✓');
       setTimeout(() => setSaveStatus(''), 3000);
     } else {
-      setSaveStatus('Hata oluştu: ' + error.message);
+      setSaveStatus('Hata oluştu: ' + (error?.message || 'Bilinmeyen hata'));
     }
   };
 
@@ -333,14 +342,14 @@ export default function Dashboard() {
           <div className="max-w-3xl space-y-6">
             <div className="flex justify-between items-center">
               <h1 className="text-2xl font-bold text-white">Restoran Bilgileri</h1>
-              <button onClick={saveRestaurant} className="bg-indigo-600 text-white px-5 py-2.5 rounded-xl text-sm font-semibold flex items-center gap-2">
+              <button onClick={saveRestaurant} className="bg-indigo-600 text-white px-5 py-2.5 rounded-xl text-sm font-semibold flex items-center gap-2 hover:bg-indigo-500 transition">
                 <Save size={18} /> Kaydet
               </button>
             </div>
-            {saveStatus && <p className="text-sm text-emerald-400 bg-emerald-500/10 p-3 rounded-xl">{saveStatus}</p>}
+            {saveStatus && <p className="text-sm text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 p-3 rounded-xl">{saveStatus}</p>}
             <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-4">
-              <input type="text" value={restaurant.name} onChange={(e) => setRestaurant({...restaurant, name: e.target.value})} className="w-full p-2.5 bg-slate-950 border border-slate-800 text-white rounded-xl text-sm outline-none" placeholder="Firma Adı" />
-              <input type="text" value={restaurant.subtitle} onChange={(e) => setRestaurant({...restaurant, subtitle: e.target.value})} className="w-full p-2.5 bg-slate-950 border border-slate-800 text-white rounded-xl text-sm outline-none" placeholder="Firma Alt Başlığı" />
+              <input type="text" value={restaurant.name} onChange={(e) => setRestaurant({...restaurant, name: e.target.value})} className="w-full p-2.5 bg-slate-950 border border-slate-800 text-white rounded-xl text-sm outline-none focus:border-indigo-500" placeholder="Firma Adı" />
+              <input type="text" value={restaurant.subtitle} onChange={(e) => setRestaurant({...restaurant, subtitle: e.target.value})} className="w-full p-2.5 bg-slate-950 border border-slate-800 text-white rounded-xl text-sm outline-none focus:border-indigo-500" placeholder="Firma Alt Başlığı" />
             </div>
           </div>
         )}
