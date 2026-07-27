@@ -32,7 +32,9 @@ import {
   User,
   Settings,
   LogOut,
-  CreditCard
+  CreditCard,
+  Lock,
+  Mail
 } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 
@@ -67,6 +69,12 @@ export default function Dashboard() {
   const [isSignUp, setIsSignUp] = useState(false);
   const [authLoading, setAuthLoading] = useState(false);
   const [authMessage, setAuthMessage] = useState('');
+
+  // --- SETTINGS STATES ---
+  const [newEmail, setNewEmail] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [settingsMessage, setSettingsMessage] = useState('');
+  const [settingsLoading, setSettingsLoading] = useState(false);
 
   // --- DASHBOARD STATES ---
   const [activeTab, setActiveTab] = useState('menu');
@@ -136,10 +144,12 @@ export default function Dashboard() {
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
       setSessionUser(user);
+      if (user?.email) setNewEmail(user.email);
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSessionUser(session?.user ?? null);
+      if (session?.user?.email) setNewEmail(session.user.email);
     });
 
     return () => subscription.unsubscribe();
@@ -193,6 +203,37 @@ export default function Dashboard() {
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
+  };
+
+  // --- UPDATE EMAIL & PASSWORD ---
+  const handleUpdateSettings = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSettingsLoading(true);
+    setSettingsMessage('');
+
+    let updateData: any = {};
+    if (newEmail && newEmail !== sessionUser.email) {
+      updateData.email = newEmail;
+    }
+    if (newPassword) {
+      updateData.password = newPassword;
+    }
+
+    if (Object.keys(updateData).length === 0) {
+      setSettingsMessage('Değiştirilecek yeni bir e-posta veya şifre girmediniz.');
+      setSettingsLoading(false);
+      return;
+    }
+
+    const { error } = await supabase.auth.updateUser(updateData);
+    setSettingsLoading(false);
+
+    if (error) {
+      setSettingsMessage('Güncelleme Hatası: ' + error.message);
+    } else {
+      setSettingsMessage('Hesap ayarlarınız başarıyla güncellendi! ✓');
+      setNewPassword('');
+    }
   };
 
   const fetchAllRestaurants = async () => {
@@ -669,7 +710,12 @@ export default function Dashboard() {
                 <CreditCard size={16} /> İşlemler
               </button>
 
-              <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-50 transition">
+              <button 
+                onClick={() => setActiveTab('settings')} 
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold transition ${
+                  activeTab === 'settings' ? 'bg-indigo-50 text-indigo-600 font-extrabold border border-indigo-100' : 'text-slate-600 hover:bg-slate-50'
+                }`}
+              >
                 <Settings size={16} /> Hesap Ayarları
               </button>
 
@@ -714,6 +760,65 @@ export default function Dashboard() {
                     <button type="submit" className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2 rounded-xl text-xs font-bold shadow-xs">Oluştur</button>
                   </div>
                 </form>
+              </div>
+            </div>
+          )}
+
+          {/* HESAP AYARLARI (E-POSTA VE ŞİFRE DEĞİŞTİRME) */}
+          {activeTab === 'settings' && (
+            <div className="max-w-xl space-y-6">
+              <div>
+                <h1 className="text-2xl font-black text-slate-900">Hesap Ayarları</h1>
+                <p className="text-slate-500 text-xs font-medium mt-0.5">Oturum açma bilgilerinizi güncelleyin.</p>
+              </div>
+
+              <div className="bg-white border border-slate-200 p-6 rounded-2xl space-y-5 shadow-xs">
+                <h2 className="font-extrabold text-slate-900 text-sm flex items-center gap-2">
+                  <Settings size={18} className="text-indigo-600" /> Profil ve Güvenlik Bilgileri
+                </h2>
+
+                <form onSubmit={handleUpdateSettings} className="space-y-4">
+                  <div>
+                    <label className="text-xs text-slate-500 uppercase font-bold block mb-1 flex items-center gap-1.5">
+                      <Mail size={14} className="text-indigo-600" /> E-posta Adresi
+                    </label>
+                    <input
+                      type="email"
+                      value={newEmail}
+                      onChange={(e) => setNewEmail(e.target.value)}
+                      required
+                      className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 text-slate-800 rounded-xl text-xs font-semibold outline-none focus:border-indigo-500"
+                      placeholder="E-posta adresiniz"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-xs text-slate-500 uppercase font-bold block mb-1 flex items-center gap-1.5">
+                      <Lock size={14} className="text-indigo-600" /> Yeni Şifre (Değiştirmek istemiyorsanız boş bırakın)
+                    </label>
+                    <input
+                      type="password"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      placeholder="••••••••"
+                      className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 text-slate-800 rounded-xl text-xs font-semibold outline-none focus:border-indigo-500"
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={settingsLoading}
+                    className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white py-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition shadow-xs"
+                  >
+                    <Save size={16} /> {settingsLoading ? 'Güncelleniyor...' : 'Bilgileri Güncelle'}
+                  </button>
+                </form>
+
+                {settingsMessage && (
+                  <p className={`text-xs font-bold p-3 rounded-xl ${settingsMessage.includes('Hata') ? 'text-rose-600 bg-rose-50 border border-rose-200' : 'text-emerald-600 bg-emerald-50 border border-emerald-200'}`}>
+                    {settingsMessage}
+                  </p>
+                )}
               </div>
             </div>
           )}
