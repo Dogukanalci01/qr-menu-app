@@ -323,7 +323,7 @@ export default function Dashboard() {
   const uploadToStorage = async (file: File, folder: string): Promise<string> => {
     try {
       const fileExt = file.name.split('.').pop();
-      const fileName = `${folder}_${Date.now()}_${Math.random().toString(36.substring(2, 7))}.${fileExt}`;
+      const fileName = `${folder}_${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${fileExt}`;
       const filePath = `${folder}/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
@@ -496,7 +496,6 @@ export default function Dashboard() {
     }
   };
 
-  // --- ÜRÜN EKLEME FONKSİYONU GÜNCELLENDİ (RESİM YÜKLEME GARANTİLİ) ---
   const addProduct = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!productForm.name.trim() || !productForm.price || !productForm.category_id || !selectedRestaurantId) {
@@ -508,7 +507,6 @@ export default function Dashboard() {
     setUploadingImage(true);
     let finalImageUrl = productForm.image_url;
 
-    // Eğer bir resim dosyası seçildiyse storage'a yükle
     if (imageFile) {
       const uploadedUrl = await uploadToStorage(imageFile, 'products');
       if (uploadedUrl) {
