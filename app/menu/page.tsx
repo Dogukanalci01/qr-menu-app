@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
-import { Phone, MapPin, Clock, Flame, Info, Bell, ChevronDown } from 'lucide-react';
+import { Phone, MapPin, Clock, Flame, Info, Bell, ChevronDown, Menu as MenuIcon, X, Globe, Layers } from 'lucide-react';
 
 export default function PublicMenu() {
   const [restaurant, setRestaurant] = useState<any>(null);
@@ -11,6 +11,11 @@ export default function PublicMenu() {
   const [selectedCat, setSelectedCat] = useState<string>('all');
   const [loading, setLoading] = useState(true);
 
+  // --- MOBİL MENÜ & DİL STATELERİ ---
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isLangOpen, setIsLangOpen] = useState(false);
+  const [currentLang, setCurrentLang] = useState('TR');
+
   useEffect(() => {
     fetchData();
   }, []);
@@ -18,7 +23,6 @@ export default function PublicMenu() {
   const fetchData = async () => {
     setLoading(true);
 
-    // En son eklenen aktif restoranı çek
     const { data: restData } = await supabase
       .from('restaurants')
       .select('*')
@@ -71,36 +75,128 @@ export default function PublicMenu() {
   }
 
   const template = restaurant.template || 'modern';
-  // Restoranın seçtiği renk, yoksa varsayılan olarak turuncu (#f97316)
-  const pColor = restaurant.primary_color || '#f97316'; 
+  const pColor = restaurant.primary_color || '#f97316';
 
   const filteredProducts = products.filter(p => {
     if (selectedCat !== 'all' && p.category_id !== selectedCat) return false;
     return true;
   });
 
+  // Ortak Üst Bar (Tıklanabilir Hamburger Menü + Zil + Dil Seçici)
+  const renderHeader = () => (
+    <header className="text-white p-3 px-4 flex justify-between items-center shadow-md relative" style={{ backgroundColor: pColor }}>
+      <div className="flex items-center gap-3">
+        {/* SOL ÜST 3 ÇİZGİ (TIKLANABİLİR MENÜ ÇEKMECESİ) */}
+        <button 
+          onClick={() => setIsSidebarOpen(true)} 
+          className="p-1.5 bg-white/10 hover:bg-white/20 rounded-lg transition cursor-pointer"
+          title="Kategoriler ve Bilgiler"
+        >
+          <MenuIcon size={20} />
+        </button>
+        <span className="font-extrabold text-sm tracking-wide">{restaurant.name}</span>
+      </div>
+
+      <div className="flex items-center gap-2 relative">
+        <button 
+          onClick={() => alert('Garson çağrı bildirimi gönderildi!')} 
+          className="bg-white/20 hover:bg-white/30 p-1.5 rounded-lg transition cursor-pointer"
+          title="Garson Çağır / Bildirim"
+        >
+          <Bell size={16} />
+        </button>
+
+        {/* SAĞ ÜST DİL SEÇİCİ */}
+        <div className="relative">
+          <button 
+            onClick={() => setIsLangOpen(!isLangOpen)} 
+            className="bg-white px-2.5 py-1 rounded-lg text-xs font-bold flex items-center gap-1 shadow-sm transition cursor-pointer"
+            style={{ color: pColor }}
+          >
+            <Globe size={12} /> {currentLang} <ChevronDown size={12} />
+          </button>
+
+          {isLangOpen && (
+            <div className="absolute right-0 mt-2 w-28 bg-white border border-slate-200 rounded-xl shadow-xl z-50 overflow-hidden text-slate-800">
+              {['TR', 'EN', 'RU', 'DE'].map(lang => (
+                <button
+                  key={lang}
+                  onClick={() => { setCurrentLang(lang); setIsLangOpen(false); }}
+                  className={`w-full text-left px-3 py-2 text-xs font-bold hover:bg-slate-100 transition ${currentLang === lang ? 'text-indigo-600 bg-indigo-50' : ''}`}
+                >
+                  {lang === 'TR' ? '🇹🇷 Türkçe' : lang === 'EN' ? '🇬🇧 English' : lang === 'RU' ? '🇷🇺 Русский' : '🇩🇪 Deutsch'}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </header>
+  );
+
+  // Sol Sidebar (Kategoriler & Menü Hakkında)
+  const renderSidebar = () => {
+    if (!isSidebarOpen) return null;
+    return (
+      <div className="fixed inset-0 z-50 flex">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs" onClick={() => setIsSidebarOpen(false)} />
+        <div className="relative w-72 bg-white h-full shadow-2xl z-10 flex flex-col font-sans animate-in slide-in-from-left duration-200">
+          <div className="p-4 text-white flex justify-between items-center" style={{ backgroundColor: pColor }}>
+            <div className="flex items-center gap-2">
+              <Layers size={18} />
+              <h2 className="font-black text-sm">Menü İçeriği</h2>
+            </div>
+            <button onClick={() => setIsSidebarOpen(false)} className="p-1 hover:bg-white/20 rounded-lg transition">
+              <X size={18} />
+            </button>
+          </div>
+
+          <div className="p-4 border-b bg-slate-50 space-y-1">
+            <h3 className="font-extrabold text-xs text-slate-900">{restaurant.name}</h3>
+            <p className="text-[11px] text-slate-500">{restaurant.subtitle || 'Lezzet Noktası'}</p>
+          </div>
+
+          <div className="flex-1 overflow-y-auto p-3 space-y-1">
+            <p className="text-[10px] font-bold text-slate-400 uppercase px-2 mb-2 tracking-wider">Kategoriler</p>
+            <button 
+              onClick={() => { setSelectedCat('all'); setIsSidebarOpen(false); }}
+              className={`w-full text-left px-3 py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-between ${selectedCat === 'all' ? 'bg-indigo-50 text-indigo-600' : 'text-slate-700 hover:bg-slate-100'}`}
+            >
+              <span>Tüm Ürünler</span>
+              <span className="text-[10px] bg-slate-200 px-2 py-0.5 rounded-full">{products.length}</span>
+            </button>
+
+            {categories.map(cat => {
+              const count = products.filter(p => p.category_id === cat.id).length;
+              return (
+                <button
+                  key={cat.id}
+                  onClick={() => { setSelectedCat(cat.id); setIsSidebarOpen(false); }}
+                  className={`w-full text-left px-3 py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-between ${selectedCat === cat.id ? 'bg-indigo-50 text-indigo-600' : 'text-slate-700 hover:bg-slate-100'}`}
+                >
+                  <span className="truncate">{cat.name}</span>
+                  <span className="text-[10px] bg-slate-200 px-2 py-0.5 rounded-full">{count}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="p-4 border-t text-[11px] text-slate-500 space-y-1 bg-slate-50">
+            {restaurant.working_hours && <p className="flex items-center gap-1.5"><Clock size={12} /> {restaurant.working_hours}</p>}
+            {restaurant.phone && <p className="flex items-center gap-1.5"><Phone size={12} /> {restaurant.phone}</p>}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   // 1. KENDİ MENÜNÜ EKLE (PDF / GÖRSEL)
   if (template === 'pdf_image') {
     return (
       <div className="min-h-screen bg-slate-900 text-white font-sans flex flex-col items-center">
-        <header className="w-full bg-slate-950 p-4 border-b border-slate-800 flex justify-between items-center max-w-md">
-          <div className="flex items-center gap-3">
-            {restaurant.logo_url ? (
-              <img src={restaurant.logo_url} alt="Logo" className="w-10 h-10 rounded-full object-cover border border-slate-700" />
-            ) : (
-              <div className="w-10 h-10 bg-slate-800 rounded-full flex items-center justify-center font-bold" style={{ color: pColor }}>
-                {restaurant.name[0]}
-              </div>
-            )}
-            <h1 className="font-bold text-sm">{restaurant.name}</h1>
-          </div>
-          {restaurant.phone && (
-            <a href={`tel:${restaurant.phone}`} className="p-2 rounded-xl text-white" style={{ backgroundColor: pColor }}>
-              <Phone size={16} />
-            </a>
-          )}
-        </header>
-        <main className="max-w-md w-full p-2 space-y-3">
+        {renderSidebar()}
+        {renderHeader()}
+        <main className="max-w-md w-full p-2 space-y-3 mt-4">
           {restaurant.custom_menu_image ? (
             <img src={restaurant.custom_menu_image} alt="Menü Broşürü" className="w-full rounded-xl shadow-2xl" />
           ) : (
@@ -113,23 +209,15 @@ export default function PublicMenu() {
     );
   }
 
-  // 2. MENÜM ÖZEL TEMASI (KARE KATEGORİ GRID)
+  // 2. KARE KATEGORİ GRID TEMASI
   if (template === 'custom_grid') {
     return (
       <div className="min-h-screen bg-slate-100 text-slate-900 font-sans pb-12">
-        <div className="text-white p-3 flex justify-between items-center px-4" style={{ backgroundColor: pColor }}>
-          <Info size={20} />
-          <div className="flex gap-2">
-            <button className="bg-white/20 p-1.5 rounded-lg"><Bell size={16} /></button>
-            <span className="bg-white px-2 py-0.5 rounded text-xs font-bold" style={{ color: pColor }}>TR</span>
-          </div>
-        </div>
+        {renderSidebar()}
+        {renderHeader()}
 
         {restaurant.cover_image && (
-          <div 
-            className="w-full h-36 bg-cover bg-center" 
-            style={{ backgroundImage: `url(${restaurant.cover_image})` }}
-          ></div>
+          <div className="w-full h-36 bg-cover bg-center" style={{ backgroundImage: `url(${restaurant.cover_image})` }}></div>
         )}
 
         <div className="bg-white p-5 shadow-sm space-y-2 border-b">
@@ -157,7 +245,8 @@ export default function PublicMenu() {
                 <div
                   key={cat.id}
                   onClick={() => setSelectedCat(cat.id)}
-                  className="h-28 bg-slate-800 rounded-2xl relative overflow-hidden cursor-pointer shadow-md flex items-end p-3 border border-slate-700"
+                  className="h-28 bg-slate-800 rounded-2xl relative overflow-hidden cursor-pointer shadow-md flex items-end p-3 border border-slate-700 bg-cover bg-center"
+                  style={{ backgroundImage: cat.image_url ? `linear-gradient(to top, rgba(0,0,0,0.8), rgba(0,0,0,0.2)), url(${cat.image_url})` : 'none' }}
                 >
                   <span className="font-extrabold text-sm text-white relative z-20 uppercase">{cat.name}</span>
                 </div>
@@ -168,7 +257,7 @@ export default function PublicMenu() {
           <div className="max-w-md mx-auto p-4 space-y-3">
             <button 
               onClick={() => setSelectedCat('all')} 
-              className="text-xs font-bold px-3 py-1.5 rounded-xl"
+              className="text-xs font-bold px-3 py-1.5 rounded-xl cursor-pointer"
               style={{ color: pColor, backgroundColor: `${pColor}20` }}
             >
               ← Kategorilere Dön
@@ -197,6 +286,9 @@ export default function PublicMenu() {
   if (template === 'classic') {
     return (
       <div className="min-h-screen bg-slate-100 text-slate-900 font-sans pb-16">
+        {renderSidebar()}
+        {renderHeader()}
+
         <div className="h-44 bg-slate-800 relative bg-cover bg-center" style={{ backgroundImage: restaurant.cover_image ? `url(${restaurant.cover_image})` : 'none' }}>
           <div className="absolute inset-0 bg-black/40" />
           <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 w-20 h-20 rounded-full bg-white border-4 border-white shadow-lg overflow-hidden flex items-center justify-center font-bold text-xl" style={{ color: pColor }}>
@@ -231,22 +323,14 @@ export default function PublicMenu() {
     );
   }
 
-  // 4. MODERN TEMA (VARSAYILAN)
+  // 4. MODERN TEMA (VARSAYILAN BİSTRO)
   return (
     <div className="min-h-screen bg-slate-100 text-slate-900 font-sans pb-16">
-      <header className="text-white p-3 px-4 flex justify-between items-center shadow-md" style={{ backgroundColor: pColor }}>
-        <span className="font-extrabold text-sm">≡</span>
-        <div className="flex items-center gap-2">
-          <button className="bg-white/20 p-1.5 rounded-lg"><Bell size={16} /></button>
-          <span className="bg-white px-2 py-0.5 rounded text-xs font-bold" style={{ color: pColor }}>TR ▾</span>
-        </div>
-      </header>
+      {renderSidebar()}
+      {renderHeader()}
 
       {restaurant.cover_image && (
-        <div 
-          className="w-full h-32 bg-cover bg-center" 
-          style={{ backgroundImage: `url(${restaurant.cover_image})` }}
-        ></div>
+        <div className="w-full h-32 bg-cover bg-center" style={{ backgroundImage: `url(${restaurant.cover_image})` }}></div>
       )}
 
       <div className="bg-white p-4 shadow-sm border-b space-y-3">
@@ -279,7 +363,10 @@ export default function PublicMenu() {
           return (
             <div key={cat.id} className="bg-white rounded-2xl border shadow-sm overflow-hidden">
               <div className="p-3.5 bg-slate-50 border-b flex justify-between items-center font-bold text-sm text-slate-800">
-                <span>{cat.name}</span>
+                <div className="flex items-center gap-2.5">
+                  {cat.image_url && <img src={cat.image_url} alt={cat.name} className="w-7 h-7 rounded-lg object-cover border" />}
+                  <span>{cat.name}</span>
+                </div>
                 <ChevronDown size={16} className="text-slate-400" />
               </div>
 
@@ -290,7 +377,7 @@ export default function PublicMenu() {
                     <div className="flex-1 min-w-0 space-y-1">
                       <div className="flex justify-between items-start gap-1">
                         <h3 className="font-bold text-xs text-slate-900 leading-snug">{prod.name}</h3>
-                        <button className="bg-slate-100 text-[10px] font-bold px-2 py-1 rounded border transition flex-shrink-0" style={{ color: pColor }}>
+                        <button className="bg-slate-100 text-[10px] font-bold px-2 py-1 rounded border transition flex-shrink-0 cursor-pointer" style={{ color: pColor }}>
                           EKLE +
                         </button>
                       </div>
