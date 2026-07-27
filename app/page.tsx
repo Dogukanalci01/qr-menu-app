@@ -261,10 +261,12 @@ export default function Dashboard() {
     const { data, error } = await supabase.from('restaurants').select('*').order('created_at', { ascending: false });
     if (!error && data && data.length > 0) {
       setRestaurantsList(data);
-      setSelectedRestaurantId(data[0].id);
-      setRestaurant(data[0]);
-      setLogoPreview(data[0].logo_url || '');
-      setCoverPreview(data[0].cover_image || '');
+      if (!selectedRestaurantId) {
+        setSelectedRestaurantId(data[0].id);
+        setRestaurant(data[0]);
+        setLogoPreview(data[0].logo_url || '');
+        setCoverPreview(data[0].cover_image || '');
+      }
     } else {
       const { data: newRest } = await supabase.from('restaurants').insert([{
         name: 'Livadya Restaurant',
