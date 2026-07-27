@@ -4,70 +4,6 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { Phone, MapPin, Clock, Flame, Info, Bell, ChevronDown, Menu as MenuIcon, X, Globe, Layers } from 'lucide-react';
 
-// --- ÇEVİRİ SÖZLÜĞÜ ---
-const translations: any = {
-  TR: {
-    callWaiter: 'Garson çağrı bildirimi gönderildi!',
-    waiterBtn: 'Garson Çağır',
-    menuContent: 'Menü İçeriği',
-    allProducts: 'Tüm Ürünler',
-    categories: 'Kategoriler',
-    categoriesTitle: 'Kategoriler',
-    backToCategories: '← Kategorilere Dön',
-    addBtn: 'EKLE +',
-    noBrochure: 'Henüz menü broşür görseli yüklenmedi.',
-    notFound: 'Restoran Bulunamadı',
-    loading: 'Menü Yükleniyor...',
-    workingHours: 'Çalışma Saatleri',
-    defaultSubtitle: 'Yemek Bizim İşimiz'
-  },
-  EN: {
-    callWaiter: 'Waiter call notification sent!',
-    waiterBtn: 'Call Waiter',
-    menuContent: 'Menu Content',
-    allProducts: 'All Products',
-    categories: 'Categories',
-    categoriesTitle: 'Categories',
-    backToCategories: '← Back to Categories',
-    addBtn: 'ADD +',
-    noBrochure: 'Menu brochure image has not been uploaded yet.',
-    notFound: 'Restaurant Not Found',
-    loading: 'Loading Menu...',
-    workingHours: 'Working Hours',
-    defaultSubtitle: 'Food is Our Business'
-  },
-  RU: {
-    callWaiter: 'Уведомление официанту отправлено!',
-    waiterBtn: 'Вызвать официанта',
-    menuContent: 'Содержание меню',
-    allProducts: 'Все продукты',
-    categories: 'Категории',
-    categoriesTitle: 'Категории',
-    backToCategories: '← Назад к категориям',
-    addBtn: 'ДОБАВИТЬ +',
-    noBrochure: 'Изображение брошюры меню еще не загружено.',
-    notFound: 'Ресторан не найден',
-    loading: 'Загрузка меню...',
-    workingHours: 'Часы работы',
-    defaultSubtitle: 'Еда - это наш бизнес'
-  },
-  DE: {
-    callWaiter: 'Kellner-Benachrichtigung gesendet!',
-    waiterBtn: 'Kellner rufen',
-    menuContent: 'Menüinhalte',
-    allProducts: 'Alle Produkte',
-    categories: 'Kategorien',
-    categoriesTitle: 'Kategorien',
-    backToCategories: '← Zurück zu Kategorien',
-    addBtn: 'HINZUFÜGEN +',
-    noBrochure: 'Menü-Broschürenbild wurde noch nicht hochgeladen.',
-    notFound: 'Restaurant nicht gefunden',
-    loading: 'Menü wird geladen...',
-    workingHours: 'Öffnungszeiten',
-    defaultSubtitle: 'Essen ist unser Geschäft'
-  }
-};
-
 export default function PublicMenu() {
   const [restaurant, setRestaurant] = useState<any>(null);
   const [categories, setCategories] = useState<any[]>([]);
@@ -80,11 +16,36 @@ export default function PublicMenu() {
   const [isLangOpen, setIsLangOpen] = useState(false);
   const [currentLang, setCurrentLang] = useState('TR');
 
-  const t = translations[currentLang] || translations.TR;
-
   useEffect(() => {
     fetchData();
+    // Google Translate scriptini sayfaya ekle
+    if (!document.getElementById('google-translate-script')) {
+      const script = document.createElement('script');
+      script.id = 'google-translate-script';
+      script.src = 'https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
+      script.async = true;
+      document.body.appendChild(script);
+
+      (window as any).googleTranslateElementInit = () => {
+        new (window as any).google.translate.TranslateElement(
+          { pageLanguage: 'tr', includedLanguages: 'tr,en,ru,de', autoDisplay: false },
+          'google_translate_element'
+        );
+      };
+    }
   }, []);
+
+  // Google Translate dil değiştirme tetikleyicisi
+  const changeGoogleLanguage = (langCode: string) => {
+    setCurrentLang(langCode);
+    setIsLangOpen(false);
+
+    const selectEl = document.querySelector('.goog-te-combo') as HTMLSelectElement;
+    if (selectEl) {
+      selectEl.value = langCode.toLowerCase();
+      selectEl.dispatchEvent(new Event('change'));
+    }
+  };
 
   const fetchData = async () => {
     setLoading(true);
@@ -123,7 +84,7 @@ export default function PublicMenu() {
       <div className="min-h-screen bg-white text-slate-800 flex items-center justify-center p-4 font-sans">
         <div className="flex flex-col items-center gap-3">
           <div className="w-10 h-10 border-4 border-slate-300 border-t-slate-800 rounded-full animate-spin"></div>
-          <p className="text-slate-500 text-xs font-semibold">{t.loading}</p>
+          <p className="text-slate-500 text-xs font-semibold">Menü Yükleniyor...</p>
         </div>
       </div>
     );
@@ -135,7 +96,7 @@ export default function PublicMenu() {
         <div className="w-16 h-16 bg-rose-500/10 text-rose-500 rounded-2xl flex items-center justify-center mb-4">
           <Info size={32} />
         </div>
-        <h1 className="text-xl font-bold">{t.notFound}</h1>
+        <h1 className="text-xl font-bold">Restoran Bulunamadı</h1>
       </div>
     );
   }
@@ -148,9 +109,12 @@ export default function PublicMenu() {
     return true;
   });
 
-  // Ortak Üst Bar (Görseldeki gibi bayrak simgeli dil menüsü)
+  // Ortak Üst Bar
   const renderHeader = () => (
     <header className="text-white p-3 px-4 flex justify-between items-center shadow-md relative" style={{ backgroundColor: pColor }}>
+      {/* Gizli Google Translate Elementi (Çeviriyi arkada yönetir) */}
+      <div id="google_translate_element" style={{ display: 'none' }}></div>
+
       <div className="flex items-center gap-3">
         <button 
           onClick={() => setIsSidebarOpen(true)} 
@@ -164,14 +128,14 @@ export default function PublicMenu() {
 
       <div className="flex items-center gap-2 relative">
         <button 
-          onClick={() => alert(t.callWaiter)} 
+          onClick={() => alert('Garson çağrı bildirimi gönderildi!')} 
           className="bg-white/20 hover:bg-white/30 p-1.5 rounded-lg transition cursor-pointer"
-          title={t.waiterBtn}
+          title="Garson Çağır"
         >
           <Bell size={16} />
         </button>
 
-        {/* GÖRSELDEKİ DİL SEÇİCİ TASARIMI */}
+        {/* DİL SEÇİCİ MENÜSÜ */}
         <div className="relative">
           <button 
             onClick={() => setIsLangOpen(!isLangOpen)} 
@@ -191,7 +155,7 @@ export default function PublicMenu() {
               ].map(lang => (
                 <button
                   key={lang.code}
-                  onClick={() => { setCurrentLang(lang.code); setIsLangOpen(false); }}
+                  onClick={() => changeGoogleLanguage(lang.code)}
                   className={`w-full text-left px-3.5 py-2 text-xs font-bold hover:bg-slate-100 transition flex items-center gap-2 cursor-pointer ${currentLang === lang.code ? 'text-indigo-600 bg-indigo-50' : ''}`}
                 >
                   <span className="text-sm">{lang.flag}</span> <span>{lang.label}</span>
@@ -204,7 +168,7 @@ export default function PublicMenu() {
     </header>
   );
 
-  // Sol Menü Çekmecesi (Drawer)
+  // Sol Menü Çekmecesi
   const renderSidebar = () => {
     if (!isSidebarOpen) return null;
     return (
@@ -214,7 +178,7 @@ export default function PublicMenu() {
           <div className="p-4 text-white flex justify-between items-center" style={{ backgroundColor: pColor }}>
             <div className="flex items-center gap-2">
               <Layers size={18} />
-              <h2 className="font-black text-sm">{t.menuContent}</h2>
+              <h2 className="font-black text-sm">Menü İçeriği</h2>
             </div>
             <button onClick={() => setIsSidebarOpen(false)} className="p-1 hover:bg-white/20 rounded-lg transition cursor-pointer">
               <X size={18} />
@@ -223,16 +187,16 @@ export default function PublicMenu() {
 
           <div className="p-4 border-b bg-slate-50 space-y-1">
             <h3 className="font-extrabold text-xs text-slate-900">{restaurant.name}</h3>
-            <p className="text-[11px] text-slate-500">{restaurant.subtitle || t.defaultSubtitle}</p>
+            <p className="text-[11px] text-slate-500">{restaurant.subtitle || 'Lezzet Noktası'}</p>
           </div>
 
           <div className="flex-1 overflow-y-auto p-3 space-y-1">
-            <p className="text-[10px] font-bold text-slate-400 uppercase px-2 mb-2 tracking-wider">{t.categories}</p>
+            <p className="text-[10px] font-bold text-slate-400 uppercase px-2 mb-2 tracking-wider">Kategoriler</p>
             <button 
               onClick={() => { setSelectedCat('all'); setIsSidebarOpen(false); }}
               className={`w-full text-left px-3 py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-between cursor-pointer ${selectedCat === 'all' ? 'bg-indigo-50 text-indigo-600' : 'text-slate-700 hover:bg-slate-100'}`}
             >
-              <span>{t.allProducts}</span>
+              <span>Tüm Ürünler</span>
               <span className="text-[10px] bg-slate-200 px-2 py-0.5 rounded-full">{products.length}</span>
             </button>
 
@@ -271,7 +235,7 @@ export default function PublicMenu() {
             <img src={restaurant.custom_menu_image} alt="Menü Broşürü" className="w-full rounded-xl shadow-2xl" />
           ) : (
             <div className="bg-slate-800 p-12 text-center rounded-2xl text-slate-400 text-xs">
-              {t.noBrochure}
+              Henüz menü broşür görseli yüklenmedi.
             </div>
           )}
         </main>
@@ -297,7 +261,7 @@ export default function PublicMenu() {
             )}
             <div>
               <h1 className="text-xl font-extrabold">{restaurant.name}</h1>
-              <p className="text-xs text-slate-500 font-medium">{restaurant.subtitle || t.defaultSubtitle}</p>
+              <p className="text-xs text-slate-500 font-medium">{restaurant.subtitle || 'Yemek Bizim İşimiz'}</p>
             </div>
           </div>
 
@@ -309,7 +273,7 @@ export default function PublicMenu() {
 
         {selectedCat === 'all' ? (
           <div className="max-w-md mx-auto p-4 space-y-3">
-            <h2 className="text-xs uppercase font-extrabold text-slate-400 tracking-wider">{t.categoriesTitle}</h2>
+            <h2 className="text-xs uppercase font-extrabold text-slate-400 tracking-wider">Kategoriler</h2>
             <div className="grid grid-cols-2 gap-3">
               {categories.map((cat) => (
                 <div
@@ -330,7 +294,7 @@ export default function PublicMenu() {
               className="text-xs font-bold px-3 py-1.5 rounded-xl cursor-pointer"
               style={{ color: pColor, backgroundColor: `${pColor}20` }}
             >
-              {t.backToCategories}
+              ← Kategorilere Dön
             </button>
             <div className="space-y-3">
               {filteredProducts.map((prod) => (
@@ -415,7 +379,7 @@ export default function PublicMenu() {
           
           <div>
             <h1 className="font-extrabold text-lg text-slate-900">{restaurant.name}</h1>
-            <p className="text-xs text-slate-400 font-semibold">{restaurant.subtitle || t.defaultSubtitle}</p>
+            <p className="text-xs text-slate-400 font-semibold">{restaurant.subtitle || 'Yemek Bizim İşimiz'}</p>
           </div>
         </div>
 
@@ -448,7 +412,7 @@ export default function PublicMenu() {
                       <div className="flex justify-between items-start gap-1">
                         <h3 className="font-bold text-xs text-slate-900 leading-snug">{prod.name}</h3>
                         <button className="bg-slate-100 text-[10px] font-bold px-2 py-1 rounded border transition flex-shrink-0 cursor-pointer" style={{ color: pColor }}>
-                          {t.addBtn}
+                          EKLE +
                         </button>
                       </div>
                       <p className="font-extrabold text-xs" style={{ color: pColor }}>₺{prod.price}</p>
