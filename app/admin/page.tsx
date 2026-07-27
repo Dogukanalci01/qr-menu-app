@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { supabase } from '../lib/supabase';
+import { useState, useEffect, useRef } from 'react';
+import { supabase } from '../../lib/supabase';
 import { 
   Plus, 
   Trash2, 
@@ -16,7 +16,8 @@ import {
   Flame,
   Check,
   ChevronDown,
-  Building2
+  Building2,
+  Download
 } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 
@@ -93,16 +94,17 @@ export default function Dashboard() {
   const [loadingSubCat, setLoadingSubCat] = useState(false);
   const [loadingProd, setLoadingProd] = useState(false);
 
-  const liveMenuUrl = typeof window !== 'undefined' 
-    ? `${window.location.origin}/menu/${restaurant.slug}` 
-    : `https://example.com/menu/${restaurant.slug}`;
+  const qrRef = useRef<HTMLDivElement>(null);
 
-  // 1. Tüm Restoranları Çek
+  // Dinamik olarak seçili restoranın slug'ına göre URL oluşturur
+  const liveMenuUrl = typeof window !== 'undefined' 
+    ? `${window.location.origin}/menu/${restaurant?.slug || 'livadya-restaurant'}` 
+    : `https://example.com/menu/${restaurant?.slug || 'livadya-restaurant'}`;
+
   useEffect(() => {
     fetchAllRestaurants();
   }, []);
 
-  // Restoran seçilince o restorana ait kategori, alt kategori ve ürünleri çek
   useEffect(() => {
     if (selectedRestaurantId) {
       const active = restaurantsList.find(r => r.id === selectedRestaurantId);
@@ -121,7 +123,6 @@ export default function Dashboard() {
       setSelectedRestaurantId(data[0].id);
       setRestaurant(data[0]);
     } else {
-      // Eğer veritabanında hiç restoran yoksa varsayılanı oluşturalım
       const { data: newRest } = await supabase.from('restaurants').insert([{
         name: 'Livadya Restaurant',
         slug: 'livadya-restaurant',
@@ -174,7 +175,6 @@ export default function Dashboard() {
     if (data) setProducts(data);
   };
 
-  // Yeni Restoran Oluşturma
   const handleCreateRestaurant = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newRestForm.name.trim() || !newRestForm.slug.trim()) {
@@ -182,12 +182,12 @@ export default function Dashboard() {
       return;
     }
 
-    const formattedSlug = newRestForm.slug.toLowerCase().replace(/[^a-z0-9-]/g, '-');
+    const formattedSlug = newRestForm.slug.toLowerCase().trim().replace(/[^a-z0-9-]/g, '-');
 
     const { data, error } = await supabase.from('restaurants').insert([{
       name: newRestForm.name.trim(),
       slug: formattedSlug,
-      subtitle: 'Yeni İletişim & Lezzet Adresi'
+      subtitle: 'Nefis lezzetler ve huzurlu ortam.'
     }]).select();
 
     if (error) {
@@ -195,10 +195,36 @@ export default function Dashboard() {
     } else if (data) {
       setRestaurantsList([data[0], ...restaurantsList]);
       setSelectedRestaurantId(data[0].id);
+      setRestaurant(data[0]);
       setNewRestForm({ name: '', slug: '' });
       setShowNewRestModal(false);
-      alert('Yeni Restoran Başarıyla Eklendi!');
     }
+  };
+
+  const downloadQR = () => {
+    const svg = qrRef.current?.querySelector('svg');
+    if (!svg) return;
+    const svgData = new XMLSerializer().serializeToString(svg);
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    const img = new Image();
+    
+    img.onload = () => {
+      canvas.width = img.width + 40;
+      canvas.height = img.height + 40;
+      if (ctx) {
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 20, 20);
+        const pngFile = canvas.toDataURL('image/png');
+        const downloadLink = document.createElement('a');
+        downloadLink.download = `${restaurant.slug}-qr-menu.png`;
+        downloadLink.href = `${pngFile}`;
+        downloadLink.click();
+      }
+    };
+
+    img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)));
   };
 
   const toggleAllergen = (allergenId: string) => {
@@ -486,7 +512,7 @@ export default function Dashboard() {
           <div className="max-w-5xl space-y-8">
             <div className="flex justify-between items-center">
               <div>
-                <h1 className="text-2xl font-bold text-white">{restaurant.name} Gösterge Paneli</h1>
+                <h1 className="text-2xl font-bold text-white">{restaurant?.name} Gösterge Paneli</h1>
                 <p className="text-slate-400 text-sm mt-0.5">Seçili restorana ait istatistikler.</p>
               </div>
               <a href={liveMenuUrl} target="_blank" rel="noreferrer" className="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2.5 rounded-xl text-sm font-semibold flex items-center gap-2">
@@ -503,7 +529,7 @@ export default function Dashboard() {
                 <h3 className="text-3xl font-extrabold text-purple-400 mt-2">{subcategories.length}</h3>
               </div>
               <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl">
-                <p className="text-xs text-slate-400 uppercase font-semibold font-semibold">Toplam Ürün</p>
+                <p className="text-xs text-slate-400 uppercase font-semibold">Toplam Ürün</p>
                 <h3 className="text-3xl font-extrabold text-indigo-400 mt-2">{products.length}</h3>
               </div>
             </div>
@@ -513,7 +539,7 @@ export default function Dashboard() {
         {activeTab === 'restaurant' && (
           <div className="max-w-3xl space-y-6">
             <div className="flex justify-between items-center">
-              <h1 className="text-2xl font-bold text-white">Restoran Bilgileri ({restaurant.name})</h1>
+              <h1 className="text-2xl font-bold text-white">Restoran Bilgileri ({restaurant?.name})</h1>
               <button onClick={saveRestaurant} className="bg-indigo-600 text-white px-5 py-2.5 rounded-xl text-sm font-semibold flex items-center gap-2 hover:bg-indigo-500 transition">
                 <Save size={18} /> Kaydet
               </button>
@@ -522,15 +548,15 @@ export default function Dashboard() {
             <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-4">
               <div>
                 <label className="text-xs text-slate-400 uppercase font-bold block mb-1">Firma Adı</label>
-                <input type="text" value={restaurant.name} onChange={(e) => setRestaurant({...restaurant, name: e.target.value})} className="w-full p-2.5 bg-slate-950 border border-slate-800 text-white rounded-xl text-sm outline-none" />
+                <input type="text" value={restaurant?.name || ''} onChange={(e) => setRestaurant({...restaurant, name: e.target.value})} className="w-full p-2.5 bg-slate-950 border border-slate-800 text-white rounded-xl text-sm outline-none" />
               </div>
               <div>
                 <label className="text-xs text-slate-400 uppercase font-bold block mb-1">Firma Alt Başlığı</label>
-                <input type="text" value={restaurant.subtitle || ''} onChange={(e) => setRestaurant({...restaurant, subtitle: e.target.value})} className="w-full p-2.5 bg-slate-950 border border-slate-800 text-white rounded-xl text-sm outline-none" />
+                <input type="text" value={restaurant?.subtitle || ''} onChange={(e) => setRestaurant({...restaurant, subtitle: e.target.value})} className="w-full p-2.5 bg-slate-950 border border-slate-800 text-white rounded-xl text-sm outline-none" />
               </div>
               <div>
                 <label className="text-xs text-indigo-400 uppercase font-bold block mb-1">Özel URL (Slug)</label>
-                <input type="text" value={restaurant.slug} onChange={(e) => setRestaurant({...restaurant, slug: e.target.value})} className="w-full p-2.5 bg-slate-950 border border-slate-800 text-indigo-300 font-mono rounded-xl text-sm outline-none" />
+                <input type="text" value={restaurant?.slug || ''} onChange={(e) => setRestaurant({...restaurant, slug: e.target.value})} className="w-full p-2.5 bg-slate-950 border border-slate-800 text-indigo-300 font-mono rounded-xl text-sm outline-none" />
               </div>
             </div>
           </div>
@@ -539,7 +565,7 @@ export default function Dashboard() {
         {activeTab === 'menu' && (
           <div className="max-w-4xl space-y-8">
             <div className="bg-indigo-600/10 border border-indigo-500/20 p-4 rounded-2xl flex justify-between items-center">
-              <p className="text-xs text-indigo-300 font-medium">Şu an <strong>{restaurant.name}</strong> için menü düzenliyorsun.</p>
+              <p className="text-xs text-indigo-300 font-medium">Şu an <strong>{restaurant?.name}</strong> için menü düzenliyorsun.</p>
             </div>
 
             {/* 1. ANA KATEGORİ YÖNETİMİ */}
@@ -847,21 +873,29 @@ export default function Dashboard() {
           </div>
         )}
 
+        {/* RESTORANA ÖZEL DİNAMİK QR STÜDYO */}
         {activeTab === 'qr' && (
           <div className="max-w-3xl space-y-6">
             <div>
-              <h1 className="text-2xl font-bold text-white tracking-tight">{restaurant.name} Özel QR Kodu</h1>
-              <p className="text-slate-400 text-sm mt-0.5">Bu QR kod doğrudan bu restorana özel URL'e yönlendirir.</p>
+              <h1 className="text-2xl font-bold text-white tracking-tight">{restaurant?.name} Özel QR Kodu</h1>
+              <p className="text-slate-400 text-sm mt-0.5">Bu QR kod doğrudan <strong>{restaurant?.name}</strong> menüsüne yönlendirir.</p>
             </div>
 
             <div className="bg-slate-900 border border-slate-800 p-8 rounded-2xl w-fit flex flex-col items-center gap-5 shadow-xl">
-              <div className="p-4 bg-white rounded-2xl">
+              <div ref={qrRef} className="p-4 bg-white rounded-2xl shadow-inner">
                 <QRCodeSVG value={liveMenuUrl} size={220} />
               </div>
-              <div className="text-center">
+              <div className="text-center space-y-1">
                 <p className="text-xs text-slate-500 uppercase font-mono tracking-wider">Hedef URL</p>
-                <p className="text-sm font-medium text-indigo-400 font-mono mt-0.5">{liveMenuUrl}</p>
+                <p className="text-sm font-medium text-indigo-400 font-mono select-all bg-slate-950 px-3 py-1.5 rounded-lg border border-slate-800">{liveMenuUrl}</p>
               </div>
+
+              <button
+                onClick={downloadQR}
+                className="bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-2.5 rounded-xl text-sm font-semibold flex items-center gap-2 transition shadow-lg shadow-indigo-600/20"
+              >
+                <Download size={18} /> QR Kodu İndir (PNG)
+              </button>
             </div>
           </div>
         )}
