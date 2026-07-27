@@ -15,11 +15,11 @@ import {
   FolderTree,
   Flame,
   Check,
-  ChevronDown
+  ChevronDown,
+  Building2
 } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 
-// ALERJEN LİSTESİ VE EMOJİLERİ
 const ALLERGEN_OPTIONS = [
   { id: 'gluten', label: 'Gluten İçeren Tahıllar', icon: '🌾' },
   { id: 'crustaceans', label: 'Kabuklular', icon: '🦐' },
@@ -43,8 +43,11 @@ const ALLERGEN_OPTIONS = [
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState('menu');
+  
+  // Multi-tenant Restoran State'leri
+  const [restaurantsList, setRestaurantsList] = useState<any[]>([]);
+  const [selectedRestaurantId, setSelectedRestaurantId] = useState<string>('');
   const [restaurant, setRestaurant] = useState<any>({
-    id: null,
     name: 'Livadya Restaurant',
     slug: 'livadya-restaurant',
     subtitle: 'Lezzet, Manzara ve Huzurun Adresi',
@@ -54,6 +57,9 @@ export default function Dashboard() {
     instagram: '',
     description: 'Nefis lezzetler ve huzurlu ortam.'
   });
+
+  const [newRestForm, setNewRestForm] = useState({ name: '', slug: '' });
+  const [showNewRestModal, setShowNewRestModal] = useState(false);
 
   const [categories, setCategories] = useState<any[]>([]);
   const [subcategories, setSubcategories] = useState<any[]>([]);
@@ -91,56 +97,110 @@ export default function Dashboard() {
     ? `${window.location.origin}/menu/${restaurant.slug}` 
     : `https://example.com/menu/${restaurant.slug}`;
 
+  // 1. Tüm Restoranları Çek
   useEffect(() => {
-    fetchRestaurant();
-    fetchCategories();
-    fetchSubcategories();
-    fetchProducts();
+    fetchAllRestaurants();
   }, []);
 
-  const fetchRestaurant = async () => {
-    try {
-      const { data } = await supabase.from('restaurants').select('*').eq('slug', 'livadya-restaurant').maybeSingle();
-      if (data) setRestaurant(data);
-    } catch (err) {
-      console.error('Restaurant fetch error:', err);
+  // Restoran seçilince o restorana ait kategori, alt kategori ve ürünleri çek
+  useEffect(() => {
+    if (selectedRestaurantId) {
+      const active = restaurantsList.find(r => r.id === selectedRestaurantId);
+      if (active) setRestaurant(active);
+
+      fetchCategories(selectedRestaurantId);
+      fetchSubcategories(selectedRestaurantId);
+      fetchProducts(selectedRestaurantId);
+    }
+  }, [selectedRestaurantId]);
+
+  const fetchAllRestaurants = async () => {
+    const { data, error } = await supabase.from('restaurants').select('*').order('created_at', { ascending: false });
+    if (!error && data && data.length > 0) {
+      setRestaurantsList(data);
+      setSelectedRestaurantId(data[0].id);
+      setRestaurant(data[0]);
+    } else {
+      // Eğer veritabanında hiç restoran yoksa varsayılanı oluşturalım
+      const { data: newRest } = await supabase.from('restaurants').insert([{
+        name: 'Livadya Restaurant',
+        slug: 'livadya-restaurant',
+        subtitle: 'Lezzet, Manzara ve Huzurun Adresi'
+      }]).select();
+      if (newRest) {
+        setRestaurantsList(newRest);
+        setSelectedRestaurantId(newRest[0].id);
+        setRestaurant(newRest[0]);
+      }
     }
   };
 
-  const fetchCategories = async () => {
+  const fetchCategories = async (restId: string) => {
     const { data } = await supabase
       .from('categories')
       .select('*')
+      .eq('restaurant_id', restId)
       .order('sort_order', { ascending: true });
 
     if (data) {
       setCategories(data);
       if (data.length > 0) {
-        setSubCatForm((prev) => prev.category_id ? prev : { ...prev, category_id: data[0].id });
-        setProductForm((prev) => prev.category_id ? prev : { ...prev, category_id: data[0].id });
+        setSubCatForm((prev) => ({ ...prev, category_id: data[0].id }));
+        setProductForm((prev) => ({ ...prev, category_id: data[0].id }));
+      } else {
+        setSubCatForm((prev) => ({ ...prev, category_id: '' }));
+        setProductForm((prev) => ({ ...prev, category_id: '' }));
       }
     }
   };
 
-  const fetchSubcategories = async () => {
+  const fetchSubcategories = async (restId: string) => {
     const { data } = await supabase
       .from('subcategories')
       .select('*, categories(name)')
+      .eq('restaurant_id', restId)
       .order('sort_order', { ascending: true });
 
     if (data) setSubcategories(data);
   };
 
-  const fetchProducts = async () => {
+  const fetchProducts = async (restId: string) => {
     const { data } = await supabase
       .from('products')
       .select('*, categories(name), subcategories(name)')
+      .eq('restaurant_id', restId)
       .order('id', { ascending: false });
 
     if (data) setProducts(data);
   };
 
-  // Alerjen Seçimi İşlemi (Çoklu Seçim)
+  // Yeni Restoran Oluşturma
+  const handleCreateRestaurant = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newRestForm.name.trim() || !newRestForm.slug.trim()) {
+      alert('Lütfen restoran adı ve URL (slug) girin!');
+      return;
+    }
+
+    const formattedSlug = newRestForm.slug.toLowerCase().replace(/[^a-z0-9-]/g, '-');
+
+    const { data, error } = await supabase.from('restaurants').insert([{
+      name: newRestForm.name.trim(),
+      slug: formattedSlug,
+      subtitle: 'Yeni İletişim & Lezzet Adresi'
+    }]).select();
+
+    if (error) {
+      alert('Restoran Oluşturma Hatası: ' + error.message);
+    } else if (data) {
+      setRestaurantsList([data[0], ...restaurantsList]);
+      setSelectedRestaurantId(data[0].id);
+      setNewRestForm({ name: '', slug: '' });
+      setShowNewRestModal(false);
+      alert('Yeni Restoran Başarıyla Eklendi!');
+    }
+  };
+
   const toggleAllergen = (allergenId: string) => {
     setProductForm((prev) => {
       const exists = prev.allergens.includes(allergenId);
@@ -183,24 +243,27 @@ export default function Dashboard() {
 
   const addCategory = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    if (!newCatName.trim()) return;
+    if (!newCatName.trim() || !selectedRestaurantId) return;
 
     setLoadingCat(true);
-    const insertData: any = { name: newCatName.trim(), sort_order: categories.length + 1 };
-    if (restaurant?.id) insertData.restaurant_id = restaurant.id;
+    const insertData: any = { 
+      name: newCatName.trim(), 
+      sort_order: categories.length + 1,
+      restaurant_id: selectedRestaurantId
+    };
 
     const { error } = await supabase.from('categories').insert([insertData]);
     setLoadingCat(false);
 
     if (!error) {
       setNewCatName('');
-      fetchCategories();
+      fetchCategories(selectedRestaurantId);
     }
   };
 
   const addSubcategory = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!subCatForm.name.trim() || !subCatForm.category_id) {
+    if (!subCatForm.name.trim() || !subCatForm.category_id || !selectedRestaurantId) {
       alert('Lütfen bir alt kategori adı ve bağlı olduğu ana kategoriyi seçin!');
       return;
     }
@@ -209,22 +272,22 @@ export default function Dashboard() {
     const insertData: any = {
       name: subCatForm.name.trim(),
       category_id: subCatForm.category_id,
+      restaurant_id: selectedRestaurantId,
       sort_order: subcategories.length + 1
     };
-    if (restaurant?.id) insertData.restaurant_id = restaurant.id;
 
     const { error } = await supabase.from('subcategories').insert([insertData]);
     setLoadingSubCat(false);
 
     if (!error) {
       setSubCatForm({ name: '', category_id: categories[0]?.id || '' });
-      fetchSubcategories();
+      fetchSubcategories(selectedRestaurantId);
     }
   };
 
   const addProduct = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!productForm.name.trim() || !productForm.price || !productForm.category_id) {
+    if (!productForm.name.trim() || !productForm.price || !productForm.category_id || !selectedRestaurantId) {
       alert('Lütfen ürün adı, fiyatı ve ana kategorisini seçin!');
       return;
     }
@@ -246,10 +309,9 @@ export default function Dashboard() {
       allergens: productForm.allergens,
       image_url: finalImageUrl,
       category_id: productForm.category_id,
-      subcategory_id: productForm.subcategory_id || null
+      subcategory_id: productForm.subcategory_id || null,
+      restaurant_id: selectedRestaurantId
     };
-
-    if (restaurant?.id) insertProduct.restaurant_id = restaurant.id;
 
     const { error } = await supabase.from('products').insert([insertProduct]);
     setLoadingProd(false);
@@ -270,39 +332,39 @@ export default function Dashboard() {
       setImageFile(null);
       setImagePreview('');
       setShowAllergenDropdown(false);
-      fetchProducts();
+      fetchProducts(selectedRestaurantId);
     }
   };
 
   const deleteCategory = async (id: string) => {
     await supabase.from('categories').delete().eq('id', id);
-    fetchCategories();
-    fetchSubcategories();
+    fetchCategories(selectedRestaurantId);
+    fetchSubcategories(selectedRestaurantId);
   };
 
   const deleteSubcategory = async (id: string) => {
     await supabase.from('subcategories').delete().eq('id', id);
-    fetchSubcategories();
+    fetchSubcategories(selectedRestaurantId);
   };
 
   const deleteProduct = async (id: string) => {
     await supabase.from('products').delete().eq('id', id);
-    fetchProducts();
+    fetchProducts(selectedRestaurantId);
   };
 
   const saveRestaurant = async () => {
     setSaveStatus('Kaydediliyor...');
     const payload = { ...restaurant };
-    if (!payload.id) delete payload.id;
 
     const { data, error } = await supabase
       .from('restaurants')
-      .upsert([payload], { onConflict: 'slug' })
+      .upsert([payload], { onConflict: 'id' })
       .select();
 
     if (!error && data) {
       setRestaurant(data[0]);
       setSaveStatus('Başarıyla Kaydedildi! ✓');
+      fetchAllRestaurants();
       setTimeout(() => setSaveStatus(''), 3000);
     } else {
       setSaveStatus('Hata oluştu: ' + (error?.message || 'Bilinmeyen hata'));
@@ -322,7 +384,30 @@ export default function Dashboard() {
             </div>
             <div>
               <h2 className="font-bold text-sm text-white">QR Menü App</h2>
-              <p className="text-[11px] text-slate-400">Yönetim Paneli</p>
+              <p className="text-[11px] text-slate-400">Çoklu Restoran Paneli</p>
+            </div>
+          </div>
+
+          {/* RESTORAN SEÇİCİ ALANI */}
+          <div className="p-4 border-b border-slate-800/60">
+            <label className="text-[10px] uppercase font-bold text-slate-400 mb-1.5 block">Aktif Restoran</label>
+            <div className="flex gap-2">
+              <select
+                value={selectedRestaurantId}
+                onChange={(e) => setSelectedRestaurantId(e.target.value)}
+                className="w-full bg-slate-950 border border-slate-800 text-white rounded-xl px-3 py-2 text-xs outline-none focus:border-indigo-500 font-semibold"
+              >
+                {restaurantsList.map((r) => (
+                  <option key={r.id} value={r.id}>{r.name}</option>
+                ))}
+              </select>
+              <button 
+                onClick={() => setShowNewRestModal(true)}
+                className="bg-indigo-600 hover:bg-indigo-500 text-white p-2 rounded-xl transition flex-shrink-0"
+                title="Yeni Restoran Ekle"
+              >
+                <Plus size={16} />
+              </button>
             </div>
           </div>
 
@@ -345,10 +430,65 @@ export default function Dashboard() {
 
       {/* Main Content */}
       <main className="flex-1 p-8 overflow-y-auto">
+        {/* YENİ RESTORAN EKLEME MODALI */}
+        {showNewRestModal && (
+          <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+            <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl max-w-md w-full space-y-4">
+              <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                <Building2 size={20} className="text-indigo-400" /> Yeni Restoran Tanımla
+              </h2>
+              <p className="text-xs text-slate-400">Sistemde bağımsız yeni bir menü ve özel QR kod oluşturur.</p>
+
+              <form onSubmit={handleCreateRestaurant} className="space-y-3">
+                <div>
+                  <label className="text-xs text-slate-400 uppercase font-bold block mb-1">Restoran Adı</label>
+                  <input 
+                    type="text" 
+                    placeholder="Örn: Deniz Balık Restoran" 
+                    value={newRestForm.name}
+                    onChange={(e) => setNewRestForm({...newRestForm, name: e.target.value, slug: e.target.value.toLowerCase().replace(/\s+/g, '-')})}
+                    className="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 text-white rounded-xl text-sm outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs text-slate-400 uppercase font-bold block mb-1">Özel URL (Slug)</label>
+                  <input 
+                    type="text" 
+                    placeholder="deniz-balik-restoran" 
+                    value={newRestForm.slug}
+                    onChange={(e) => setNewRestForm({...newRestForm, slug: e.target.value})}
+                    className="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 text-white rounded-xl text-sm outline-none font-mono"
+                  />
+                </div>
+
+                <div className="flex justify-end gap-2 pt-2">
+                  <button 
+                    type="button" 
+                    onClick={() => setShowNewRestModal(false)}
+                    className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:bg-slate-800"
+                  >
+                    İptal
+                  </button>
+                  <button 
+                    type="submit" 
+                    className="bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-2 rounded-xl text-xs font-semibold"
+                  >
+                    Oluştur
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
         {activeTab === 'dashboard' && (
           <div className="max-w-5xl space-y-8">
             <div className="flex justify-between items-center">
-              <h1 className="text-2xl font-bold text-white">Gösterge Paneli</h1>
+              <div>
+                <h1 className="text-2xl font-bold text-white">{restaurant.name} Gösterge Paneli</h1>
+                <p className="text-slate-400 text-sm mt-0.5">Seçili restorana ait istatistikler.</p>
+              </div>
               <a href={liveMenuUrl} target="_blank" rel="noreferrer" className="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2.5 rounded-xl text-sm font-semibold flex items-center gap-2">
                 Canlı Menüyü Aç <ExternalLink size={16} />
               </a>
@@ -363,7 +503,7 @@ export default function Dashboard() {
                 <h3 className="text-3xl font-extrabold text-purple-400 mt-2">{subcategories.length}</h3>
               </div>
               <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl">
-                <p className="text-xs text-slate-400 uppercase font-semibold">Toplam Ürün</p>
+                <p className="text-xs text-slate-400 uppercase font-semibold font-semibold">Toplam Ürün</p>
                 <h3 className="text-3xl font-extrabold text-indigo-400 mt-2">{products.length}</h3>
               </div>
             </div>
@@ -373,21 +513,35 @@ export default function Dashboard() {
         {activeTab === 'restaurant' && (
           <div className="max-w-3xl space-y-6">
             <div className="flex justify-between items-center">
-              <h1 className="text-2xl font-bold text-white">Restoran Bilgileri</h1>
+              <h1 className="text-2xl font-bold text-white">Restoran Bilgileri ({restaurant.name})</h1>
               <button onClick={saveRestaurant} className="bg-indigo-600 text-white px-5 py-2.5 rounded-xl text-sm font-semibold flex items-center gap-2 hover:bg-indigo-500 transition">
                 <Save size={18} /> Kaydet
               </button>
             </div>
             {saveStatus && <p className="text-sm text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 p-3 rounded-xl">{saveStatus}</p>}
             <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-4">
-              <input type="text" value={restaurant.name} onChange={(e) => setRestaurant({...restaurant, name: e.target.value})} className="w-full p-2.5 bg-slate-950 border border-slate-800 text-white rounded-xl text-sm outline-none focus:border-indigo-500" placeholder="Firma Adı" />
-              <input type="text" value={restaurant.subtitle} onChange={(e) => setRestaurant({...restaurant, subtitle: e.target.value})} className="w-full p-2.5 bg-slate-950 border border-slate-800 text-white rounded-xl text-sm outline-none focus:border-indigo-500" placeholder="Firma Alt Başlığı" />
+              <div>
+                <label className="text-xs text-slate-400 uppercase font-bold block mb-1">Firma Adı</label>
+                <input type="text" value={restaurant.name} onChange={(e) => setRestaurant({...restaurant, name: e.target.value})} className="w-full p-2.5 bg-slate-950 border border-slate-800 text-white rounded-xl text-sm outline-none" />
+              </div>
+              <div>
+                <label className="text-xs text-slate-400 uppercase font-bold block mb-1">Firma Alt Başlığı</label>
+                <input type="text" value={restaurant.subtitle || ''} onChange={(e) => setRestaurant({...restaurant, subtitle: e.target.value})} className="w-full p-2.5 bg-slate-950 border border-slate-800 text-white rounded-xl text-sm outline-none" />
+              </div>
+              <div>
+                <label className="text-xs text-indigo-400 uppercase font-bold block mb-1">Özel URL (Slug)</label>
+                <input type="text" value={restaurant.slug} onChange={(e) => setRestaurant({...restaurant, slug: e.target.value})} className="w-full p-2.5 bg-slate-950 border border-slate-800 text-indigo-300 font-mono rounded-xl text-sm outline-none" />
+              </div>
             </div>
           </div>
         )}
 
         {activeTab === 'menu' && (
           <div className="max-w-4xl space-y-8">
+            <div className="bg-indigo-600/10 border border-indigo-500/20 p-4 rounded-2xl flex justify-between items-center">
+              <p className="text-xs text-indigo-300 font-medium">Şu an <strong>{restaurant.name}</strong> için menü düzenliyorsun.</p>
+            </div>
+
             {/* 1. ANA KATEGORİ YÖNETİMİ */}
             <div className="space-y-4">
               <h1 className="text-xl font-bold text-white">1. Ana Kategori Ekle</h1>
@@ -536,10 +690,9 @@ export default function Dashboard() {
                   </div>
                 </div>
 
-                {/* ÖZEL İKONLU ALERJEN SEÇİMİ DROPDOWN */}
+                {/* ALERJEN DROPDOWN */}
                 <div className="relative">
                   <label className="text-xs text-slate-400 uppercase font-bold block mb-1">Alerjenler (İkonlu Seçim)</label>
-                  
                   <button 
                     type="button"
                     onClick={() => setShowAllergenDropdown(!showAllergenDropdown)}
@@ -562,7 +715,6 @@ export default function Dashboard() {
                     <ChevronDown size={18} className="text-slate-400 flex-shrink-0 ml-2" />
                   </button>
 
-                  {/* Dropdown Menü */}
                   {showAllergenDropdown && (
                     <div className="absolute z-50 mt-1 w-full bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl max-h-60 overflow-y-auto p-2 space-y-1">
                       {ALLERGEN_OPTIONS.map((item) => {
@@ -586,7 +738,7 @@ export default function Dashboard() {
                   )}
                 </div>
 
-                {/* Sürükle - Bırak Fotoğraf Alanı */}
+                {/* Sürükle - Bırak Fotoğraf */}
                 <div>
                   <label className="text-xs text-slate-400 uppercase font-bold block mb-1">Ürün Fotoğrafı</label>
                   <div 
@@ -671,13 +823,12 @@ export default function Dashboard() {
                       </div>
                       <p className="text-xs text-slate-400 mt-1">{prod.description}</p>
 
-                      {/* Alerjen İkonları */}
                       {prod.allergens && prod.allergens.length > 0 && (
                         <div className="flex flex-wrap gap-1.5 mt-2">
                           {prod.allergens.map((algId: string) => {
                             const alg = ALLERGEN_OPTIONS.find(a => a.id === algId);
                             return alg ? (
-                              <span key={algId} className="bg-slate-950 border border-slate-800 text-[10px] px-2 py-0.5 rounded-md text-slate-300 flex items-center gap-1" title={alg.label}>
+                              <span key={algId} className="bg-slate-950 border border-slate-800 text-[10px] px-2 py-0.5 rounded-md text-slate-300 flex items-center gap-1">
                                 {alg.icon} {alg.label}
                               </span>
                             ) : null;
@@ -698,12 +849,19 @@ export default function Dashboard() {
 
         {activeTab === 'qr' && (
           <div className="max-w-3xl space-y-6">
-            <h1 className="text-2xl font-bold text-white">QR Stüdyo</h1>
-            <div className="bg-slate-900 border border-slate-800 p-8 rounded-2xl w-fit flex flex-col items-center gap-5">
+            <div>
+              <h1 className="text-2xl font-bold text-white tracking-tight">{restaurant.name} Özel QR Kodu</h1>
+              <p className="text-slate-400 text-sm mt-0.5">Bu QR kod doğrudan bu restorana özel URL'e yönlendirir.</p>
+            </div>
+
+            <div className="bg-slate-900 border border-slate-800 p-8 rounded-2xl w-fit flex flex-col items-center gap-5 shadow-xl">
               <div className="p-4 bg-white rounded-2xl">
                 <QRCodeSVG value={liveMenuUrl} size={220} />
               </div>
-              <p className="text-sm text-indigo-400 font-mono">{liveMenuUrl}</p>
+              <div className="text-center">
+                <p className="text-xs text-slate-500 uppercase font-mono tracking-wider">Hedef URL</p>
+                <p className="text-sm font-medium text-indigo-400 font-mono mt-0.5">{liveMenuUrl}</p>
+              </div>
             </div>
           </div>
         )}
