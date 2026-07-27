@@ -34,8 +34,8 @@ export default function PublicMenu() {
     }
   }, []);
 
-  const changeGoogleLanguage = (langCode: string) => {
-    setCurrentLang(langCode);
+  const changeGoogleLanguage = (langCode: string, displayCode: string) => {
+    setCurrentLang(displayCode);
     setIsLangOpen(false);
 
     const selectEl = document.querySelector('.goog-te-combo') as HTMLSelectElement;
@@ -110,6 +110,7 @@ export default function PublicMenu() {
   // Ortak Üst Bar
   const renderHeader = () => (
     <header className="text-white p-3 px-4 flex justify-between items-center shadow-md relative" style={{ backgroundColor: pColor }}>
+      {/* Google Translate Elementi */}
       <div id="google_translate_element" style={{ display: 'none' }}></div>
 
       <div className="flex items-center gap-3">
@@ -132,7 +133,7 @@ export default function PublicMenu() {
           <Bell size={16} />
         </button>
 
-        {/* BAYRAKLI VE KODLU DİL SEÇİCİ MENÜSÜ */}
+        {/* GÖRSELDEKİ STİLDE DİL SEÇİCİ MENÜSÜ */}
         <div className="relative">
           <button 
             onClick={() => setIsLangOpen(!isLangOpen)} 
@@ -143,24 +144,24 @@ export default function PublicMenu() {
           </button>
 
           {isLangOpen && (
-            <div className="absolute right-0 mt-2 w-40 bg-white border border-slate-200 rounded-2xl shadow-xl z-50 overflow-hidden text-slate-800 py-1">
+            <div className="absolute right-0 mt-2 w-48 bg-white border border-slate-200 rounded-2xl shadow-xl z-50 overflow-hidden text-slate-800 py-1 notranslate">
               {[
-                { code: 'TR', label: 'Türkçe', flag: '🇹🇷' },
-                { code: 'EN', label: 'English', flag: '🇬🇧' },
-                { code: 'RU', label: 'Русский', flag: '🇷🇺' },
-                { code: 'DE', label: 'Deutsch', flag: '🇩🇪' },
-                { code: 'EL', label: 'Ελληνικά', flag: '🇬🇷' }
+                { code: 'tr', display: 'TR', label: 'Türkçe', flag: '🇹🇷', rightTag: 'TR' },
+                { code: 'en', display: 'EN', label: 'English', flag: '🇬🇧', rightTag: 'GB' },
+                { code: 'ru', display: 'RU', label: 'Русский', flag: '🇷🇺', rightTag: 'RU' },
+                { code: 'de', display: 'DE', label: 'Deutsch', flag: '🇩🇪', rightTag: 'DE' },
+                { code: 'el', display: 'EL', label: 'Ελληνικά', flag: '🇬🇷', rightTag: 'GR' }
               ].map(lang => (
                 <button
                   key={lang.code}
-                  onClick={() => changeGoogleLanguage(lang.code)}
-                  className={`w-full text-left px-3.5 py-2.5 text-xs font-bold hover:bg-slate-100 transition flex items-center justify-between cursor-pointer ${currentLang === lang.code ? 'text-indigo-600 bg-indigo-50 font-black' : ''}`}
+                  onClick={() => changeGoogleLanguage(lang.code, lang.display)}
+                  className={`w-full text-left px-3.5 py-2.5 text-xs font-bold hover:bg-slate-100 transition flex items-center justify-between cursor-pointer ${currentLang === lang.display ? 'text-indigo-600 bg-indigo-50 font-black' : ''}`}
                 >
-                  <div className="flex items-center gap-2">
-                    <span className="text-[10px] font-mono font-extrabold text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded">{lang.code}</span>
-                    <span>{lang.label}</span>
+                  <div className="flex items-center gap-2.5">
+                    <span className="text-[10px] font-mono font-extrabold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">{lang.rightTag}</span>
+                    <span className="flex items-center gap-1.5"><span className="text-sm">{lang.flag}</span> <span>{lang.label}</span></span>
                   </div>
-                  <span className="text-sm">{lang.flag}</span>
+                  <span className="text-[10px] font-mono font-bold text-slate-400">{lang.rightTag}</span>
                 </button>
               ))}
             </div>
