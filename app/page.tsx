@@ -12,13 +12,39 @@ import {
   Save,
   Utensils,
   UploadCloud,
-  FolderTree
+  FolderTree,
+  Flame,
+  Check,
+  ChevronDown
 } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
+
+// ALERJEN LİSTESİ VE EMOJİLERİ
+const ALLERGEN_OPTIONS = [
+  { id: 'gluten', label: 'Gluten İçeren Tahıllar', icon: '🌾' },
+  { id: 'crustaceans', label: 'Kabuklular', icon: '🦐' },
+  { id: 'egg', label: 'Yumurta', icon: '🥚' },
+  { id: 'fish', label: 'Balık', icon: '🐟' },
+  { id: 'peanuts', label: 'Yer Fıstığı', icon: '🥜' },
+  { id: 'soy', label: 'Soya', icon: '🌱' },
+  { id: 'milk', label: 'Süt ve Süt Ürünleri', icon: '🥛' },
+  { id: 'nuts', label: 'Kabuklu Kuruyemişler', icon: '🌰' },
+  { id: 'celery', label: 'Kereviz', icon: '🌿' },
+  { id: 'mustard', label: 'Hardal', icon: '🌭' },
+  { id: 'sesame', label: 'Susam', icon: '🌾' },
+  { id: 'sulfites', label: 'Kükürt Dioksit ve Sülfitler', icon: '🧪' },
+  { id: 'lupin', label: 'Acı Bakla (Lupin)', icon: '🌸' },
+  { id: 'molluscs', label: 'Yumuşakçalar', icon: '🐙' },
+  { id: 'corn', label: 'Mısır', icon: '🌽' },
+  { id: 'chocolate', label: 'Çikolata', icon: '🍫' },
+  { id: 'legumes', label: 'Kuru Baklagil', icon: '🫘' },
+  { id: 'caffeine', label: 'Kafein', icon: '☕' }
+];
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState('menu');
   const [restaurant, setRestaurant] = useState<any>({
+    id: null,
     name: 'Livadya Restaurant',
     slug: 'livadya-restaurant',
     subtitle: 'Lezzet, Manzara ve Huzurun Adresi',
@@ -44,11 +70,14 @@ export default function Dashboard() {
     name: '',
     description: '',
     price: '',
+    calories: '',
     image_url: '',
     category_id: '',
-    subcategory_id: ''
+    subcategory_id: '',
+    allergens: [] as string[]
   });
 
+  const [showAllergenDropdown, setShowAllergenDropdown] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>('');
   const [uploadingImage, setUploadingImage] = useState(false);
@@ -71,15 +100,8 @@ export default function Dashboard() {
 
   const fetchRestaurant = async () => {
     try {
-      const { data } = await supabase
-        .from('restaurants')
-        .select('*')
-        .eq('slug', 'livadya-restaurant')
-        .maybeSingle();
-
-      if (data) {
-        setRestaurant(data);
-      }
+      const { data } = await supabase.from('restaurants').select('*').eq('slug', 'livadya-restaurant').maybeSingle();
+      if (data) setRestaurant(data);
     } catch (err) {
       console.error('Restaurant fetch error:', err);
     }
@@ -116,6 +138,17 @@ export default function Dashboard() {
       .order('id', { ascending: false });
 
     if (data) setProducts(data);
+  };
+
+  // Alerjen Seçimi İşlemi (Çoklu Seçim)
+  const toggleAllergen = (allergenId: string) => {
+    setProductForm((prev) => {
+      const exists = prev.allergens.includes(allergenId);
+      const updated = exists 
+        ? prev.allergens.filter(id => id !== allergenId)
+        : [...prev.allergens, allergenId];
+      return { ...prev, allergens: updated };
+    });
   };
 
   const handleImageChange = (file: File) => {
@@ -183,9 +216,7 @@ export default function Dashboard() {
     const { error } = await supabase.from('subcategories').insert([insertData]);
     setLoadingSubCat(false);
 
-    if (error) {
-      alert('Alt Kategori Ekleme Hatası: ' + error.message);
-    } else {
+    if (!error) {
       setSubCatForm({ name: '', category_id: categories[0]?.id || '' });
       fetchSubcategories();
     }
@@ -211,6 +242,8 @@ export default function Dashboard() {
       name: productForm.name.trim(),
       description: productForm.description.trim(),
       price: parseFloat(productForm.price),
+      calories: productForm.calories ? parseInt(productForm.calories) : 0,
+      allergens: productForm.allergens,
       image_url: finalImageUrl,
       category_id: productForm.category_id,
       subcategory_id: productForm.subcategory_id || null
@@ -228,12 +261,15 @@ export default function Dashboard() {
         name: '',
         description: '',
         price: '',
+        calories: '',
         image_url: '',
         category_id: categories[0]?.id || '',
-        subcategory_id: ''
+        subcategory_id: '',
+        allergens: []
       });
       setImageFile(null);
       setImagePreview('');
+      setShowAllergenDropdown(false);
       fetchProducts();
     }
   };
@@ -254,14 +290,10 @@ export default function Dashboard() {
     fetchProducts();
   };
 
-  // RESTORAN KAYDETME DÜZELTMESİ (id null ise göndermiyoruz)
   const saveRestaurant = async () => {
     setSaveStatus('Kaydediliyor...');
-    
     const payload = { ...restaurant };
-    if (!payload.id) {
-      delete payload.id; // null id hatasını önler
-    }
+    if (!payload.id) delete payload.id;
 
     const { data, error } = await supabase
       .from('restaurants')
@@ -478,15 +510,80 @@ export default function Dashboard() {
                   </div>
                 </div>
 
-                <div>
-                  <label className="text-xs text-slate-400 uppercase font-bold block mb-1">Fiyat (₺)</label>
-                  <input 
-                    type="number" 
-                    placeholder="850" 
-                    value={productForm.price}
-                    onChange={(e) => setProductForm({...productForm, price: e.target.value})}
-                    className="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 text-white rounded-xl text-sm outline-none focus:border-indigo-500"
-                  />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-xs text-slate-400 uppercase font-bold block mb-1">Fiyat (₺)</label>
+                    <input 
+                      type="number" 
+                      placeholder="850" 
+                      value={productForm.price}
+                      onChange={(e) => setProductForm({...productForm, price: e.target.value})}
+                      className="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 text-white rounded-xl text-sm outline-none focus:border-indigo-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-xs text-amber-400 uppercase font-bold block mb-1 flex items-center gap-1">
+                      <Flame size={14} /> Kalori (kcal - Opsiyonel)
+                    </label>
+                    <input 
+                      type="number" 
+                      placeholder="Örn: 450" 
+                      value={productForm.calories}
+                      onChange={(e) => setProductForm({...productForm, calories: e.target.value})}
+                      className="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 text-white rounded-xl text-sm outline-none focus:border-amber-500"
+                    />
+                  </div>
+                </div>
+
+                {/* ÖZEL İKONLU ALERJEN SEÇİMİ DROPDOWN */}
+                <div className="relative">
+                  <label className="text-xs text-slate-400 uppercase font-bold block mb-1">Alerjenler (İkonlu Seçim)</label>
+                  
+                  <button 
+                    type="button"
+                    onClick={() => setShowAllergenDropdown(!showAllergenDropdown)}
+                    className="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 text-white rounded-xl text-sm flex items-center justify-between text-left focus:border-indigo-500"
+                  >
+                    <div className="flex flex-wrap gap-1 items-center overflow-hidden">
+                      {productForm.allergens.length === 0 ? (
+                        <span className="text-slate-500">Alerjen seçilmedi...</span>
+                      ) : (
+                        productForm.allergens.map(id => {
+                          const item = ALLERGEN_OPTIONS.find(a => a.id === id);
+                          return (
+                            <span key={id} className="bg-slate-800 text-xs px-2 py-0.5 rounded flex items-center gap-1">
+                              {item?.icon} {item?.label}
+                            </span>
+                          );
+                        })
+                      )}
+                    </div>
+                    <ChevronDown size={18} className="text-slate-400 flex-shrink-0 ml-2" />
+                  </button>
+
+                  {/* Dropdown Menü */}
+                  {showAllergenDropdown && (
+                    <div className="absolute z-50 mt-1 w-full bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl max-h-60 overflow-y-auto p-2 space-y-1">
+                      {ALLERGEN_OPTIONS.map((item) => {
+                        const isSelected = productForm.allergens.includes(item.id);
+                        return (
+                          <div
+                            key={item.id}
+                            onClick={() => toggleAllergen(item.id)}
+                            className={`flex items-center justify-between p-2.5 rounded-xl cursor-pointer text-xs transition ${
+                              isSelected ? 'bg-indigo-600/20 text-indigo-300 font-semibold' : 'hover:bg-slate-800 text-slate-300'
+                            }`}
+                          >
+                            <span className="flex items-center gap-2">
+                              <span className="text-base">{item.icon}</span> {item.label}
+                            </span>
+                            {isSelected && <Check size={16} className="text-indigo-400" />}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
 
                 {/* Sürükle - Bırak Fotoğraf Alanı */}
@@ -563,9 +660,30 @@ export default function Dashboard() {
                             {prod.categories?.name} {prod.subcategories?.name ? `> ${prod.subcategories.name}` : ''}
                           </p>
                         </div>
-                        <span className="font-extrabold text-indigo-400 text-base">{prod.price} ₺</span>
+                        <div className="text-right">
+                          <span className="font-extrabold text-indigo-400 text-base">{prod.price} ₺</span>
+                          {prod.calories > 0 && (
+                            <p className="text-[11px] text-amber-400 font-semibold flex items-center justify-end gap-0.5">
+                              <Flame size={12} /> {prod.calories} kcal
+                            </p>
+                          )}
+                        </div>
                       </div>
                       <p className="text-xs text-slate-400 mt-1">{prod.description}</p>
+
+                      {/* Alerjen İkonları */}
+                      {prod.allergens && prod.allergens.length > 0 && (
+                        <div className="flex flex-wrap gap-1.5 mt-2">
+                          {prod.allergens.map((algId: string) => {
+                            const alg = ALLERGEN_OPTIONS.find(a => a.id === algId);
+                            return alg ? (
+                              <span key={algId} className="bg-slate-950 border border-slate-800 text-[10px] px-2 py-0.5 rounded-md text-slate-300 flex items-center gap-1" title={alg.label}>
+                                {alg.icon} {alg.label}
+                              </span>
+                            ) : null;
+                          })}
+                        </div>
+                      )}
                     </div>
 
                     <button onClick={() => deleteProduct(prod.id)} className="p-2 text-rose-400 hover:bg-rose-500/10 rounded-xl">
