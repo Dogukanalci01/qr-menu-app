@@ -37,7 +37,8 @@ import {
   Mail,
   Activity,
   History,
-  Pencil
+  Pencil,
+  X
 } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 
@@ -113,15 +114,17 @@ export default function Dashboard() {
   const [subcategories, setSubcategories] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
   
-  // --- KATEGORİ FORM STATELERİ (Resim Yükleme Eklendi) ---
+  // --- KATEGORİ FORM STATELERİ ---
   const [newCatName, setNewCatName] = useState('');
   const [catImageFile, setCatImageFile] = useState<File | null>(null);
   const [catImagePreview, setCatImagePreview] = useState<string>('');
   const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null);
 
+  // --- ALT KATEGORİ FORM STATELERİ ---
   const [subCatForm, setSubCatForm] = useState({ name: '', category_id: '' });
   const [editingSubcategoryId, setEditingSubcategoryId] = useState<string | null>(null);
 
+  // --- ÜRÜN FORM STATELERİ ---
   const [productForm, setProductForm] = useState({
     name: '',
     description: '',
@@ -133,7 +136,6 @@ export default function Dashboard() {
     allergens: [] as string[]
   });
   const [editingProductId, setEditingProductId] = useState<string | null>(null);
-
   const [showAllergenDropdown, setShowAllergenDropdown] = useState(false);
   
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -380,10 +382,15 @@ export default function Dashboard() {
     if (logoFile) {
       const uploadedUrl = await uploadToStorage(logoFile, 'logos');
       if (uploadedUrl) updatedLogoUrl = uploadedUrl;
+    } else if (logoPreview === '') {
+      updatedLogoUrl = ''; // Eğer kullanıcı logoyu sildiyse boşalt
     }
+
     if (coverFile) {
       const uploadedUrl = await uploadToStorage(coverFile, 'covers');
       if (uploadedUrl) updatedCoverUrl = uploadedUrl;
+    } else if (coverPreview === '') {
+      updatedCoverUrl = ''; // Eğer kullanıcı kapak resmini sildiyse boşalt
     }
 
     const payload = { ...restaurant, logo_url: updatedLogoUrl, cover_image: updatedCoverUrl };
@@ -403,7 +410,7 @@ export default function Dashboard() {
     }
   };
 
-  // --- KATEGORİ YÖNETİMİ (RESİMLİ) ---
+  // --- KATEGORİ YÖNETİMİ ---
   const addCategory = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (!newCatName.trim() || !selectedRestaurantId) return;
@@ -414,6 +421,8 @@ export default function Dashboard() {
     if (catImageFile) {
       const uploadedUrl = await uploadToStorage(catImageFile, 'categories');
       if (uploadedUrl) finalImageUrl = uploadedUrl;
+    } else if (catImagePreview === '') {
+      finalImageUrl = ''; // Görsel silindiyse boş gönder
     }
     
     if (editingCategoryId) {
@@ -528,6 +537,8 @@ export default function Dashboard() {
     if (imageFile) {
       const uploadedUrl = await uploadToStorage(imageFile, 'products');
       if (uploadedUrl) finalImageUrl = uploadedUrl;
+    } else if (imagePreview === '') {
+      finalImageUrl = ''; // Görsel silindiyse boşalt
     }
     setUploadingImage(false);
 
@@ -805,36 +816,202 @@ export default function Dashboard() {
                 <textarea rows={3} value={restaurant?.description || ''} onChange={(e) => setRestaurant({...restaurant, description: e.target.value})} className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none" placeholder="Açıklama" />
               </div>
 
+              {/* GÖRSEL YÖNETİMİ (LOGO VE KAPAK İÇİN SİLME BUTONLARI EKLENDİ) */}
               <div className="bg-white border border-slate-200 p-6 rounded-2xl space-y-4 shadow-xs">
                 <h2 className="font-extrabold text-slate-900 text-sm">Görsel Yönetimi</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  
+                  {/* LOGO */}
                   <div className="space-y-2">
                     <label className="text-xs text-slate-500 uppercase font-bold block">Logonuz</label>
-                    <div className="border-2 border-dashed border-slate-200 bg-slate-50 p-4 rounded-2xl flex flex-col items-center relative min-h-[150px]">
-                      <input type="file" accept="image/*" onChange={(e) => { if (e.target.files) { setLogoFile(e.target.files[0]); const reader = new FileReader(); reader.onloadend = () => setLogoPreview(reader.result as string); reader.readAsDataURL(e.target.files[0]); } }} className="absolute inset-0 opacity-0 cursor-pointer z-10" />
-                      {logoPreview ? <img src={logoPreview} className="max-h-full max-w-full object-contain" /> : <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center"><UploadCloud size={20} /></div>}
+                    <div className="border-2 border-dashed border-slate-200 bg-slate-50 p-4 rounded-2xl flex flex-col items-center justify-center relative min-h-[150px]">
+                      {logoPreview ? (
+                        <div className="relative w-full h-28 flex items-center justify-center bg-white border border-slate-200 p-2 rounded-xl">
+                          <img src={logoPreview} className="max-h-full max-w-full object-contain" />
+                          <button 
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setLogoPreview('');
+                              setLogoFile(null);
+                              setRestaurant({...restaurant, logo_url: ''});
+                            }}
+                            className="absolute top-2 right-2 bg-rose-500 hover:bg-rose-600 text-white p-1.5 rounded-lg shadow-md z-20 transition"
+                            title="Logoyu Kaldır"
+                          >
+                            <X size={14} />
+                          </button>
+                        </div>
+                      ) : (
+                        <>
+                          <input type="file" accept="image/*" onChange={(e) => { if (e.target.files && e.target.files[0]) { setLogoFile(e.target.files[0]); const reader = new FileReader(); reader.onloadend = () => setLogoPreview(reader.result as string); reader.readAsDataURL(e.target.files[0]); } }} className="absolute inset-0 opacity-0 cursor-pointer z-10" />
+                          <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600"><UploadCloud size={20} /></div>
+                          <p className="text-xs font-bold text-slate-600 mt-2">Logo Yüklemek İçin Tıklayın</p>
+                        </>
+                      )}
                     </div>
                   </div>
+
+                  {/* KAPAK RESMİ */}
                   <div className="space-y-2">
                     <label className="text-xs text-slate-500 uppercase font-bold block">Firma Kapak Resmi</label>
-                    <div className="border-2 border-dashed border-slate-200 bg-slate-50 p-4 rounded-2xl flex flex-col items-center relative min-h-[150px]">
-                      <input type="file" accept="image/*" onChange={(e) => { if (e.target.files) { setCoverFile(e.target.files[0]); const reader = new FileReader(); reader.onloadend = () => setCoverPreview(reader.result as string); reader.readAsDataURL(e.target.files[0]); } }} className="absolute inset-0 opacity-0 cursor-pointer z-10" />
-                      {coverPreview ? <img src={coverPreview} className="w-full h-full object-cover" /> : <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center"><ImageIcon size={20} /></div>}
+                    <div className="border-2 border-dashed border-slate-200 bg-slate-50 p-4 rounded-2xl flex flex-col items-center justify-center relative min-h-[150px]">
+                      {coverPreview ? (
+                        <div className="relative w-full h-28 rounded-xl overflow-hidden border border-slate-200">
+                          <img src={coverPreview} className="w-full h-full object-cover" />
+                          <button 
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setCoverPreview('');
+                              setCoverFile(null);
+                              setRestaurant({...restaurant, cover_image: ''});
+                            }}
+                            className="absolute top-2 right-2 bg-rose-500 hover:bg-rose-600 text-white p-1.5 rounded-lg shadow-md z-20 transition"
+                            title="Kapak Resmini Kaldır"
+                          >
+                            <X size={14} />
+                          </button>
+                        </div>
+                      ) : (
+                        <>
+                          <input type="file" accept="image/*" onChange={(e) => { if (e.target.files && e.target.files[0]) { setCoverFile(e.target.files[0]); const reader = new FileReader(); reader.onloadend = () => setCoverPreview(reader.result as string); reader.readAsDataURL(e.target.files[0]); } }} className="absolute inset-0 opacity-0 cursor-pointer z-10" />
+                          <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600"><ImageIcon size={20} /></div>
+                          <p className="text-xs font-bold text-slate-600 mt-2">Kapak Yüklemek İçin Tıklayın</p>
+                        </>
+                      )}
                     </div>
+                  </div>
+
+                </div>
+              </div>
+
+              {/* GÖRSEL ŞABLON SEÇİMİ */}
+              <div className="bg-white border border-slate-200 p-6 rounded-2xl space-y-4 shadow-xs">
+                <h2 className="font-extrabold text-slate-900 text-sm flex items-center gap-2">
+                  <LayoutTemplate size={18} className="text-indigo-600" /> Menü Şablonu Seçin
+                </h2>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-2">
+                  {/* 1. Bistro & Cafe */}
+                  <div 
+                    onClick={() => setRestaurant({...restaurant, template: 'bistro'})}
+                    className={`border-2 rounded-2xl p-3 cursor-pointer transition flex flex-col justify-between relative overflow-hidden bg-slate-50 ${
+                      (restaurant?.template || 'bistro') === 'bistro'
+                        ? 'border-indigo-600 ring-2 ring-indigo-600/20 bg-indigo-50/30'
+                        : 'border-slate-200 hover:border-slate-300'
+                    }`}
+                  >
+                    <div className="h-44 bg-white rounded-xl p-2 flex flex-col gap-1.5 overflow-hidden text-slate-800 border border-slate-200 shadow-2xs pointer-events-none">
+                      <div className="bg-indigo-600 text-white p-1.5 rounded-lg text-[9px] font-extrabold flex justify-between items-center">
+                        <span>≡ RESTORAN</span>
+                        <span className="text-[7px] bg-white text-indigo-600 px-1 py-0.5 rounded font-bold">TR</span>
+                      </div>
+                      <div className="h-10 bg-indigo-100 rounded-lg flex items-center justify-center text-indigo-600 text-[8px] font-black">
+                        [Kapak Görseli]
+                      </div>
+                      <div className="bg-slate-50 p-1.5 rounded-lg border text-[7px] flex justify-between items-center">
+                        <div>
+                          <p className="font-bold">Serpme Kahvaltı</p>
+                          <p className="text-indigo-600 font-extrabold">₺150.00</p>
+                        </div>
+                        <span className="bg-indigo-600 text-white px-1.5 py-0.5 rounded text-[6px] font-bold">EKLE +</span>
+                      </div>
+                    </div>
+                    <div className="mt-3 text-center">
+                      <h3 className="font-bold text-xs text-slate-900">Bistro & Cafe</h3>
+                    </div>
+                    {(restaurant?.template || 'bistro') === 'bistro' && (
+                      <span className="absolute top-2 right-2 bg-indigo-600 text-white p-1 rounded-full shadow-md">
+                        <Check size={12} />
+                      </span>
+                    )}
+                  </div>
+
+                  {/* 2. Özel Grid Tema */}
+                  <div 
+                    onClick={() => setRestaurant({...restaurant, template: 'custom_grid'})}
+                    className={`border-2 rounded-2xl p-3 cursor-pointer transition flex flex-col justify-between relative overflow-hidden bg-slate-50 ${
+                      restaurant?.template === 'custom_grid'
+                        ? 'border-indigo-600 ring-2 ring-indigo-600/20 bg-indigo-50/30'
+                        : 'border-slate-200 hover:border-slate-300'
+                    }`}
+                  >
+                    <div className="h-44 bg-white rounded-xl p-2 flex flex-col gap-1.5 overflow-hidden text-slate-800 border border-slate-200 shadow-2xs pointer-events-none">
+                      <div className="bg-indigo-600 text-white p-1 rounded-lg text-[8px] text-center font-extrabold">DN Özel Teması</div>
+                      <div className="grid grid-cols-2 gap-1 mt-0.5">
+                        <div className="h-10 bg-slate-800 rounded-lg text-white text-[7px] flex items-center justify-center font-bold">KAMPANYALAR</div>
+                        <div className="h-10 bg-slate-800 rounded-lg text-white text-[7px] flex items-center justify-center font-bold">KAHVALTILIK</div>
+                        <div className="h-10 bg-slate-800 rounded-lg text-white text-[7px] flex items-center justify-center font-bold">GÖZLEMELER</div>
+                        <div className="h-10 bg-slate-800 rounded-lg text-white text-[7px] flex items-center justify-center font-bold">İÇECEKLER</div>
+                      </div>
+                    </div>
+                    <div className="mt-3 text-center">
+                      <h3 className="font-bold text-xs text-slate-900">DN Özel Teması</h3>
+                    </div>
+                    {restaurant?.template === 'custom_grid' && (
+                      <span className="absolute top-2 right-2 bg-indigo-600 text-white p-1 rounded-full shadow-md">
+                        <Check size={12} />
+                      </span>
+                    )}
+                  </div>
+
+                  {/* 3. PDF / Broşür Menü */}
+                  <div 
+                    onClick={() => setRestaurant({...restaurant, template: 'pdf_image'})}
+                    className={`border-2 rounded-2xl p-3 cursor-pointer transition flex flex-col justify-between relative overflow-hidden bg-slate-50 ${
+                      restaurant?.template === 'pdf_image'
+                        ? 'border-indigo-600 ring-2 ring-indigo-600/20 bg-indigo-50/30'
+                        : 'border-slate-200 hover:border-slate-300'
+                    }`}
+                  >
+                    <div className="h-44 bg-white rounded-xl p-2 flex flex-col items-center justify-center gap-2 border border-slate-200 shadow-2xs text-center pointer-events-none">
+                      <div className="w-12 h-16 bg-indigo-50 border-2 border-dashed border-indigo-400 rounded-lg flex flex-col items-center justify-center text-indigo-600">
+                        <FileText size={18} />
+                      </div>
+                      <p className="text-[8px] font-bold text-slate-600">PDF / Broşür Menü</p>
+                    </div>
+                    <div className="mt-3 text-center">
+                      <h3 className="font-bold text-xs text-slate-900">PDF / Broşür Menü</h3>
+                    </div>
+                    {restaurant?.template === 'pdf_image' && (
+                      <span className="absolute top-2 right-2 bg-indigo-600 text-white p-1 rounded-full shadow-md">
+                        <Check size={12} />
+                      </span>
+                    )}
+                  </div>
+
+                  {/* 4. Gourmet & Dining */}
+                  <div 
+                    onClick={() => setRestaurant({...restaurant, template: 'classic'})}
+                    className={`border-2 rounded-2xl p-3 cursor-pointer transition flex flex-col justify-between relative overflow-hidden bg-slate-50 ${
+                      restaurant?.template === 'classic'
+                        ? 'border-indigo-600 ring-2 ring-indigo-600/20 bg-indigo-50/30'
+                        : 'border-slate-200 hover:border-slate-300'
+                    }`}
+                  >
+                    <div className="h-44 bg-white rounded-xl overflow-hidden border border-slate-200 shadow-2xs flex flex-col pointer-events-none">
+                      <div className="h-16 bg-slate-800 relative flex items-end justify-center pb-1">
+                        <div className="w-8 h-8 rounded-full bg-white border border-slate-300 absolute -bottom-3 flex items-center justify-center text-[7px] font-bold text-indigo-600">
+                          LOGO
+                        </div>
+                      </div>
+                      <div className="pt-4 p-2 text-center text-slate-800 space-y-1">
+                        <p className="text-[8px] font-bold">Gourmet & Dining</p>
+                      </div>
+                    </div>
+                    <div className="mt-3 text-center">
+                      <h3 className="font-bold text-xs text-slate-900">Gourmet & Dining</h3>
+                    </div>
+                    {restaurant?.template === 'classic' && (
+                      <span className="absolute top-2 right-2 bg-indigo-600 text-white p-1 rounded-full shadow-md">
+                        <Check size={12} />
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>
 
-              <div className="bg-white border border-slate-200 p-6 rounded-2xl space-y-4 shadow-xs">
-                <h2 className="font-extrabold text-slate-900 text-sm">Menü Şablonu Seçin</h2>
-                <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-                  {['bistro', 'custom_grid', 'pdf_image', 'classic'].map(tmp => (
-                    <div key={tmp} onClick={() => setRestaurant({...restaurant, template: tmp})} className={`border-2 rounded-2xl p-3 cursor-pointer ${restaurant?.template === tmp ? 'border-indigo-600 bg-indigo-50/30' : 'border-slate-200'}`}>
-                      <h3 className="font-bold text-xs text-center">{tmp.toUpperCase()}</h3>
-                    </div>
-                  ))}
-                </div>
-              </div>
             </div>
           )}
 
@@ -845,7 +1022,7 @@ export default function Dashboard() {
                 <p className="text-slate-500 text-xs font-medium mt-0.5">Kategori, alt kategori ve lezzetlerinizi ekleyin veya düzenleyin.</p>
               </div>
 
-              {/* --- 1. ANA KATEGORİ YÖNETİMİ --- */}
+              {/* --- 1. ANA KATEGORİ YÖNETİMİ (RESİMLİ VE SİLME BUTONLU) --- */}
               <div className="bg-white border border-slate-200 p-6 rounded-2xl space-y-4 shadow-xs">
                 <h2 className={`font-extrabold text-sm ${editingCategoryId ? 'text-emerald-600' : 'text-slate-900'}`}>
                   {editingCategoryId ? '1. Ana Kategoriyi Düzenle' : '1. Ana Kategori Ekle'}
@@ -853,28 +1030,44 @@ export default function Dashboard() {
                 
                 <form onSubmit={addCategory} className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
                   
-                  {/* Fotoğraf Yükleme Alanı */}
+                  {/* Kategori Fotoğraf Yükleme / Silme Alanı */}
                   <div className={`relative w-14 h-14 rounded-xl border-2 border-dashed ${editingCategoryId && catImagePreview ? 'border-emerald-200' : 'border-slate-300'} flex items-center justify-center bg-slate-50 hover:border-indigo-500 transition overflow-hidden shrink-0 group`}>
-                    <input 
-                      type="file" 
-                      accept="image/*"
-                      onChange={(e) => {
-                        if (e.target.files && e.target.files[0]) {
-                          setCatImageFile(e.target.files[0]);
-                          const reader = new FileReader();
-                          reader.onloadend = () => setCatImagePreview(reader.result as string);
-                          reader.readAsDataURL(e.target.files[0]);
-                        }
-                      }}
-                      className="absolute inset-0 opacity-0 cursor-pointer z-10"
-                      title="Kategori Görseli Ekle"
-                    />
                     {catImagePreview ? (
-                      <img src={catImagePreview} className="w-full h-full object-cover" alt="Kategori Önizleme" />
+                      <>
+                        <img src={catImagePreview} className="w-full h-full object-cover" alt="Kategori Önizleme" />
+                        <button 
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setCatImagePreview('');
+                            setCatImageFile(null);
+                          }}
+                          className="absolute top-1 right-1 bg-rose-500 text-white p-0.5 rounded-md shadow-sm z-20"
+                          title="Görseli Kaldır"
+                        >
+                          <X size={10} />
+                        </button>
+                      </>
                     ) : (
-                      <div className="text-slate-400 group-hover:text-indigo-500 transition flex flex-col items-center">
-                        <ImageIcon size={20} />
-                      </div>
+                      <>
+                        <input 
+                          type="file" 
+                          accept="image/*"
+                          onChange={(e) => {
+                            if (e.target.files && e.target.files[0]) {
+                              setCatImageFile(e.target.files[0]);
+                              const reader = new FileReader();
+                              reader.onloadend = () => setCatImagePreview(reader.result as string);
+                              reader.readAsDataURL(e.target.files[0]);
+                            }
+                          }}
+                          className="absolute inset-0 opacity-0 cursor-pointer z-10"
+                          title="Kategori Görseli Ekle"
+                        />
+                        <div className="text-slate-400 group-hover:text-indigo-500 transition flex flex-col items-center">
+                          <ImageIcon size={20} />
+                        </div>
+                      </>
                     )}
                   </div>
 
@@ -1017,8 +1210,28 @@ export default function Dashboard() {
                   <div>
                     <label className="text-xs text-slate-500 uppercase font-bold block mb-1">Ürün Fotoğrafı</label>
                     <div className="border-2 border-dashed bg-slate-50 p-6 rounded-2xl flex flex-col items-center relative">
-                      <input type="file" accept="image/*" onChange={(e) => { if (e.target.files) { setImageFile(e.target.files[0]); const reader = new FileReader(); reader.onloadend = () => setImagePreview(reader.result as string); reader.readAsDataURL(e.target.files[0]); } }} className="absolute inset-0 opacity-0 cursor-pointer" />
-                      {imagePreview ? <img src={imagePreview} className="w-28 h-28 object-cover rounded-xl" /> : <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center"><UploadCloud size={20} /></div>}
+                      {imagePreview ? (
+                        <div className="relative">
+                          <img src={imagePreview} className="w-28 h-28 object-cover rounded-xl" />
+                          <button 
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setImagePreview('');
+                              setImageFile(null);
+                            }}
+                            className="absolute -top-2 -right-2 bg-rose-500 text-white p-1 rounded-full shadow-md"
+                            title="Görseli Kaldır"
+                          >
+                            <X size={12} />
+                          </button>
+                        </div>
+                      ) : (
+                        <>
+                          <input type="file" accept="image/*" onChange={(e) => { if (e.target.files && e.target.files[0]) { setImageFile(e.target.files[0]); const reader = new FileReader(); reader.onloadend = () => setImagePreview(reader.result as string); reader.readAsDataURL(e.target.files[0]); } }} className="absolute inset-0 opacity-0 cursor-pointer" />
+                          <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center"><UploadCloud size={20} /></div>
+                        </>
+                      )}
                     </div>
                   </div>
 
