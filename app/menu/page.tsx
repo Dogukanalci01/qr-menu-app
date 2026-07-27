@@ -82,7 +82,15 @@ export default function PublicMenu() {
     return (
       <div className="min-h-screen bg-slate-900 text-white font-sans flex flex-col items-center">
         <header className="w-full bg-slate-950 p-4 border-b border-slate-800 flex justify-between items-center max-w-md">
-          <h1 className="font-bold text-sm">{restaurant.name}</h1>
+          <div className="flex items-center gap-3">
+            {/* LOGO EKLENDİ */}
+            {restaurant.logo_url ? (
+              <img src={restaurant.logo_url} alt="Logo" className="w-10 h-10 rounded-full object-cover border border-slate-700" />
+            ) : (
+              <div className="w-10 h-10 bg-slate-800 rounded-full flex items-center justify-center font-bold text-orange-500">{restaurant.name[0]}</div>
+            )}
+            <h1 className="font-bold text-sm">{restaurant.name}</h1>
+          </div>
           {restaurant.phone && (
             <a href={`tel:${restaurant.phone}`} className="bg-orange-500 p-2 rounded-xl text-white">
               <Phone size={16} />
@@ -114,11 +122,27 @@ export default function PublicMenu() {
           </div>
         </div>
 
-        <div className="bg-white p-5 shadow-sm space-y-2 border-b">
-          <h1 className="text-xl font-extrabold">{restaurant.name}</h1>
-          <p className="text-xs text-slate-500 font-medium">{restaurant.subtitle || 'Yemek Bizim İşimiz'}</p>
+        {/* KAPAK FOTOĞRAFI EKLENDİ */}
+        {restaurant.cover_image && (
+          <div 
+            className="w-full h-36 bg-cover bg-center" 
+            style={{ backgroundImage: `url(${restaurant.cover_image})` }}
+          ></div>
+        )}
 
-          <div className="space-y-1 text-xs text-slate-600 pt-2 border-t">
+        <div className="bg-white p-5 shadow-sm space-y-2 border-b">
+          <div className="flex items-center gap-3">
+            {/* LOGO EKLENDİ */}
+            {restaurant.logo_url && (
+              <img src={restaurant.logo_url} alt="Logo" className="w-14 h-14 rounded-xl object-cover shadow-sm border border-slate-100" />
+            )}
+            <div>
+              <h1 className="text-xl font-extrabold">{restaurant.name}</h1>
+              <p className="text-xs text-slate-500 font-medium">{restaurant.subtitle || 'Yemek Bizim İşimiz'}</p>
+            </div>
+          </div>
+
+          <div className="space-y-1 text-xs text-slate-600 pt-3 border-t mt-3">
             <p className="flex items-center gap-1.5"><Clock size={14} className="text-orange-500" /> {restaurant.working_hours || '08:00 - 24:00'}</p>
             {restaurant.address && <p className="flex items-center gap-1.5"><MapPin size={14} className="text-orange-500" /> {restaurant.address}</p>}
           </div>
@@ -164,18 +188,23 @@ export default function PublicMenu() {
     );
   }
 
-  // 3. KLASİK TEMA
+  // 3. KLASİK TEMA (Zaten kapağı vardı, logoyu görselle değiştirdik)
   if (template === 'classic') {
     return (
       <div className="min-h-screen bg-slate-100 text-slate-900 font-sans pb-16">
         <div className="h-44 bg-slate-800 relative bg-cover bg-center" style={{ backgroundImage: restaurant.cover_image ? `url(${restaurant.cover_image})` : 'none' }}>
           <div className="absolute inset-0 bg-black/40" />
-          <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 w-16 h-16 rounded-full bg-white border-2 border-white shadow-lg overflow-hidden flex items-center justify-center font-bold text-orange-600 text-xl">
-            {restaurant.name[0]}
+          <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 w-20 h-20 rounded-full bg-white border-4 border-white shadow-lg overflow-hidden flex items-center justify-center font-bold text-orange-600 text-xl">
+            {/* LOGO GÖRSELİ EKLENDİ */}
+            {restaurant.logo_url ? (
+              <img src={restaurant.logo_url} alt="Logo" className="w-full h-full object-cover" />
+            ) : (
+              restaurant.name[0]
+            )}
           </div>
         </div>
 
-        <div className="pt-10 text-center px-4 space-y-1">
+        <div className="pt-12 text-center px-4 space-y-1">
           <h1 className="font-extrabold text-xl text-slate-900">{restaurant.name}</h1>
           <p className="text-xs text-slate-500 font-semibold">{restaurant.subtitle}</p>
         </div>
@@ -209,18 +238,32 @@ export default function PublicMenu() {
         </div>
       </header>
 
+      {/* KAPAK FOTOĞRAFI EKLENDİ */}
+      {restaurant.cover_image && (
+        <div 
+          className="w-full h-32 bg-cover bg-center" 
+          style={{ backgroundImage: `url(${restaurant.cover_image})` }}
+        ></div>
+      )}
+
       <div className="bg-white p-4 shadow-sm border-b space-y-3">
         <div className="flex gap-3 items-center">
-          <div className="w-14 h-14 bg-orange-500 text-white font-extrabold text-xs rounded-xl flex items-center justify-center p-1 text-center">
-            {restaurant.name}
-          </div>
+          {/* LOGO GÖRSELİ EKLENDİ */}
+          {restaurant.logo_url ? (
+            <img src={restaurant.logo_url} alt="Logo" className="w-16 h-16 object-cover rounded-xl border border-slate-100 shadow-sm" />
+          ) : (
+            <div className="w-14 h-14 bg-orange-500 text-white font-extrabold text-xs rounded-xl flex items-center justify-center p-1 text-center">
+              {restaurant.name[0]}
+            </div>
+          )}
+          
           <div>
             <h1 className="font-extrabold text-lg text-slate-900">{restaurant.name}</h1>
             <p className="text-xs text-slate-400 font-semibold">{restaurant.subtitle || 'Yemek Bizim İşimiz'}</p>
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-3 text-[11px] text-slate-600 pt-1 border-t">
+        <div className="flex flex-wrap gap-3 text-[11px] text-slate-600 pt-2 border-t mt-2">
           <span className="flex items-center gap-1"><Clock size={12} className="text-orange-500" /> {restaurant.working_hours || '08:00 - 24:00'}</span>
           {restaurant.address && <span className="flex items-center gap-1"><MapPin size={12} className="text-orange-500" /> {restaurant.address}</span>}
         </div>
@@ -229,6 +272,8 @@ export default function PublicMenu() {
       <main className="max-w-md mx-auto p-3 space-y-3">
         {categories.map((cat) => {
           const catProducts = products.filter(p => p.category_id === cat.id);
+          if (catProducts.length === 0) return null; // İçi boş kategorileri gizle (İsteğe bağlı)
+          
           return (
             <div key={cat.id} className="bg-white rounded-2xl border shadow-sm overflow-hidden">
               <div className="p-3.5 bg-slate-50 border-b flex justify-between items-center font-bold text-sm text-slate-800">
