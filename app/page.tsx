@@ -32,8 +32,7 @@ import {
   User,
   Settings,
   LogOut,
-  CreditCard,
-  Palette
+  CreditCard
 } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 
@@ -608,28 +607,33 @@ export default function Dashboard() {
             </div>
           )}
 
-          {/* RESTORAN BİLGİLERİ & RENK SEÇİCİ */}
+          {/* RESTORAN BİLGİLERİ & SENKRONİZE RENK SEÇİCİ */}
           {activeTab === 'restaurant' && (
             <div className="max-w-5xl space-y-6">
               <div className="flex justify-between items-center">
                 <h1 className="text-2xl font-black text-slate-900">Restoran Bilgileri & Renk Paleti</h1>
-                <button onClick={saveRestaurant} className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 transition shadow-xs">
-                  <Save size={16} /> Değişiklikleri Kaydet
-                </button>
+                <div className="flex gap-2">
+                  <a href={liveMenuUrl} target="_blank" rel="noreferrer" className="bg-slate-900 hover:bg-slate-800 text-white px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition">
+                    Canlı Menüyü Test Et <ExternalLink size={14} />
+                  </a>
+                  <button onClick={saveRestaurant} className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 transition shadow-xs">
+                    <Save size={16} /> Değişiklikleri Kaydet
+                  </button>
+                </div>
               </div>
               {saveStatus && <p className="text-xs text-emerald-600 bg-emerald-50 border border-emerald-200 p-3 rounded-xl font-bold">{saveStatus}</p>}
               
               <div className="bg-white border border-slate-200 p-6 rounded-2xl space-y-4 shadow-xs">
                 <h2 className="font-extrabold text-slate-900 text-sm">Firma Adı ve Teması</h2>
                 
-                {/* RENK SEÇİCİ VE FİRMA ADI YANYANA */}
+                {/* RENK SEÇİCİ VE FİRMA ADI YANYANA (SENKRONİZE EDİLDİ) */}
                 <div>
                   <label className="text-xs text-slate-500 uppercase font-bold block mb-1">
                     *Firma Adı ve Rengi Seçin
                   </label>
                   <div className="flex items-center gap-3">
                     {/* Tıklanabilir Renk Seçici Kutusu */}
-                    <div className="relative flex items-center justify-center w-11 h-11 rounded-xl border border-slate-300 shadow-2xs overflow-hidden cursor-pointer" style={{ backgroundColor: restaurant?.primary_color || '#4f46e5' }}>
+                    <div className="relative flex items-center justify-center w-11 h-11 rounded-xl border border-slate-300 shadow-2xs overflow-hidden cursor-pointer flex-shrink-0" style={{ backgroundColor: restaurant?.primary_color || '#4f46e5' }}>
                       <input 
                         type="color" 
                         value={restaurant?.primary_color || '#4f46e5'} 
@@ -648,14 +652,15 @@ export default function Dashboard() {
                       placeholder="Livadya Restaurant" 
                     />
                   </div>
-                  {/* HEX Kod Yazma veya Gösterme Alanı */}
-                  <div className="mt-2 flex items-center gap-2">
+
+                  {/* SENKRONİZE HEX KOD GİRİŞİ */}
+                  <div className="mt-2.5 flex items-center gap-2">
                     <span className="text-[11px] text-slate-400 font-bold">Özel HEX Renk Kodu:</span>
                     <input 
                       type="text" 
                       value={restaurant?.primary_color || '#4f46e5'} 
                       onChange={(e) => setRestaurant({...restaurant, primary_color: e.target.value})} 
-                      className="w-28 p-1.5 bg-slate-50 border border-slate-200 text-slate-800 rounded-lg text-xs font-mono font-bold outline-none focus:border-indigo-500" 
+                      className="w-28 p-1.5 bg-slate-50 border border-slate-200 text-slate-800 rounded-lg text-xs font-mono font-bold outline-none focus:border-indigo-500 uppercase" 
                       placeholder="#4f46e5" 
                     />
                   </div>
@@ -940,7 +945,6 @@ export default function Dashboard() {
                 <p className="text-slate-500 text-xs font-medium mt-0.5">Kategori, alt kategori ve lezzetlerinizi tanımlayın.</p>
               </div>
 
-              {/* 1. ANA KATEGORİ YÖNETİMİ */}
               <div className="bg-white border border-slate-200 p-6 rounded-2xl space-y-4 shadow-xs">
                 <h2 className="font-extrabold text-slate-900 text-sm">1. Ana Kategori Ekle</h2>
                 <form onSubmit={addCategory} className="flex gap-3">
@@ -968,7 +972,6 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              {/* 2. ALT KATEGORİ YÖNETİMİ */}
               <div className="bg-white border border-slate-200 p-6 rounded-2xl space-y-4 shadow-xs">
                 <h2 className="font-extrabold text-slate-900 text-sm flex items-center gap-2">
                   <FolderTree size={16} className="text-indigo-600" /> 2. Alt Kategori Ekle
@@ -1011,7 +1014,6 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              {/* 3. ÜRÜN EKLEME FORMU */}
               <div className="bg-white border border-slate-200 p-6 rounded-2xl space-y-4 shadow-xs">
                 <h2 className="font-extrabold text-slate-900 text-sm flex items-center gap-2">
                   <Utensils size={16} className="text-indigo-600" /> 3. Ürün Ekle
@@ -1084,7 +1086,6 @@ export default function Dashboard() {
                     </div>
                   </div>
 
-                  {/* ALERJEN DROPDOWN */}
                   <div className="relative">
                     <label className="text-xs text-slate-500 uppercase font-bold block mb-1">Alerjenler</label>
                     <button 
@@ -1132,7 +1133,6 @@ export default function Dashboard() {
                     )}
                   </div>
 
-                  {/* SÜRÜKLE BIRAK FOTOĞRAF */}
                   <div>
                     <label className="text-xs text-slate-500 uppercase font-bold block mb-1">Ürün Fotoğrafı</label>
                     <div 
@@ -1199,7 +1199,6 @@ export default function Dashboard() {
                   </button>
                 </form>
 
-                {/* EKLENEN ÜRÜNLER LİSTESİ */}
                 <div className="space-y-3 pt-4 border-t border-slate-100">
                   {products.map((prod) => (
                     <div key={prod.id} className="bg-slate-50 border border-slate-200 p-3 rounded-2xl flex gap-3 items-center">
