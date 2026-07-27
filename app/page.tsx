@@ -9,11 +9,10 @@ import {
   Layers, 
   ChefHat, 
   ExternalLink, 
-  ShieldCheck, 
   Save,
   Utensils,
   UploadCloud,
-  Image as ImageIcon
+  FolderTree
 } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 
@@ -32,16 +31,24 @@ export default function Dashboard() {
   });
 
   const [categories, setCategories] = useState<any[]>([]);
+  const [subcategories, setSubcategories] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
+  
+  // State'ler
   const [newCatName, setNewCatName] = useState('');
   
-  // Ürün Formu
+  const [subCatForm, setSubCatForm] = useState({
+    name: '',
+    category_id: ''
+  });
+
   const [productForm, setProductForm] = useState({
     name: '',
     description: '',
     price: '',
     image_url: '',
-    category_id: ''
+    category_id: '',
+    subcategory_id: ''
   });
 
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -50,6 +57,7 @@ export default function Dashboard() {
 
   const [saveStatus, setSaveStatus] = useState('');
   const [loadingCat, setLoadingCat] = useState(false);
+  const [loadingSubCat, setLoadingSubCat] = useState(false);
   const [loadingProd, setLoadingProd] = useState(false);
 
   const liveMenuUrl = typeof window !== 'undefined' 
@@ -59,6 +67,7 @@ export default function Dashboard() {
   useEffect(() => {
     fetchRestaurant();
     fetchCategories();
+    fetchSubcategories();
     fetchProducts();
   }, []);
 
@@ -68,7 +77,6 @@ export default function Dashboard() {
       if (data) {
         setRestaurant(data);
       } else {
-        // Veritabanında yoksa otomatik ilk kaydı oluşturalım
         await supabase.from('restaurants').upsert([restaurant], { onConflict: 'slug' });
       }
     } catch (err) {
@@ -77,38 +85,44 @@ export default function Dashboard() {
   };
 
   const fetchCategories = async () => {
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from('categories')
       .select('*')
       .order('sort_order', { ascending: true });
 
-    if (!error && data) {
+    if (data) {
       setCategories(data);
-      if (data.length > 0 && !productForm.category_id) {
-        setProductForm((prev) => ({ ...prev, category_id: data[0].id }));
+      if (data.length > 0) {
+        setSubCatForm((prev) => prev.category_id ? prev : { ...prev, category_id: data[0].id });
+        setProductForm((prev) => prev.category_id ? prev : { ...prev, category_id: data[0].id });
       }
     }
   };
 
-  const fetchProducts = async () => {
-    const { data, error } = await supabase
-      .from('products')
+  const fetchSubcategories = async () => {
+    const { data } = await supabase
+      .from('subcategories')
       .select('*, categories(name)')
-      .order('id', { ascending: false });
+      .order('sort_order', { ascending: true });
 
-    if (!error && data) {
-      setProducts(data);
-    }
+    if (data) setSubcategories(data);
   };
 
-  // Görsel Sürükle-Bırak / Seçim İşlemi
+  const fetchProducts = async () => {
+    const { data } = await supabase
+      .from('products')
+      .select('*, categories(name), subcategories(name)')
+      .order('id', { ascending: false });
+
+    if (data) setProducts(data);
+  };
+
+  // Görsel Sürükle - Bırak İşlemleri
   const handleImageChange = (file: File) => {
     if (!file) return;
     setImageFile(file);
     const reader = new FileReader();
-    reader.onloadend = () => {
-      setImagePreview(reader.result as string);
-    };
+    reader.onloadend = () => setImagePreview(reader.result as string);
     reader.readAsDataURL(file);
   };
 
@@ -119,7 +133,6 @@ export default function Dashboard() {
     }
   };
 
-  // Görseli Supabase Storage'a Yükleme
   const uploadImageToStorage = async (file: File): Promise<string> => {
     const fileExt = file.name.split('.').pop();
     const fileName = `${Date.now()}.${fileExt}`;
@@ -129,26 +142,19 @@ export default function Dashboard() {
       .from('product-images')
       .upload(filePath, file);
 
-    if (uploadError) {
-      // Storage yoksa Base64 fallback
-      return imagePreview;
-    }
+    if (uploadError) return imagePreview;
 
     const { data } = supabase.storage.from('product-images').getPublicUrl(filePath);
     return data.publicUrl;
   };
 
-  // Kategori Ekleme
+  // 1. Ana Kategori Ekleme
   const addCategory = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (!newCatName.trim()) return;
 
     setLoadingCat(true);
-    const insertData: any = {
-      name: newCatName.trim(),
-      sort_order: categories.length + 1
-    };
-
+    const insertData: any = { name: newCatName.trim(), sort_order: categories.length + 1 };
     if (restaurant?.id) insertData.restaurant_id = restaurant.id;
 
     const { error } = await supabase.from('categories').insert([insertData]);
@@ -160,16 +166,42 @@ export default function Dashboard() {
     }
   };
 
-  // Ürün Ekleme
+  // 2. Alt Kategori Ekleme
+  const addSubcategory = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!subCatForm.name.trim() || !subCatForm.category_id) {
+      alert('Lütfen bir alt kategori adı ve bağlı olduğu ana kategoriyi seçin!');
+      return;
+    }
+
+    setLoadingSubCat(true);
+    const insertData: any = {
+      name: subCatForm.name.trim(),
+      category_id: subCatForm.category_id,
+      sort_order: subcategories.length + 1
+    };
+    if (restaurant?.id) insertData.restaurant_id = restaurant.id;
+
+    const { error } = await supabase.from('subcategories').insert([insertData]);
+    setLoadingSubCat(false);
+
+    if (error) {
+      alert('Alt Kategori Ekleme Hatası: ' + error.message);
+    } else {
+      setSubCatForm({ name: '', category_id: categories[0]?.id || '' });
+      fetchSubcategories();
+    }
+  };
+
+  // 3. Ürün Ekleme
   const addProduct = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!productForm.name.trim() || !productForm.price || !productForm.category_id) {
-      alert('Lütfen ürün adı, fiyatı ve kategorisini seçin!');
+      alert('Lütfen ürün adı, fiyatı ve ana kategorisini seçin!');
       return;
     }
 
     setLoadingProd(true);
-
     let finalImageUrl = productForm.image_url;
 
     if (imageFile) {
@@ -183,7 +215,8 @@ export default function Dashboard() {
       description: productForm.description.trim(),
       price: parseFloat(productForm.price),
       image_url: finalImageUrl,
-      category_id: productForm.category_id
+      category_id: productForm.category_id,
+      subcategory_id: productForm.subcategory_id || null
     };
 
     if (restaurant?.id) insertProduct.restaurant_id = restaurant.id;
@@ -199,7 +232,8 @@ export default function Dashboard() {
         description: '',
         price: '',
         image_url: '',
-        category_id: categories[0]?.id || ''
+        category_id: categories[0]?.id || '',
+        subcategory_id: ''
       });
       setImageFile(null);
       setImagePreview('');
@@ -210,6 +244,12 @@ export default function Dashboard() {
   const deleteCategory = async (id: string) => {
     await supabase.from('categories').delete().eq('id', id);
     fetchCategories();
+    fetchSubcategories();
+  };
+
+  const deleteSubcategory = async (id: string) => {
+    await supabase.from('subcategories').delete().eq('id', id);
+    fetchSubcategories();
   };
 
   const deleteProduct = async (id: string) => {
@@ -228,6 +268,8 @@ export default function Dashboard() {
     }
   };
 
+  const filteredSubcategories = subcategories.filter(s => s.category_id === productForm.category_id);
+
   return (
     <div className="flex h-screen bg-slate-950 font-sans text-slate-100 overflow-hidden">
       {/* Sidebar */}
@@ -244,16 +286,16 @@ export default function Dashboard() {
           </div>
 
           <nav className="p-4 space-y-1.5 text-sm font-medium">
-            <button onClick={() => setActiveTab('dashboard')} className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition ${activeTab === 'dashboard' ? 'bg-indigo-600/20 text-indigo-400 border border-indigo-500/30' : 'text-slate-400'}`}>
+            <button onClick={() => setActiveTab('dashboard')} className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition ${activeTab === 'dashboard' ? 'bg-indigo-600/20 text-indigo-400 border border-indigo-500/30 font-semibold' : 'text-slate-400 hover:bg-slate-800/60'}`}>
               <Sparkles size={18} /> Gösterge Paneli
             </button>
-            <button onClick={() => setActiveTab('menu')} className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition ${activeTab === 'menu' ? 'bg-indigo-600/20 text-indigo-400 border border-indigo-500/30' : 'text-slate-400'}`}>
+            <button onClick={() => setActiveTab('menu')} className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition ${activeTab === 'menu' ? 'bg-indigo-600/20 text-indigo-400 border border-indigo-500/30 font-semibold' : 'text-slate-400 hover:bg-slate-800/60'}`}>
               <Layers size={18} /> Menü Yönetimi
             </button>
-            <button onClick={() => setActiveTab('restaurant')} className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition ${activeTab === 'restaurant' ? 'bg-indigo-600/20 text-indigo-400 border border-indigo-500/30' : 'text-slate-400'}`}>
+            <button onClick={() => setActiveTab('restaurant')} className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition ${activeTab === 'restaurant' ? 'bg-indigo-600/20 text-indigo-400 border border-indigo-500/30 font-semibold' : 'text-slate-400 hover:bg-slate-800/60'}`}>
               <ChefHat size={18} /> Restoran Bilgileri
             </button>
-            <button onClick={() => setActiveTab('qr')} className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition ${activeTab === 'qr' ? 'bg-indigo-600/20 text-indigo-400 border border-indigo-500/30' : 'text-slate-400'}`}>
+            <button onClick={() => setActiveTab('qr')} className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition ${activeTab === 'qr' ? 'bg-indigo-600/20 text-indigo-400 border border-indigo-500/30 font-semibold' : 'text-slate-400 hover:bg-slate-800/60'}`}>
               <ExternalLink size={18} /> QR Stüdyo
             </button>
           </nav>
@@ -272,11 +314,15 @@ export default function Dashboard() {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
               <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl">
-                <p className="text-xs text-slate-400 uppercase">Kategoriler</p>
+                <p className="text-xs text-slate-400 uppercase font-semibold">Ana Kategoriler</p>
                 <h3 className="text-3xl font-extrabold text-white mt-2">{categories.length}</h3>
               </div>
               <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl">
-                <p className="text-xs text-slate-400 uppercase">Ürünler</p>
+                <p className="text-xs text-slate-400 uppercase font-semibold">Alt Kategoriler</p>
+                <h3 className="text-3xl font-extrabold text-purple-400 mt-2">{subcategories.length}</h3>
+              </div>
+              <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl">
+                <p className="text-xs text-slate-400 uppercase font-semibold">Toplam Ürün</p>
                 <h3 className="text-3xl font-extrabold text-indigo-400 mt-2">{products.length}</h3>
               </div>
             </div>
@@ -293,26 +339,26 @@ export default function Dashboard() {
             </div>
             {saveStatus && <p className="text-sm text-emerald-400 bg-emerald-500/10 p-3 rounded-xl">{saveStatus}</p>}
             <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-4">
-              <input type="text" value={restaurant.name} onChange={(e) => setRestaurant({...restaurant, name: e.target.value})} className="w-full p-2.5 bg-slate-950 border border-slate-800 text-white rounded-xl text-sm" placeholder="Firma Adı" />
-              <input type="text" value={restaurant.subtitle} onChange={(e) => setRestaurant({...restaurant, subtitle: e.target.value})} className="w-full p-2.5 bg-slate-950 border border-slate-800 text-white rounded-xl text-sm" placeholder="Firma Alt Başlığı" />
+              <input type="text" value={restaurant.name} onChange={(e) => setRestaurant({...restaurant, name: e.target.value})} className="w-full p-2.5 bg-slate-950 border border-slate-800 text-white rounded-xl text-sm outline-none" placeholder="Firma Adı" />
+              <input type="text" value={restaurant.subtitle} onChange={(e) => setRestaurant({...restaurant, subtitle: e.target.value})} className="w-full p-2.5 bg-slate-950 border border-slate-800 text-white rounded-xl text-sm outline-none" placeholder="Firma Alt Başlığı" />
             </div>
           </div>
         )}
 
         {activeTab === 'menu' && (
           <div className="max-w-4xl space-y-8">
-            {/* Kategori Ekleme */}
+            {/* 1. ANA KATEGORİ YÖNETİMİ */}
             <div className="space-y-4">
-              <h1 className="text-xl font-bold text-white">1. Kategori Ekle</h1>
+              <h1 className="text-xl font-bold text-white">1. Ana Kategori Ekle</h1>
               <form onSubmit={addCategory} className="bg-slate-900 p-4 rounded-2xl border border-slate-800 flex gap-3">
                 <input 
                   type="text" 
-                  placeholder="Kategori Adı (Örn: Tatlılar)" 
+                  placeholder="Ana Kategori Adı (Örn: Şaraplar, Tatlılar)" 
                   value={newCatName}
                   onChange={(e) => setNewCatName(e.target.value)}
-                  className="flex-1 px-4 py-2.5 bg-slate-950 border border-slate-800 text-white rounded-xl text-sm outline-none"
+                  className="flex-1 px-4 py-2.5 bg-slate-950 border border-slate-800 text-white rounded-xl text-sm outline-none focus:border-indigo-500"
                 />
-                <button type="submit" className="bg-indigo-600 text-white px-5 py-2.5 rounded-xl text-sm font-semibold flex items-center gap-1">
+                <button type="submit" disabled={loadingCat} className="bg-indigo-600 text-white px-5 py-2.5 rounded-xl text-sm font-semibold flex items-center gap-1 hover:bg-indigo-500 transition">
                   <Plus size={18} /> Ekle
                 </button>
               </form>
@@ -321,7 +367,7 @@ export default function Dashboard() {
                 {categories.map((cat) => (
                   <div key={cat.id} className="bg-slate-900 px-4 py-2 rounded-xl border border-slate-800 flex items-center gap-3">
                     <span className="font-semibold text-sm text-slate-200">{cat.name}</span>
-                    <button onClick={() => deleteCategory(cat.id)} className="text-rose-400">
+                    <button onClick={() => deleteCategory(cat.id)} className="text-rose-400 hover:text-rose-300">
                       <Trash2 size={16} />
                     </button>
                   </div>
@@ -331,34 +377,93 @@ export default function Dashboard() {
 
             <hr className="border-slate-800" />
 
-            {/* Ürün Ekleme (Sürükle - Bırak Fotoğraf Alanı) */}
+            {/* 2. ALT KATEGORİ YÖNETİMİ */}
             <div className="space-y-4">
               <h1 className="text-xl font-bold text-white flex items-center gap-2">
-                <Utensils size={20} className="text-indigo-400" /> 2. Ürün Ekle
+                <FolderTree size={20} className="text-purple-400" /> 2. Alt Kategori Ekle
+              </h1>
+
+              <form onSubmit={addSubcategory} className="bg-slate-900 p-4 rounded-2xl border border-slate-800 grid grid-cols-1 md:grid-cols-3 gap-3">
+                <select 
+                  value={subCatForm.category_id}
+                  onChange={(e) => setSubCatForm({...subCatForm, category_id: e.target.value})}
+                  className="px-4 py-2.5 bg-slate-950 border border-slate-800 text-white rounded-xl text-sm outline-none"
+                >
+                  {categories.map((cat) => (
+                    <option key={cat.id} value={cat.id}>{cat.name}</option>
+                  ))}
+                </select>
+
+                <input 
+                  type="text" 
+                  placeholder="Alt Kategori Adı (Örn: Kırmızı Şarap)" 
+                  value={subCatForm.name}
+                  onChange={(e) => setSubCatForm({...subCatForm, name: e.target.value})}
+                  className="px-4 py-2.5 bg-slate-950 border border-slate-800 text-white rounded-xl text-sm outline-none focus:border-purple-500"
+                />
+
+                <button type="submit" disabled={loadingSubCat} className="bg-purple-600 hover:bg-purple-500 text-white px-5 py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-1 transition">
+                  <Plus size={18} /> Alt Kategori Ekle
+                </button>
+              </form>
+
+              <div className="flex flex-wrap gap-2">
+                {subcategories.map((sub) => (
+                  <div key={sub.id} className="bg-slate-900/80 px-3.5 py-1.5 rounded-xl border border-purple-500/20 flex items-center gap-2 text-xs">
+                    <span className="text-purple-400 font-medium">{sub.categories?.name} &gt;</span>
+                    <span className="font-semibold text-slate-200">{sub.name}</span>
+                    <button onClick={() => deleteSubcategory(sub.id)} className="text-rose-400 hover:text-rose-300 ml-1">
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <hr className="border-slate-800" />
+
+            {/* 3. ÜRÜN EKLEME FORMU */}
+            <div className="space-y-4">
+              <h1 className="text-xl font-bold text-white flex items-center gap-2">
+                <Utensils size={20} className="text-indigo-400" /> 3. Ürün Ekle
               </h1>
 
               <form onSubmit={addProduct} className="bg-slate-900 p-6 rounded-2xl border border-slate-800 space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
                     <label className="text-xs text-slate-400 uppercase font-bold block mb-1">Ürün Adı</label>
                     <input 
                       type="text" 
-                      placeholder="Örn: Künefe" 
+                      placeholder="Örn: Yakut Kırmızı Şarap" 
                       value={productForm.name}
                       onChange={(e) => setProductForm({...productForm, name: e.target.value})}
-                      className="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 text-white rounded-xl text-sm outline-none"
+                      className="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 text-white rounded-xl text-sm outline-none focus:border-indigo-500"
                     />
                   </div>
 
                   <div>
-                    <label className="text-xs text-slate-400 uppercase font-bold block mb-1">Kategori</label>
+                    <label className="text-xs text-slate-400 uppercase font-bold block mb-1">Ana Kategori</label>
                     <select 
                       value={productForm.category_id}
-                      onChange={(e) => setProductForm({...productForm, category_id: e.target.value})}
+                      onChange={(e) => setProductForm({...productForm, category_id: e.target.value, subcategory_id: ''})}
                       className="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 text-white rounded-xl text-sm outline-none"
                     >
                       {categories.map((cat) => (
                         <option key={cat.id} value={cat.id}>{cat.name}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="text-xs text-purple-300 uppercase font-bold block mb-1">Alt Kategori (Opsiyonel)</label>
+                    <select 
+                      value={productForm.subcategory_id}
+                      onChange={(e) => setProductForm({...productForm, subcategory_id: e.target.value})}
+                      className="w-full px-4 py-2.5 bg-slate-950 border border-purple-500/30 text-white rounded-xl text-sm outline-none"
+                    >
+                      <option value="">-- Alt Kategori Yok --</option>
+                      {filteredSubcategories.map((sub) => (
+                        <option key={sub.id} value={sub.id}>{sub.name}</option>
                       ))}
                     </select>
                   </div>
@@ -368,14 +473,14 @@ export default function Dashboard() {
                   <label className="text-xs text-slate-400 uppercase font-bold block mb-1">Fiyat (₺)</label>
                   <input 
                     type="number" 
-                    placeholder="250" 
+                    placeholder="850" 
                     value={productForm.price}
                     onChange={(e) => setProductForm({...productForm, price: e.target.value})}
-                    className="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 text-white rounded-xl text-sm outline-none"
+                    className="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 text-white rounded-xl text-sm outline-none focus:border-indigo-500"
                   />
                 </div>
 
-                {/* SÜRÜKLE - BIRAK FOTOĞRAF YÜKLEME ALANI */}
+                {/* Sürükle - Bırak Fotoğraf Alanı */}
                 <div>
                   <label className="text-xs text-slate-400 uppercase font-bold block mb-1">Ürün Fotoğrafı</label>
                   <div 
@@ -415,10 +520,10 @@ export default function Dashboard() {
                   <label className="text-xs text-slate-400 uppercase font-bold block mb-1">Açıklama</label>
                   <textarea 
                     rows={2}
-                    placeholder="Ürün içeriği..." 
+                    placeholder="Örn: Öküzgözü & Boğazkere, 75 cl..." 
                     value={productForm.description}
                     onChange={(e) => setProductForm({...productForm, description: e.target.value})}
-                    className="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 text-white rounded-xl text-sm outline-none"
+                    className="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 text-white rounded-xl text-sm outline-none focus:border-indigo-500"
                   />
                 </div>
 
@@ -443,7 +548,12 @@ export default function Dashboard() {
                     
                     <div className="flex-1">
                       <div className="flex justify-between items-start">
-                        <h3 className="font-bold text-white text-base">{prod.name}</h3>
+                        <div>
+                          <h3 className="font-bold text-white text-base">{prod.name}</h3>
+                          <p className="text-[11px] text-purple-400 font-medium">
+                            {prod.categories?.name} {prod.subcategories?.name ? `> ${prod.subcategories.name}` : ''}
+                          </p>
+                        </div>
                         <span className="font-extrabold text-indigo-400 text-base">{prod.price} ₺</span>
                       </div>
                       <p className="text-xs text-slate-400 mt-1">{prod.description}</p>
