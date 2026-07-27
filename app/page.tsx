@@ -32,7 +32,8 @@ import {
   User,
   Settings,
   LogOut,
-  CreditCard
+  CreditCard,
+  Palette
 } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 
@@ -72,6 +73,7 @@ export default function Dashboard() {
     whatsapp: '905338665278',
     address: 'Livadya Restaurant, Gaziveren, Lefke',
     working_hours: '08:00 - 24:00',
+    primary_color: '#4f46e5',
     description: '',
     instagram: '',
     facebook: '',
@@ -121,7 +123,6 @@ export default function Dashboard() {
   const [loadingProd, setLoadingProd] = useState(false);
 
   const qrRef = useRef<HTMLDivElement>(null);
-
   const liveMenuUrl = `${MAIN_DOMAIN}/menu`;
 
   useEffect(() => {
@@ -156,6 +157,7 @@ export default function Dashboard() {
         name: 'Livadya Restaurant',
         slug: 'livadya-restaurant',
         subtitle: 'Lezzet, Manzara ve Huzurun Adresi',
+        primary_color: '#4f46e5',
         template: 'bistro'
       }]).select();
       if (newRest) {
@@ -230,6 +232,7 @@ export default function Dashboard() {
       name: newRestForm.name.trim(),
       slug: formattedSlug,
       subtitle: 'Yemek Bizim İşimiz',
+      primary_color: '#4f46e5',
       template: 'bistro'
     }]).select();
 
@@ -433,7 +436,7 @@ export default function Dashboard() {
 
   return (
     <div className="flex flex-col h-screen bg-slate-50 font-sans text-slate-800 overflow-hidden">
-      {/* ÜST HEADER NAVBAR (INDIGO / TEKNO PREMİUM MARKA) */}
+      {/* ÜST HEADER NAVBAR */}
       <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 z-20 shadow-xs">
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2 font-black text-xl tracking-tight text-slate-900">
@@ -461,10 +464,9 @@ export default function Dashboard() {
       </header>
 
       <div className="flex flex-1 overflow-hidden">
-        {/* SOL SIDEBAR (AÇIK BEYAZ / INDIGO VURGULU) */}
+        {/* SOL SIDEBAR */}
         <aside className="w-60 bg-white border-r border-slate-200 flex flex-col justify-between p-4 overflow-y-auto">
           <div className="space-y-6">
-            {/* RESTORAN SEÇİCİ */}
             <div>
               <label className="text-[10px] uppercase font-bold text-slate-400 mb-1.5 block tracking-wider">Aktif Restoran</label>
               <div className="flex gap-2">
@@ -487,7 +489,6 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* YÖNETİM GRUBU */}
             <div className="space-y-1">
               <p className="text-[10px] font-bold uppercase text-slate-400 px-3 tracking-wider">Yönetim</p>
               
@@ -528,7 +529,6 @@ export default function Dashboard() {
               </button>
             </div>
 
-            {/* HESAP GRUBU */}
             <div className="space-y-1 border-t border-slate-100 pt-4">
               <p className="text-[10px] font-bold uppercase text-slate-400 px-3 tracking-wider">Hesap</p>
               
@@ -547,7 +547,7 @@ export default function Dashboard() {
           </div>
         </aside>
 
-        {/* SAĞ İÇERİK ALANI (TEMİZ BEYAZ KARTLAR) */}
+        {/* SAĞ İÇERİK ALANI */}
         <main className="flex-1 p-8 overflow-y-auto bg-slate-50">
           {showNewRestModal && (
             <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4">
@@ -608,11 +608,11 @@ export default function Dashboard() {
             </div>
           )}
 
-          {/* RESTORAN BİLGİLERİ */}
+          {/* RESTORAN BİLGİLERİ & RENK SEÇİCİ */}
           {activeTab === 'restaurant' && (
             <div className="max-w-5xl space-y-6">
               <div className="flex justify-between items-center">
-                <h1 className="text-2xl font-black text-slate-900">Restoran Bilgileri</h1>
+                <h1 className="text-2xl font-black text-slate-900">Restoran Bilgileri & Renk Paleti</h1>
                 <button onClick={saveRestaurant} className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 transition shadow-xs">
                   <Save size={16} /> Değişiklikleri Kaydet
                 </button>
@@ -620,29 +620,68 @@ export default function Dashboard() {
               {saveStatus && <p className="text-xs text-emerald-600 bg-emerald-50 border border-emerald-200 p-3 rounded-xl font-bold">{saveStatus}</p>}
               
               <div className="bg-white border border-slate-200 p-6 rounded-2xl space-y-4 shadow-xs">
-                <h2 className="font-extrabold text-slate-900 text-sm">Firma Detayları</h2>
+                <h2 className="font-extrabold text-slate-900 text-sm">Firma Adı ve Teması</h2>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-xs text-slate-500 uppercase font-bold block mb-1">Firma Adı</label>
-                    <input type="text" value={restaurant?.name || ''} onChange={(e) => setRestaurant({...restaurant, name: e.target.value})} className="w-full p-2.5 bg-slate-50 border border-slate-200 text-slate-800 rounded-xl text-xs font-semibold outline-none focus:border-indigo-500" placeholder="Livadya Restaurant" />
-                  </div>
+                {/* RENK SEÇİCİ VE FİRMA ADI YANYANA */}
+                <div>
+                  <label className="text-xs text-slate-500 uppercase font-bold block mb-1">
+                    *Firma Adı ve Rengi Seçin
+                  </label>
+                  <div className="flex items-center gap-3">
+                    {/* Tıklanabilir Renk Seçici Kutusu */}
+                    <div className="relative flex items-center justify-center w-11 h-11 rounded-xl border border-slate-300 shadow-2xs overflow-hidden cursor-pointer" style={{ backgroundColor: restaurant?.primary_color || '#4f46e5' }}>
+                      <input 
+                        type="color" 
+                        value={restaurant?.primary_color || '#4f46e5'} 
+                        onChange={(e) => setRestaurant({...restaurant, primary_color: e.target.value})}
+                        className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                        title="Renk Seçmek İçin Tıklayın"
+                      />
+                    </div>
 
+                    {/* Firma Adı Input Alanı */}
+                    <input 
+                      type="text" 
+                      value={restaurant?.name || ''} 
+                      onChange={(e) => setRestaurant({...restaurant, name: e.target.value})} 
+                      className="flex-1 p-2.5 bg-slate-50 border border-slate-200 text-slate-800 rounded-xl text-xs font-semibold outline-none focus:border-indigo-500" 
+                      placeholder="Livadya Restaurant" 
+                    />
+                  </div>
+                  {/* HEX Kod Yazma veya Gösterme Alanı */}
+                  <div className="mt-2 flex items-center gap-2">
+                    <span className="text-[11px] text-slate-400 font-bold">Özel HEX Renk Kodu:</span>
+                    <input 
+                      type="text" 
+                      value={restaurant?.primary_color || '#4f46e5'} 
+                      onChange={(e) => setRestaurant({...restaurant, primary_color: e.target.value})} 
+                      className="w-28 p-1.5 bg-slate-50 border border-slate-200 text-slate-800 rounded-lg text-xs font-mono font-bold outline-none focus:border-indigo-500" 
+                      placeholder="#4f46e5" 
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
                   <div>
                     <label className="text-xs text-slate-500 uppercase font-bold block mb-1">Firma Bağlantısı (Slug)</label>
                     <input type="text" value={restaurant?.slug || ''} onChange={(e) => setRestaurant({...restaurant, slug: e.target.value})} className="w-full p-2.5 bg-slate-50 border border-slate-200 text-indigo-600 font-mono font-bold rounded-xl text-xs outline-none" placeholder="livadya-restaurant" />
+                  </div>
+
+                  <div>
+                    <label className="text-xs text-slate-500 uppercase font-bold block mb-1">Firma Alt Başlığı</label>
+                    <input type="text" value={restaurant?.subtitle || ''} onChange={(e) => setRestaurant({...restaurant, subtitle: e.target.value})} className="w-full p-2.5 bg-slate-50 border border-slate-200 text-slate-800 rounded-xl text-xs font-semibold outline-none focus:border-indigo-500" placeholder="Lezzet, Manzara ve Huzurun Adresi" />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="text-xs text-slate-500 uppercase font-bold block mb-1">Firma Alt Başlığı</label>
-                    <input type="text" value={restaurant?.subtitle || ''} onChange={(e) => setRestaurant({...restaurant, subtitle: e.target.value})} className="w-full p-2.5 bg-slate-50 border border-slate-200 text-slate-800 rounded-xl text-xs font-semibold outline-none focus:border-indigo-500" placeholder="Lezzet, Manzara ve Huzurun Adresi" />
+                    <label className="text-xs text-slate-500 uppercase font-bold block mb-1 flex items-center gap-1"><Clock size={12} /> Çalışma Zaman Aralığı</label>
+                    <input type="text" value={restaurant?.working_hours || ''} onChange={(e) => setRestaurant({...restaurant, working_hours: e.target.value})} className="w-full p-2.5 bg-slate-50 border border-slate-200 text-slate-800 rounded-xl text-xs font-semibold outline-none focus:border-indigo-500" placeholder="08:00 - 24:00" />
                   </div>
 
                   <div>
-                    <label className="text-xs text-slate-500 uppercase font-bold block mb-1 flex items-center gap-1"><Clock size={12} /> Çalışma Zaman Aralığı</label>
-                    <input type="text" value={restaurant?.working_hours || ''} onChange={(e) => setRestaurant({...restaurant, working_hours: e.target.value})} className="w-full p-2.5 bg-slate-50 border border-slate-200 text-slate-800 rounded-xl text-xs font-semibold outline-none focus:border-indigo-500" placeholder="08:00 - 24:00" />
+                    <label className="text-xs text-slate-500 uppercase font-bold block mb-1 flex items-center gap-1"><MapPin size={12} /> Adresiniz</label>
+                    <input type="text" value={restaurant?.address || ''} onChange={(e) => setRestaurant({...restaurant, address: e.target.value})} className="w-full p-2.5 bg-slate-50 border border-slate-200 text-slate-800 rounded-xl text-xs font-semibold outline-none focus:border-indigo-500" placeholder="Livadya Restaurant, Gaziveren, Lefke" />
                   </div>
                 </div>
 
@@ -655,11 +694,6 @@ export default function Dashboard() {
                     className="w-full p-3 bg-slate-50 border border-slate-200 text-slate-800 rounded-xl text-xs font-medium outline-none focus:border-indigo-500 leading-relaxed" 
                     placeholder="Lefke Gaziveren'in eşsiz sahilinde..."
                   />
-                </div>
-
-                <div>
-                  <label className="text-xs text-slate-500 uppercase font-bold block mb-1 flex items-center gap-1"><MapPin size={12} /> Adresiniz</label>
-                  <input type="text" value={restaurant?.address || ''} onChange={(e) => setRestaurant({...restaurant, address: e.target.value})} className="w-full p-2.5 bg-slate-50 border border-slate-200 text-slate-800 rounded-xl text-xs font-semibold outline-none focus:border-indigo-500" placeholder="Livadya Restaurant, Gaziveren, Lefke" />
                 </div>
               </div>
 
@@ -1207,7 +1241,6 @@ export default function Dashboard() {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* SOL: QR ÖNİZLEME VE İNDİRME */}
                 <div className="bg-white border border-slate-200 p-8 rounded-2xl flex flex-col items-center gap-6 shadow-xs">
                   <h2 className="font-extrabold text-slate-900 text-sm self-start flex items-center gap-2">
                     <QrCode size={18} className="text-indigo-600" /> QR Kodunuz
@@ -1231,7 +1264,6 @@ export default function Dashboard() {
                   </button>
                 </div>
 
-                {/* SAĞ: MASA / BROŞÜR TASARIM ÖNİZLEMESİ */}
                 <div className="bg-white border border-slate-200 p-6 rounded-2xl space-y-4 shadow-xs">
                   <h2 className="font-extrabold text-slate-900 text-sm flex items-center gap-2">
                     <LayoutTemplate size={18} className="text-indigo-600" /> Masa QR Şablonu
