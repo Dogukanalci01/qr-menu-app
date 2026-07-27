@@ -60,8 +60,16 @@ const ALLERGEN_OPTIONS = [
 const MAIN_DOMAIN = 'https://qr-menu-app-three-beta.vercel.app';
 
 export default function Dashboard() {
+  // --- AUTH STATES ---
+  const [sessionUser, setSessionUser] = useState<any>(null);
+  const [authEmail, setAuthEmail] = useState('');
+  const [authPassword, setAuthPassword] = useState('');
+  const [isSignUp, setIsSignUp] = useState(false);
+  const [authLoading, setAuthLoading] = useState(false);
+  const [authMessage, setAuthMessage] = useState('');
+
+  // --- DASHBOARD STATES ---
   const [activeTab, setActiveTab] = useState('menu');
-  
   const [restaurantsList, setRestaurantsList] = useState<any[]>([]);
   const [selectedRestaurantId, setSelectedRestaurantId] = useState<string>('');
   const [restaurant, setRestaurant] = useState<any>({
@@ -124,12 +132,28 @@ export default function Dashboard() {
   const qrRef = useRef<HTMLDivElement>(null);
   const liveMenuUrl = `${MAIN_DOMAIN}/menu`;
 
+  // --- AUTH CHECK & LISTENER ---
   useEffect(() => {
-    fetchAllRestaurants();
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      setSessionUser(user);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSessionUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
+  // --- FETCH DATA IF LOGGED IN ---
   useEffect(() => {
-    if (selectedRestaurantId) {
+    if (sessionUser) {
+      fetchAllRestaurants();
+    }
+  }, [sessionUser]);
+
+  useEffect(() => {
+    if (selectedRestaurantId && sessionUser) {
       const active = restaurantsList.find(r => r.id === selectedRestaurantId);
       if (active) {
         setRestaurant(active);
@@ -142,6 +166,34 @@ export default function Dashboard() {
       fetchProducts(selectedRestaurantId);
     }
   }, [selectedRestaurantId]);
+
+  const handleAuth = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAuthLoading(true);
+    setAuthMessage('');
+
+    if (isSignUp) {
+      const { error } = await supabase.auth.signUp({ email: authEmail, password: authPassword });
+      if (error) {
+        setAuthMessage('Hata: ' + error.message);
+      } else {
+        setAuthMessage('Kayıt başarılı! Şimdi giriş yapabilirsiniz.');
+        setIsSignUp(false);
+      }
+    } else {
+      const { error } = await supabase.auth.signInWithPassword({ email: authEmail, password: authPassword });
+      if (error) {
+        setAuthMessage('Hata: ' + error.message);
+      } else {
+        setAuthMessage('Giriş başarılı!');
+      }
+    }
+    setAuthLoading(false);
+  };
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+  };
 
   const fetchAllRestaurants = async () => {
     const { data, error } = await supabase.from('restaurants').select('*').order('created_at', { ascending: false });
@@ -433,6 +485,80 @@ export default function Dashboard() {
 
   const filteredSubcategories = subcategories.filter(s => s.category_id === productForm.category_id);
 
+  // --- KULLANICI GİRİŞ YAPMADIYSA GÖSTERİLECEK AUTH EKRANI ---
+  if (!sessionUser) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center p-6 bg-slate-50 font-sans text-slate-800">
+        <div className="bg-white border border-slate-200 p-8 rounded-2xl shadow-xl max-w-md w-full">
+          <div className="flex items-center justify-center gap-2 font-black text-2xl tracking-tight text-slate-900 mb-6">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-purple-600 flex items-center justify-center text-white text-sm font-black shadow-md shadow-indigo-500/20">
+              QR
+            </div>
+            <span>QR</span>
+            <span className="text-indigo-600">Menu</span>
+          </div>
+
+          <h2 className="text-lg font-extrabold text-slate-900 text-center mb-6">
+            {isSignUp ? 'Yeni Hesap Oluştur' : 'Panele Giriş Yap'}
+          </h2>
+
+          <form onSubmit={handleAuth} className="space-y-4">
+            <div>
+              <label className="text-xs text-slate-500 uppercase font-bold block mb-1">E-posta</label>
+              <input
+                type="email"
+                placeholder="ornek@email.com"
+                value={authEmail}
+                onChange={(e) => setAuthEmail(e.target.value)}
+                required
+                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 text-slate-800 rounded-xl text-xs font-semibold outline-none focus:border-indigo-500"
+              />
+            </div>
+
+            <div>
+              <label className="text-xs text-slate-500 uppercase font-bold block mb-1">Şifre</label>
+              <input
+                type="password"
+                placeholder="••••••••"
+                value={authPassword}
+                onChange={(e) => setAuthPassword(e.target.value)}
+                required
+                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 text-slate-800 rounded-xl text-xs font-semibold outline-none focus:border-indigo-500"
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={authLoading}
+              className="w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl transition shadow-xs disabled:opacity-50"
+            >
+              {authLoading ? 'İşleniyor...' : (isSignUp ? 'Kayıt Ol' : 'Giriş Yap')}
+            </button>
+          </form>
+
+          {authMessage && (
+            <p className={`mt-4 text-xs text-center font-bold p-3 rounded-xl ${authMessage.includes('Hata') ? 'text-rose-600 bg-rose-50 border border-rose-200' : 'text-emerald-600 bg-emerald-50 border border-emerald-200'}`}>
+              {authMessage}
+            </p>
+          )}
+
+          <div className="mt-6 text-center">
+            <button
+              onClick={() => {
+                setIsSignUp(!isSignUp);
+                setAuthMessage('');
+              }}
+              className="text-xs font-bold text-indigo-600 hover:underline bg-transparent border-none cursor-pointer"
+            >
+              {isSignUp ? 'Zaten hesabınız var mı? Giriş yapın' : 'Hesabınız yok mu? Kendi hesabınızı oluşturun'}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // --- KULLANICI GİRİŞ YAPTIYSA GÖSTERİLECEK ANA DASHBOARD ---
   return (
     <div className="flex flex-col h-screen bg-slate-50 font-sans text-slate-800 overflow-hidden">
       {/* ÜST HEADER NAVBAR */}
@@ -456,9 +582,17 @@ export default function Dashboard() {
           >
             Canlı Önizleme <ExternalLink size={14} />
           </a>
-          <div className="w-9 h-9 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-600">
-            <User size={18} />
+          <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-700">
+            <User size={16} className="text-indigo-600" />
+            <span className="max-w-[150px] truncate">{sessionUser.email}</span>
           </div>
+          <button 
+            onClick={handleLogout}
+            className="p-2 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-xl transition"
+            title="Çıkış Yap"
+          >
+            <LogOut size={16} />
+          </button>
         </div>
       </header>
 
@@ -490,7 +624,7 @@ export default function Dashboard() {
 
             <div className="space-y-1">
               <p className="text-[10px] font-bold uppercase text-slate-400 px-3 tracking-wider">Yönetim</p>
-              
+               
               <button 
                 onClick={() => setActiveTab('dashboard')} 
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold transition ${
@@ -530,7 +664,7 @@ export default function Dashboard() {
 
             <div className="space-y-1 border-t border-slate-100 pt-4">
               <p className="text-[10px] font-bold uppercase text-slate-400 px-3 tracking-wider">Hesap</p>
-              
+               
               <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-50 transition">
                 <CreditCard size={16} /> İşlemler
               </button>
@@ -539,7 +673,7 @@ export default function Dashboard() {
                 <Settings size={16} /> Hesap Ayarları
               </button>
 
-              <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold text-rose-600 hover:bg-rose-50 transition">
+              <button onClick={handleLogout} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold text-rose-600 hover:bg-rose-50 transition">
                 <LogOut size={16} /> Çıkış Yap
               </button>
             </div>
@@ -622,10 +756,10 @@ export default function Dashboard() {
                 </div>
               </div>
               {saveStatus && <p className="text-xs text-emerald-600 bg-emerald-50 border border-emerald-200 p-3 rounded-xl font-bold">{saveStatus}</p>}
-              
+               
               <div className="bg-white border border-slate-200 p-6 rounded-2xl space-y-4 shadow-xs">
                 <h2 className="font-extrabold text-slate-900 text-sm">Firma Adı ve Teması</h2>
-                
+                 
                 {/* RENK SEÇİCİ VE FİRMA ADI YANYANA (SENKRONİZE EDİLDİ) */}
                 <div>
                   <label className="text-xs text-slate-500 uppercase font-bold block mb-1">
@@ -1207,7 +1341,7 @@ export default function Dashboard() {
                       ) : (
                         <div className="w-16 h-16 bg-white rounded-xl flex items-center justify-center text-[10px] text-slate-400 font-bold border border-slate-200">Görsel Yok</div>
                       )}
-                      
+                       
                       <div className="flex-1 min-w-0">
                         <div className="flex justify-between items-start">
                           <div>
