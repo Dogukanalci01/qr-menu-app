@@ -4,6 +4,70 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { Phone, MapPin, Clock, Flame, Info, Bell, ChevronDown, Menu as MenuIcon, X, Globe, Layers } from 'lucide-react';
 
+// --- ÇEVİRİ SÖZLÜĞÜ ---
+const translations: any = {
+  TR: {
+    callWaiter: 'Garson çağrı bildirimi gönderildi!',
+    waiterBtn: 'Garson Çağır',
+    menuContent: 'Menü İçeriği',
+    allProducts: 'Tüm Ürünler',
+    categories: 'Kategoriler',
+    categoriesTitle: 'Kategoriler',
+    backToCategories: '← Kategorilere Dön',
+    addBtn: 'EKLE +',
+    noBrochure: 'Henüz menü broşür görseli yüklenmedi.',
+    notFound: 'Restoran Bulunamadı',
+    loading: 'Menü Yükleniyor...',
+    workingHours: 'Çalışma Saatleri',
+    defaultSubtitle: 'Yemek Bizim İşimiz'
+  },
+  EN: {
+    callWaiter: 'Waiter call notification sent!',
+    waiterBtn: 'Call Waiter',
+    menuContent: 'Menu Content',
+    allProducts: 'All Products',
+    categories: 'Categories',
+    categoriesTitle: 'Categories',
+    backToCategories: '← Back to Categories',
+    addBtn: 'ADD +',
+    noBrochure: 'Menu brochure image has not been uploaded yet.',
+    notFound: 'Restaurant Not Found',
+    loading: 'Loading Menu...',
+    workingHours: 'Working Hours',
+    defaultSubtitle: 'Food is Our Business'
+  },
+  RU: {
+    callWaiter: 'Уведомление официанту отправлено!',
+    waiterBtn: 'Вызвать официанта',
+    menuContent: 'Содержание меню',
+    allProducts: 'Все продукты',
+    categories: 'Категории',
+    categoriesTitle: 'Категории',
+    backToCategories: '← Назад к категориям',
+    addBtn: 'ДОБАВИТЬ +',
+    noBrochure: 'Изображение брошюры меню еще не загружено.',
+    notFound: 'Ресторан не найден',
+    loading: 'Загрузка меню...',
+    workingHours: 'Часы работы',
+    defaultSubtitle: 'Еда - это наш бизнес'
+  },
+  DE: {
+    callWaiter: 'Kellner-Benachrichtigung gesendet!',
+    waiterBtn: 'Kellner rufen',
+    menuContent: 'Menüinhalte',
+    allProducts: 'Alle Produkte',
+    categories: 'Kategorien',
+    categoriesTitle: 'Kategorien',
+    backToCategories: '← Zurück zu Kategorien',
+    addBtn: 'HINZUFÜGEN +',
+    noBrochure: 'Menü-Broschürenbild wurde noch nicht hochgeladen.',
+    notFound: 'Restaurant nicht gefunden',
+    loading: 'Menü wird geladen...',
+    workingHours: 'Öffnungszeiten',
+    defaultSubtitle: 'Essen ist unser Geschäft'
+  }
+};
+
 export default function PublicMenu() {
   const [restaurant, setRestaurant] = useState<any>(null);
   const [categories, setCategories] = useState<any[]>([]);
@@ -15,6 +79,8 @@ export default function PublicMenu() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isLangOpen, setIsLangOpen] = useState(false);
   const [currentLang, setCurrentLang] = useState('TR');
+
+  const t = translations[currentLang] || translations.TR;
 
   useEffect(() => {
     fetchData();
@@ -57,7 +123,7 @@ export default function PublicMenu() {
       <div className="min-h-screen bg-white text-slate-800 flex items-center justify-center p-4 font-sans">
         <div className="flex flex-col items-center gap-3">
           <div className="w-10 h-10 border-4 border-slate-300 border-t-slate-800 rounded-full animate-spin"></div>
-          <p className="text-slate-500 text-xs font-semibold">Menü Yükleniyor...</p>
+          <p className="text-slate-500 text-xs font-semibold">{t.loading}</p>
         </div>
       </div>
     );
@@ -69,7 +135,7 @@ export default function PublicMenu() {
         <div className="w-16 h-16 bg-rose-500/10 text-rose-500 rounded-2xl flex items-center justify-center mb-4">
           <Info size={32} />
         </div>
-        <h1 className="text-xl font-bold">Restoran Bulunamadı</h1>
+        <h1 className="text-xl font-bold">{t.notFound}</h1>
       </div>
     );
   }
@@ -82,11 +148,10 @@ export default function PublicMenu() {
     return true;
   });
 
-  // Ortak Üst Bar (Tıklanabilir Hamburger Menü + Zil + Dil Seçici)
+  // Ortak Üst Bar (Görseldeki gibi bayrak simgeli dil menüsü)
   const renderHeader = () => (
     <header className="text-white p-3 px-4 flex justify-between items-center shadow-md relative" style={{ backgroundColor: pColor }}>
       <div className="flex items-center gap-3">
-        {/* SOL ÜST 3 ÇİZGİ (TIKLANABİLİR MENÜ ÇEKMECESİ) */}
         <button 
           onClick={() => setIsSidebarOpen(true)} 
           className="p-1.5 bg-white/10 hover:bg-white/20 rounded-lg transition cursor-pointer"
@@ -99,32 +164,37 @@ export default function PublicMenu() {
 
       <div className="flex items-center gap-2 relative">
         <button 
-          onClick={() => alert('Garson çağrı bildirimi gönderildi!')} 
+          onClick={() => alert(t.callWaiter)} 
           className="bg-white/20 hover:bg-white/30 p-1.5 rounded-lg transition cursor-pointer"
-          title="Garson Çağır / Bildirim"
+          title={t.waiterBtn}
         >
           <Bell size={16} />
         </button>
 
-        {/* SAĞ ÜST DİL SEÇİCİ */}
+        {/* GÖRSELDEKİ DİL SEÇİCİ TASARIMI */}
         <div className="relative">
           <button 
             onClick={() => setIsLangOpen(!isLangOpen)} 
-            className="bg-white px-2.5 py-1 rounded-lg text-xs font-bold flex items-center gap-1 shadow-sm transition cursor-pointer"
+            className="bg-white px-3 py-1 rounded-lg text-xs font-bold flex items-center gap-1.5 shadow-sm transition cursor-pointer"
             style={{ color: pColor }}
           >
-            <Globe size={12} /> {currentLang} <ChevronDown size={12} />
+            <Globe size={13} /> <span>{currentLang}</span> <ChevronDown size={12} />
           </button>
 
           {isLangOpen && (
-            <div className="absolute right-0 mt-2 w-28 bg-white border border-slate-200 rounded-xl shadow-xl z-50 overflow-hidden text-slate-800">
-              {['TR', 'EN', 'RU', 'DE'].map(lang => (
+            <div className="absolute right-0 mt-2 w-36 bg-white border border-slate-200 rounded-2xl shadow-xl z-50 overflow-hidden text-slate-800 py-1">
+              {[
+                { code: 'TR', label: 'Türkçe', flag: '🇹🇷' },
+                { code: 'EN', label: 'English', flag: '🇬🇧' },
+                { code: 'RU', label: 'Русский', flag: '🇷🇺' },
+                { code: 'DE', label: 'Deutsch', flag: '🇩🇪' }
+              ].map(lang => (
                 <button
-                  key={lang}
-                  onClick={() => { setCurrentLang(lang); setIsLangOpen(false); }}
-                  className={`w-full text-left px-3 py-2 text-xs font-bold hover:bg-slate-100 transition ${currentLang === lang ? 'text-indigo-600 bg-indigo-50' : ''}`}
+                  key={lang.code}
+                  onClick={() => { setCurrentLang(lang.code); setIsLangOpen(false); }}
+                  className={`w-full text-left px-3.5 py-2 text-xs font-bold hover:bg-slate-100 transition flex items-center gap-2 cursor-pointer ${currentLang === lang.code ? 'text-indigo-600 bg-indigo-50' : ''}`}
                 >
-                  {lang === 'TR' ? '🇹🇷 Türkçe' : lang === 'EN' ? '🇬🇧 English' : lang === 'RU' ? '🇷🇺 Русский' : '🇩🇪 Deutsch'}
+                  <span className="text-sm">{lang.flag}</span> <span>{lang.label}</span>
                 </button>
               ))}
             </div>
@@ -134,7 +204,7 @@ export default function PublicMenu() {
     </header>
   );
 
-  // Sol Sidebar (Kategoriler & Menü Hakkında)
+  // Sol Menü Çekmecesi (Drawer)
   const renderSidebar = () => {
     if (!isSidebarOpen) return null;
     return (
@@ -144,25 +214,25 @@ export default function PublicMenu() {
           <div className="p-4 text-white flex justify-between items-center" style={{ backgroundColor: pColor }}>
             <div className="flex items-center gap-2">
               <Layers size={18} />
-              <h2 className="font-black text-sm">Menü İçeriği</h2>
+              <h2 className="font-black text-sm">{t.menuContent}</h2>
             </div>
-            <button onClick={() => setIsSidebarOpen(false)} className="p-1 hover:bg-white/20 rounded-lg transition">
+            <button onClick={() => setIsSidebarOpen(false)} className="p-1 hover:bg-white/20 rounded-lg transition cursor-pointer">
               <X size={18} />
             </button>
           </div>
 
           <div className="p-4 border-b bg-slate-50 space-y-1">
             <h3 className="font-extrabold text-xs text-slate-900">{restaurant.name}</h3>
-            <p className="text-[11px] text-slate-500">{restaurant.subtitle || 'Lezzet Noktası'}</p>
+            <p className="text-[11px] text-slate-500">{restaurant.subtitle || t.defaultSubtitle}</p>
           </div>
 
           <div className="flex-1 overflow-y-auto p-3 space-y-1">
-            <p className="text-[10px] font-bold text-slate-400 uppercase px-2 mb-2 tracking-wider">Kategoriler</p>
+            <p className="text-[10px] font-bold text-slate-400 uppercase px-2 mb-2 tracking-wider">{t.categories}</p>
             <button 
               onClick={() => { setSelectedCat('all'); setIsSidebarOpen(false); }}
-              className={`w-full text-left px-3 py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-between ${selectedCat === 'all' ? 'bg-indigo-50 text-indigo-600' : 'text-slate-700 hover:bg-slate-100'}`}
+              className={`w-full text-left px-3 py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-between cursor-pointer ${selectedCat === 'all' ? 'bg-indigo-50 text-indigo-600' : 'text-slate-700 hover:bg-slate-100'}`}
             >
-              <span>Tüm Ürünler</span>
+              <span>{t.allProducts}</span>
               <span className="text-[10px] bg-slate-200 px-2 py-0.5 rounded-full">{products.length}</span>
             </button>
 
@@ -172,7 +242,7 @@ export default function PublicMenu() {
                 <button
                   key={cat.id}
                   onClick={() => { setSelectedCat(cat.id); setIsSidebarOpen(false); }}
-                  className={`w-full text-left px-3 py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-between ${selectedCat === cat.id ? 'bg-indigo-50 text-indigo-600' : 'text-slate-700 hover:bg-slate-100'}`}
+                  className={`w-full text-left px-3 py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-between cursor-pointer ${selectedCat === cat.id ? 'bg-indigo-50 text-indigo-600' : 'text-slate-700 hover:bg-slate-100'}`}
                 >
                   <span className="truncate">{cat.name}</span>
                   <span className="text-[10px] bg-slate-200 px-2 py-0.5 rounded-full">{count}</span>
@@ -190,7 +260,7 @@ export default function PublicMenu() {
     );
   };
 
-  // 1. KENDİ MENÜNÜ EKLE (PDF / GÖRSEL)
+  // 1. PDF / GÖRSEL ŞABLON
   if (template === 'pdf_image') {
     return (
       <div className="min-h-screen bg-slate-900 text-white font-sans flex flex-col items-center">
@@ -201,7 +271,7 @@ export default function PublicMenu() {
             <img src={restaurant.custom_menu_image} alt="Menü Broşürü" className="w-full rounded-xl shadow-2xl" />
           ) : (
             <div className="bg-slate-800 p-12 text-center rounded-2xl text-slate-400 text-xs">
-              Henüz menü broşür görseli yüklenmedi.
+              {t.noBrochure}
             </div>
           )}
         </main>
@@ -209,7 +279,7 @@ export default function PublicMenu() {
     );
   }
 
-  // 2. KARE KATEGORİ GRID TEMASI
+  // 2. KARE GRID ŞABLON
   if (template === 'custom_grid') {
     return (
       <div className="min-h-screen bg-slate-100 text-slate-900 font-sans pb-12">
@@ -227,7 +297,7 @@ export default function PublicMenu() {
             )}
             <div>
               <h1 className="text-xl font-extrabold">{restaurant.name}</h1>
-              <p className="text-xs text-slate-500 font-medium">{restaurant.subtitle || 'Yemek Bizim İşimiz'}</p>
+              <p className="text-xs text-slate-500 font-medium">{restaurant.subtitle || t.defaultSubtitle}</p>
             </div>
           </div>
 
@@ -239,7 +309,7 @@ export default function PublicMenu() {
 
         {selectedCat === 'all' ? (
           <div className="max-w-md mx-auto p-4 space-y-3">
-            <h2 className="text-xs uppercase font-extrabold text-slate-400 tracking-wider">Kategoriler</h2>
+            <h2 className="text-xs uppercase font-extrabold text-slate-400 tracking-wider">{t.categoriesTitle}</h2>
             <div className="grid grid-cols-2 gap-3">
               {categories.map((cat) => (
                 <div
@@ -260,7 +330,7 @@ export default function PublicMenu() {
               className="text-xs font-bold px-3 py-1.5 rounded-xl cursor-pointer"
               style={{ color: pColor, backgroundColor: `${pColor}20` }}
             >
-              ← Kategorilere Dön
+              {t.backToCategories}
             </button>
             <div className="space-y-3">
               {filteredProducts.map((prod) => (
@@ -323,7 +393,7 @@ export default function PublicMenu() {
     );
   }
 
-  // 4. MODERN TEMA (VARSAYILAN BİSTRO)
+  // 4. MODERN BİSTRO (VARSAYILAN)
   return (
     <div className="min-h-screen bg-slate-100 text-slate-900 font-sans pb-16">
       {renderSidebar()}
@@ -345,7 +415,7 @@ export default function PublicMenu() {
           
           <div>
             <h1 className="font-extrabold text-lg text-slate-900">{restaurant.name}</h1>
-            <p className="text-xs text-slate-400 font-semibold">{restaurant.subtitle || 'Yemek Bizim İşimiz'}</p>
+            <p className="text-xs text-slate-400 font-semibold">{restaurant.subtitle || t.defaultSubtitle}</p>
           </div>
         </div>
 
@@ -378,7 +448,7 @@ export default function PublicMenu() {
                       <div className="flex justify-between items-start gap-1">
                         <h3 className="font-bold text-xs text-slate-900 leading-snug">{prod.name}</h3>
                         <button className="bg-slate-100 text-[10px] font-bold px-2 py-1 rounded border transition flex-shrink-0 cursor-pointer" style={{ color: pColor }}>
-                          EKLE +
+                          {t.addBtn}
                         </button>
                       </div>
                       <p className="font-extrabold text-xs" style={{ color: pColor }}>₺{prod.price}</p>
