@@ -34,7 +34,9 @@ import {
   LogOut,
   CreditCard,
   Lock,
-  Mail
+  Mail,
+  Activity,
+  History
 } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 
@@ -75,6 +77,9 @@ export default function Dashboard() {
   const [newPassword, setNewPassword] = useState('');
   const [settingsMessage, setSettingsMessage] = useState('');
   const [settingsLoading, setSettingsLoading] = useState(false);
+
+  // --- ACTIVITY LOGS STATE ---
+  const [activities, setActivities] = useState<any[]>([]);
 
   // --- DASHBOARD STATES ---
   const [activeTab, setActiveTab] = useState('menu');
@@ -140,6 +145,18 @@ export default function Dashboard() {
   const qrRef = useRef<HTMLDivElement>(null);
   const liveMenuUrl = `${MAIN_DOMAIN}/menu`;
 
+  // --- LOG ADDER HELPER ---
+  const logActivity = (title: string, description: string) => {
+    const newLog = {
+      id: Date.now(),
+      title,
+      description,
+      time: new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }),
+      date: new Date().toLocaleDateString('tr-TR')
+    };
+    setActivities(prev => [newLog, ...prev]);
+  };
+
   // --- AUTH CHECK & LISTENER ---
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
@@ -189,6 +206,7 @@ export default function Dashboard() {
       } else {
         setAuthMessage('Kayıt başarılı! Şimdi giriş yapabilirsiniz.');
         setIsSignUp(false);
+        logActivity('Yeni Hesap', `${authEmail} adresli hesap oluşturuldu.`);
       }
     } else {
       const { error } = await supabase.auth.signInWithPassword({ email: authEmail, password: authPassword });
@@ -196,12 +214,14 @@ export default function Dashboard() {
         setAuthMessage('Hata: ' + error.message);
       } else {
         setAuthMessage('Giriş başarılı!');
+        logActivity('Oturum Açıldı', `${authEmail} sisteme giriş yaptı.`);
       }
     }
     setAuthLoading(false);
   };
 
   const handleLogout = async () => {
+    logActivity('Oturum Kapatıldı', 'Hesaptan çıkış yapıldı.');
     await supabase.auth.signOut();
   };
 
@@ -232,6 +252,7 @@ export default function Dashboard() {
       setSettingsMessage('Güncelleme Hatası: ' + error.message);
     } else {
       setSettingsMessage('Hesap ayarlarınız başarıyla güncellendi! ✓');
+      logActivity('Hesap Güncellendi', 'Kullanıcı e-posta veya şifre bilgilerini değiştirdi.');
       setNewPassword('');
     }
   };
@@ -256,6 +277,7 @@ export default function Dashboard() {
         setRestaurantsList(newRest);
         setSelectedRestaurantId(newRest[0].id);
         setRestaurant(newRest[0]);
+        logActivity('Restoran Oluşturuldu', 'Varsayılan Livadya Restaurant sisteme tanımlandı.');
       }
     }
   };
@@ -336,6 +358,7 @@ export default function Dashboard() {
       setRestaurant(data[0]);
       setNewRestForm({ name: '', slug: '' });
       setShowNewRestModal(false);
+      logActivity('Yeni Restoran', `${data[0].name} başarıyla eklendi.`);
     }
   };
 
@@ -359,6 +382,7 @@ export default function Dashboard() {
         downloadLink.download = `${restaurant.slug}-qr-menu.png`;
         downloadLink.href = `${pngFile}`;
         downloadLink.click();
+        logActivity('QR İndirildi', `${restaurant.name} için masa QR kodu indirildi.`);
       }
     };
 
@@ -407,6 +431,7 @@ export default function Dashboard() {
       setLogoFile(null);
       setCoverFile(null);
       fetchAllRestaurants();
+      logActivity('Restoran Güncellendi', `${restaurant.name} bilgileri ve teması kaydedildi.`);
       setTimeout(() => setSaveStatus(''), 3000);
     } else {
       setSaveStatus('Hata oluştu: ' + (error?.message || 'Bilinmeyen hata'));
@@ -428,6 +453,7 @@ export default function Dashboard() {
     setLoadingCat(false);
 
     if (!error) {
+      logActivity('Kategori Eklendi', `"${newCatName.trim()}" ana kategorisi eklendi.`);
       setNewCatName('');
       fetchCategories(selectedRestaurantId);
     }
@@ -452,6 +478,7 @@ export default function Dashboard() {
     setLoadingSubCat(false);
 
     if (!error) {
+      logActivity('Alt Kategori Eklendi', `"${subCatForm.name.trim()}" alt kategorisi eklendi.`);
       setSubCatForm({ name: '', category_id: categories[0]?.id || '' });
       fetchSubcategories(selectedRestaurantId);
     }
@@ -491,6 +518,7 @@ export default function Dashboard() {
     if (error) {
       alert('Ürün Ekleme Hatası: ' + error.message);
     } else {
+      logActivity('Ürün Eklendi', `"${productForm.name.trim()}" menüye (₺${productForm.price}) eklendi.`);
       setProductForm({
         name: '',
         description: '',
@@ -510,17 +538,20 @@ export default function Dashboard() {
 
   const deleteCategory = async (id: string) => {
     await supabase.from('categories').delete().eq('id', id);
+    logActivity('Kategori Silindi', 'Bir ana kategori kaldırıldı.');
     fetchCategories(selectedRestaurantId);
     fetchSubcategories(selectedRestaurantId);
   };
 
   const deleteSubcategory = async (id: string) => {
     await supabase.from('subcategories').delete().eq('id', id);
+    logActivity('Alt Kategori Silindi', 'Bir alt kategori kaldırıldı.');
     fetchSubcategories(selectedRestaurantId);
   };
 
   const deleteProduct = async (id: string) => {
     await supabase.from('products').delete().eq('id', id);
+    logActivity('Ürün Silindi', 'Menüden bir ürün kaldırıldı.');
     fetchProducts(selectedRestaurantId);
   };
 
@@ -706,7 +737,12 @@ export default function Dashboard() {
             <div className="space-y-1 border-t border-slate-100 pt-4">
               <p className="text-[10px] font-bold uppercase text-slate-400 px-3 tracking-wider">Hesap</p>
                
-              <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-50 transition">
+              <button 
+                onClick={() => setActiveTab('logs')} 
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold transition ${
+                  activeTab === 'logs' ? 'bg-indigo-50 text-indigo-600 font-extrabold border border-indigo-100' : 'text-slate-600 hover:bg-slate-50'
+                }`}
+              >
                 <CreditCard size={16} /> İşlemler
               </button>
 
@@ -760,6 +796,46 @@ export default function Dashboard() {
                     <button type="submit" className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2 rounded-xl text-xs font-bold shadow-xs">Oluştur</button>
                   </div>
                 </form>
+              </div>
+            </div>
+          )}
+
+          {/* İŞLEMLER / GEÇMİŞ AKTİVİTELER */}
+          {activeTab === 'logs' && (
+            <div className="max-w-3xl space-y-6">
+              <div>
+                <h1 className="text-2xl font-black text-slate-900 flex items-center gap-2">
+                  <History className="text-indigo-600" size={24} /> Geçmiş İşlemler & Aktiviteler
+                </h1>
+                <p className="text-slate-500 text-xs font-medium mt-0.5">Sistemde ve restoran menüsünde gerçekleştirdiğiniz son işlemlerin dökümü.</p>
+              </div>
+
+              <div className="bg-white border border-slate-200 p-6 rounded-2xl shadow-xs space-y-4">
+                {activities.length === 0 ? (
+                  <div className="text-center py-12 text-slate-400 text-xs font-semibold">
+                    Henüz kayıtlı bir işlem bulunmuyor. Menüye ürün ekledikçe veya değişiklik yaptıkça burada listelenecektir.
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {activities.map((item) => (
+                      <div key={item.id} className="flex items-center justify-between p-4 bg-slate-50 border border-slate-100 rounded-xl">
+                        <div className="flex items-center gap-3">
+                          <div className="w-9 h-9 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold">
+                            <Activity size={18} />
+                          </div>
+                          <div>
+                            <h3 className="font-extrabold text-slate-900 text-xs">{item.title}</h3>
+                            <p className="text-slate-500 text-[11px] font-medium mt-0.5">{item.description}</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <span className="text-[10px] font-mono font-bold text-slate-400 block">{item.time}</span>
+                          <span className="text-[10px] font-bold text-indigo-600">{item.date}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           )}
