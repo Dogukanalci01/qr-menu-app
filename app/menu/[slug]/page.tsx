@@ -42,7 +42,6 @@ export default function PublicMenu({ params }: { params: { slug: string } }) {
   const fetchData = async () => {
     setLoading(true);
 
-    // 1. Restoran Bilgilerini Çek
     const { data: restData } = await supabase
       .from('restaurants')
       .select('*')
@@ -52,7 +51,6 @@ export default function PublicMenu({ params }: { params: { slug: string } }) {
     if (restData) {
       setRestaurant(restData);
 
-      // 2. Kategorileri Çek
       const { data: catData } = await supabase
         .from('categories')
         .select('*')
@@ -61,7 +59,6 @@ export default function PublicMenu({ params }: { params: { slug: string } }) {
 
       if (catData) setCategories(catData);
 
-      // 3. Alt Kategorileri Çek
       const { data: subData } = await supabase
         .from('subcategories')
         .select('*')
@@ -70,7 +67,6 @@ export default function PublicMenu({ params }: { params: { slug: string } }) {
 
       if (subData) setSubcategories(subData);
 
-      // 4. Ürünleri Çek
       const { data: prodData } = await supabase
         .from('products')
         .select('*')
@@ -107,10 +103,8 @@ export default function PublicMenu({ params }: { params: { slug: string } }) {
     );
   }
 
-  // Seçili Ana Kategoriye göre Alt Kategorileri Filtrele
   const currentSubCategories = subcategories.filter(s => s.category_id === selectedCat);
 
-  // Ürün Filtreleme Mantığı
   const filteredProducts = products.filter(p => {
     if (selectedCat !== 'all' && p.category_id !== selectedCat) return false;
     if (selectedSubCat !== 'all' && p.subcategory_id !== selectedSubCat) return false;
@@ -119,7 +113,7 @@ export default function PublicMenu({ params }: { params: { slug: string } }) {
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 font-sans pb-16">
-      {/* Restoran Üst Header */}
+      {/* Header */}
       <header className="bg-slate-900 border-b border-slate-800 p-6 text-center space-y-2">
         <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-indigo-600 via-purple-600 to-pink-500 mx-auto flex items-center justify-center text-white text-2xl font-black shadow-lg shadow-indigo-500/20">
           {restaurant.name ? restaurant.name[0] : 'R'}
@@ -143,7 +137,7 @@ export default function PublicMenu({ params }: { params: { slug: string } }) {
         </div>
       </header>
 
-      {/* Ana Kategoriler (Kaydırılabilir Tablar) */}
+      {/* Tablar */}
       <div className="sticky top-0 z-20 bg-slate-950/90 backdrop-blur-md border-b border-slate-800/80 px-4 py-3">
         <div className="max-w-xl mx-auto flex gap-2 overflow-x-auto no-scrollbar">
           <button
@@ -172,7 +166,6 @@ export default function PublicMenu({ params }: { params: { slug: string } }) {
           ))}
         </div>
 
-        {/* Alt Kategoriler (Varsa Filtre Olarak Çıkar) */}
         {selectedCat !== 'all' && currentSubCategories.length > 0 && (
           <div className="max-w-xl mx-auto flex gap-1.5 overflow-x-auto no-scrollbar pt-2.5 mt-2 border-t border-slate-800/60">
             <button
@@ -202,7 +195,7 @@ export default function PublicMenu({ params }: { params: { slug: string } }) {
         )}
       </div>
 
-      {/* Müşteri Yemek Listesi */}
+      {/* Ürünler */}
       <main className="max-w-xl mx-auto p-4 space-y-4">
         {filteredProducts.length === 0 ? (
           <div className="bg-slate-900/40 border border-slate-800/60 rounded-2xl p-8 text-center text-slate-500 text-xs">
@@ -237,14 +230,12 @@ export default function PublicMenu({ params }: { params: { slug: string } }) {
                 )}
 
                 <div className="flex flex-wrap items-center gap-2 pt-1">
-                  {/* Kalori */}
                   {prod.calories > 0 && (
                     <span className="text-[10px] text-amber-400 font-bold bg-amber-500/10 px-2 py-0.5 rounded-md border border-amber-500/20 flex items-center gap-1">
                       <Flame size={10} /> {prod.calories} kcal
                     </span>
                   )}
 
-                  {/* Alerjen Rozetleri */}
                   {prod.allergens && prod.allergens.length > 0 && (
                     <div className="flex flex-wrap gap-1">
                       {prod.allergens.map((algId: string) => {
