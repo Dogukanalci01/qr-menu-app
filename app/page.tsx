@@ -17,7 +17,8 @@ import {
   Check,
   ChevronDown,
   Building2,
-  Download
+  Download,
+  Palette
 } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 
@@ -42,7 +43,6 @@ const ALLERGEN_OPTIONS = [
   { id: 'caffeine', label: 'Kafein', icon: '☕' }
 ];
 
-// SABİT PROD ANA DOMAIN ADRESIN
 const MAIN_DOMAIN = 'https://qr-menu-app-three-beta.vercel.app';
 
 export default function Dashboard() {
@@ -58,7 +58,8 @@ export default function Dashboard() {
     whatsapp: '905338665278',
     address: 'Lefke, Kıbrıs',
     instagram: '',
-    description: 'Nefis lezzetler ve huzurlu ortam.'
+    description: 'Nefis lezzetler ve huzurlu ortam.',
+    theme: 'modern'
   });
 
   const [newRestForm, setNewRestForm] = useState({ name: '', slug: '' });
@@ -98,7 +99,6 @@ export default function Dashboard() {
 
   const qrRef = useRef<HTMLDivElement>(null);
 
-  // Sabit ana domain üzerinden dinamik menü adresi üretimi
   const liveMenuUrl = `${MAIN_DOMAIN}/menu/${restaurant?.slug || 'livadya-restaurant'}`;
 
   useEffect(() => {
@@ -126,7 +126,8 @@ export default function Dashboard() {
       const { data: newRest } = await supabase.from('restaurants').insert([{
         name: 'Livadya Restaurant',
         slug: 'livadya-restaurant',
-        subtitle: 'Lezzet, Manzara ve Huzurun Adresi'
+        subtitle: 'Lezzet, Manzara ve Huzurun Adresi',
+        theme: 'modern'
       }]).select();
       if (newRest) {
         setRestaurantsList(newRest);
@@ -187,7 +188,8 @@ export default function Dashboard() {
     const { data, error } = await supabase.from('restaurants').insert([{
       name: newRestForm.name.trim(),
       slug: formattedSlug,
-      subtitle: 'Nefis lezzetler ve huzurlu ortam.'
+      subtitle: 'Nefis lezzetler ve huzurlu ortam.',
+      theme: 'modern'
     }]).select();
 
     if (error) {
@@ -444,7 +446,7 @@ export default function Dashboard() {
               <Layers size={18} /> Menü Yönetimi
             </button>
             <button onClick={() => setActiveTab('restaurant')} className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition ${activeTab === 'restaurant' ? 'bg-indigo-600/20 text-indigo-400 border border-indigo-500/30 font-semibold' : 'text-slate-400 hover:bg-slate-800/60'}`}>
-              <ChefHat size={18} /> Restoran Bilgileri
+              <ChefHat size={18} /> Restoran Bilgileri & Tema
             </button>
             <button onClick={() => setActiveTab('qr')} className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition ${activeTab === 'qr' ? 'bg-indigo-600/20 text-indigo-400 border border-indigo-500/30 font-semibold' : 'text-slate-400 hover:bg-slate-800/60'}`}>
               <ExternalLink size={18} /> QR Stüdyo
@@ -519,27 +521,118 @@ export default function Dashboard() {
           </div>
         )}
 
+        {/* RESTORAN BİLGİLERİ VE TEMA SEÇİMİ */}
         {activeTab === 'restaurant' && (
-          <div className="max-w-3xl space-y-6">
+          <div className="max-w-4xl space-y-6">
             <div className="flex justify-between items-center">
-              <h1 className="text-2xl font-bold text-white">Restoran Bilgileri ({restaurant?.name})</h1>
+              <h1 className="text-2xl font-bold text-white">Restoran Bilgileri & Tema Seçimi</h1>
               <button onClick={saveRestaurant} className="bg-indigo-600 text-white px-5 py-2.5 rounded-xl text-sm font-semibold flex items-center gap-2 hover:bg-indigo-500 transition">
                 <Save size={18} /> Kaydet
               </button>
             </div>
             {saveStatus && <p className="text-sm text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 p-3 rounded-xl">{saveStatus}</p>}
+            
             <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-4">
-              <div>
-                <label className="text-xs text-slate-400 uppercase font-bold block mb-1">Firma Adı</label>
-                <input type="text" value={restaurant?.name || ''} onChange={(e) => setRestaurant({...restaurant, name: e.target.value})} className="w-full p-2.5 bg-slate-950 border border-slate-800 text-white rounded-xl text-sm outline-none" />
-              </div>
-              <div>
-                <label className="text-xs text-slate-400 uppercase font-bold block mb-1">Firma Alt Başlığı</label>
-                <input type="text" value={restaurant?.subtitle || ''} onChange={(e) => setRestaurant({...restaurant, subtitle: e.target.value})} className="w-full p-2.5 bg-slate-950 border border-slate-800 text-white rounded-xl text-sm outline-none" />
+              <h2 className="font-bold text-white text-base">Firma Bilgileri</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-xs text-slate-400 uppercase font-bold block mb-1">Firma Adı</label>
+                  <input type="text" value={restaurant?.name || ''} onChange={(e) => setRestaurant({...restaurant, name: e.target.value})} className="w-full p-2.5 bg-slate-950 border border-slate-800 text-white rounded-xl text-sm outline-none" />
+                </div>
+                <div>
+                  <label className="text-xs text-slate-400 uppercase font-bold block mb-1">Firma Alt Başlığı</label>
+                  <input type="text" value={restaurant?.subtitle || ''} onChange={(e) => setRestaurant({...restaurant, subtitle: e.target.value})} className="w-full p-2.5 bg-slate-950 border border-slate-800 text-white rounded-xl text-sm outline-none" />
+                </div>
               </div>
               <div>
                 <label className="text-xs text-indigo-400 uppercase font-bold block mb-1">Özel URL (Slug)</label>
                 <input type="text" value={restaurant?.slug || ''} onChange={(e) => setRestaurant({...restaurant, slug: e.target.value})} className="w-full p-2.5 bg-slate-950 border border-slate-800 text-indigo-300 font-mono rounded-xl text-sm outline-none" />
+              </div>
+            </div>
+
+            {/* MENÜ ŞABLONU / TEMA SEÇİMİ */}
+            <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-4">
+              <h2 className="font-bold text-white text-base flex items-center gap-2">
+                <Palette size={20} className="text-purple-400" /> Menü Şablonu Seçin
+              </h2>
+              <p className="text-xs text-slate-400">Müşterilerin QR okuttuğunda göreceği tasarım düzenini seçin.</p>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+                {/* 1. Modern Dark Tema */}
+                <div 
+                  onClick={() => setRestaurant({...restaurant, theme: 'modern'})}
+                  className={`border-2 rounded-2xl p-4 cursor-pointer transition flex flex-col gap-3 relative overflow-hidden ${
+                    (restaurant?.theme || 'modern') === 'modern'
+                      ? 'border-indigo-500 bg-indigo-600/10'
+                      : 'border-slate-800 bg-slate-950 hover:border-slate-700'
+                  }`}
+                >
+                  <div className="h-24 bg-slate-950 rounded-xl border border-slate-800 p-2 flex flex-col gap-1.5 justify-center items-center">
+                    <div className="w-8 h-2 bg-indigo-500 rounded"></div>
+                    <div className="w-16 h-2 bg-slate-800 rounded"></div>
+                    <div className="w-12 h-2 bg-slate-800 rounded"></div>
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-sm text-white">1. Modern Dark Tema</h3>
+                    <p className="text-[11px] text-slate-400 mt-0.5">Siyah/Mor premium karanlık mod görünümü.</p>
+                  </div>
+                  {(restaurant?.theme || 'modern') === 'modern' && (
+                    <span className="absolute top-3 right-3 bg-indigo-600 text-white p-1 rounded-full">
+                      <Check size={12} />
+                    </span>
+                  )}
+                </div>
+
+                {/* 2. Grid Görsel Tema */}
+                <div 
+                  onClick={() => setRestaurant({...restaurant, theme: 'grid'})}
+                  className={`border-2 rounded-2xl p-4 cursor-pointer transition flex flex-col gap-3 relative overflow-hidden ${
+                    restaurant?.theme === 'grid'
+                      ? 'border-indigo-500 bg-indigo-600/10'
+                      : 'border-slate-800 bg-slate-950 hover:border-slate-700'
+                  }`}
+                >
+                  <div className="h-24 bg-slate-950 rounded-xl border border-slate-800 p-2 grid grid-cols-2 gap-1">
+                    <div className="bg-slate-800 rounded flex items-center justify-center text-[8px] text-slate-500 font-bold">Kategori 1</div>
+                    <div className="bg-slate-800 rounded flex items-center justify-center text-[8px] text-slate-500 font-bold">Kategori 2</div>
+                    <div className="bg-slate-800 rounded flex items-center justify-center text-[8px] text-slate-500 font-bold">Kategori 3</div>
+                    <div className="bg-slate-800 rounded flex items-center justify-center text-[8px] text-slate-500 font-bold">Kategori 4</div>
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-sm text-white">2. Görsel Grid Tema</h3>
+                    <p className="text-[11px] text-slate-400 mt-0.5">Kategorilerin büyük kare görsellerle dizildiği düzen.</p>
+                  </div>
+                  {restaurant?.theme === 'grid' && (
+                    <span className="absolute top-3 right-3 bg-indigo-600 text-white p-1 rounded-full">
+                      <Check size={12} />
+                    </span>
+                  )}
+                </div>
+
+                {/* 3. Klasik Açık Renk Tema */}
+                <div 
+                  onClick={() => setRestaurant({...restaurant, theme: 'classic'})}
+                  className={`border-2 rounded-2xl p-4 cursor-pointer transition flex flex-col gap-3 relative overflow-hidden ${
+                    restaurant?.theme === 'classic'
+                      ? 'border-indigo-500 bg-indigo-600/10'
+                      : 'border-slate-800 bg-slate-950 hover:border-slate-700'
+                  }`}
+                >
+                  <div className="h-24 bg-slate-100 rounded-xl border border-slate-300 p-2 flex flex-col gap-1.5 justify-center items-center">
+                    <div className="w-8 h-2 bg-amber-500 rounded"></div>
+                    <div className="w-16 h-2 bg-slate-300 rounded"></div>
+                    <div className="w-12 h-2 bg-slate-300 rounded"></div>
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-sm text-white">3. Klasik Sıcak Tema</h3>
+                    <p className="text-[11px] text-slate-400 mt-0.5">Açık zemin, turuncu/sıcak detaylı restoran düzeni.</p>
+                  </div>
+                  {restaurant?.theme === 'classic' && (
+                    <span className="absolute top-3 right-3 bg-indigo-600 text-white p-1 rounded-full">
+                      <Check size={12} />
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
           </div>
