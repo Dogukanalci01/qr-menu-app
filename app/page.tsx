@@ -432,13 +432,16 @@ export default function Dashboard() {
   const filteredSubcategories = subcategories.filter(s => s.category_id === productForm.category_id);
 
   return (
-    <div className="flex flex-col h-screen bg-slate-100 font-sans text-slate-800 overflow-hidden">
-      {/* ÜST HEADER NAVBAR (AÇIK TEMALI B2B STİLİ) */}
+    <div className="flex flex-col h-screen bg-slate-50 font-sans text-slate-800 overflow-hidden">
+      {/* ÜST HEADER NAVBAR (INDIGO / TEKNO PREMİUM MARKA) */}
       <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 z-20 shadow-xs">
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1.5 font-black text-xl tracking-tight text-slate-900">
-            <span className="text-orange-600 bg-orange-100 px-2 py-0.5 rounded-lg border border-orange-200">menum</span>
-            <span className="bg-orange-500 text-white text-xs px-1.5 py-0.5 rounded-md font-extrabold">.co</span>
+          <div className="flex items-center gap-2 font-black text-xl tracking-tight text-slate-900">
+            <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-purple-600 flex items-center justify-center text-white text-xs font-black shadow-md shadow-indigo-500/20">
+              QR
+            </div>
+            <span className="font-extrabold tracking-tight text-slate-900">QR</span>
+            <span className="text-indigo-600 font-extrabold">Menu</span>
           </div>
         </div>
 
@@ -447,18 +450,18 @@ export default function Dashboard() {
             href={liveMenuUrl} 
             target="_blank" 
             rel="noreferrer" 
-            className="bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition shadow-sm"
+            className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition shadow-sm shadow-indigo-600/20"
           >
             Canlı Önizleme <ExternalLink size={14} />
           </a>
-          <div className="w-9 h-9 rounded-full bg-slate-100 border border-slate-300 flex items-center justify-center text-slate-600">
+          <div className="w-9 h-9 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-600">
             <User size={18} />
           </div>
         </div>
       </header>
 
       <div className="flex flex-1 overflow-hidden">
-        {/* SOL SIDEBAR (AÇIK BEYAZ / BÖLÜMLENDİRİLMİŞ) */}
+        {/* SOL SIDEBAR (AÇIK BEYAZ / INDIGO VURGULU) */}
         <aside className="w-60 bg-white border-r border-slate-200 flex flex-col justify-between p-4 overflow-y-auto">
           <div className="space-y-6">
             {/* RESTORAN SEÇİCİ */}
@@ -468,7 +471,7 @@ export default function Dashboard() {
                 <select
                   value={selectedRestaurantId}
                   onChange={(e) => setSelectedRestaurantId(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl px-2.5 py-2 text-xs outline-none focus:border-orange-500 font-bold"
+                  className="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl px-2.5 py-2 text-xs outline-none focus:border-indigo-500 font-bold"
                 >
                   {restaurantsList.map((r) => (
                     <option key={r.id} value={r.id}>{r.name}</option>
@@ -476,7 +479,7 @@ export default function Dashboard() {
                 </select>
                 <button 
                   onClick={() => setShowNewRestModal(true)}
-                  className="bg-orange-500 hover:bg-orange-600 text-white p-2 rounded-xl transition flex-shrink-0"
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white p-2 rounded-xl transition flex-shrink-0 shadow-xs"
                   title="Yeni Restoran Ekle"
                 >
                   <Plus size={16} />
@@ -491,7 +494,7 @@ export default function Dashboard() {
               <button 
                 onClick={() => setActiveTab('dashboard')} 
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold transition ${
-                  activeTab === 'dashboard' ? 'bg-orange-50 text-orange-600 font-extrabold border border-orange-100' : 'text-slate-600 hover:bg-slate-50'
+                  activeTab === 'dashboard' ? 'bg-indigo-50 text-indigo-600 font-extrabold border border-indigo-100' : 'text-slate-600 hover:bg-slate-50'
                 }`}
               >
                 <Sparkles size={16} /> Gösterge Paneli
@@ -500,7 +503,7 @@ export default function Dashboard() {
               <button 
                 onClick={() => setActiveTab('restaurant')} 
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold transition ${
-                  activeTab === 'restaurant' ? 'bg-orange-50 text-orange-600 font-extrabold border border-orange-100' : 'text-slate-600 hover:bg-slate-50'
+                  activeTab === 'restaurant' ? 'bg-indigo-50 text-indigo-600 font-extrabold border border-indigo-100' : 'text-slate-600 hover:bg-slate-50'
                 }`}
               >
                 <ChefHat size={16} /> Restoran Bilgileri
@@ -509,7 +512,7 @@ export default function Dashboard() {
               <button 
                 onClick={() => setActiveTab('menu')} 
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold transition ${
-                  activeTab === 'menu' ? 'bg-orange-50 text-orange-600 font-extrabold border border-orange-100' : 'text-slate-600 hover:bg-slate-50'
+                  activeTab === 'menu' ? 'bg-indigo-50 text-indigo-600 font-extrabold border border-indigo-100' : 'text-slate-600 hover:bg-slate-50'
                 }`}
               >
                 <Layers size={16} /> Menü Ekle
@@ -518,7 +521,7 @@ export default function Dashboard() {
               <button 
                 onClick={() => setActiveTab('qr')} 
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold transition ${
-                  activeTab === 'qr' ? 'bg-orange-50 text-orange-600 font-extrabold border border-orange-100' : 'text-slate-600 hover:bg-slate-50'
+                  activeTab === 'qr' ? 'bg-indigo-50 text-indigo-600 font-extrabold border border-indigo-100' : 'text-slate-600 hover:bg-slate-50'
                 }`}
               >
                 <QrCode size={16} /> QR Oluşturucu
@@ -545,12 +548,12 @@ export default function Dashboard() {
         </aside>
 
         {/* SAĞ İÇERİK ALANI (TEMİZ BEYAZ KARTLAR) */}
-        <main className="flex-1 p-8 overflow-y-auto bg-slate-100">
+        <main className="flex-1 p-8 overflow-y-auto bg-slate-50">
           {showNewRestModal && (
             <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4">
               <div className="bg-white border border-slate-200 p-6 rounded-2xl max-w-md w-full space-y-4 shadow-xl">
                 <h2 className="text-lg font-extrabold text-slate-900 flex items-center gap-2">
-                  <Building2 size={20} className="text-orange-500" /> Yeni Restoran Tanımla
+                  <Building2 size={20} className="text-indigo-600" /> Yeni Restoran Tanımla
                 </h2>
                 <form onSubmit={handleCreateRestaurant} className="space-y-3">
                   <div>
@@ -560,7 +563,7 @@ export default function Dashboard() {
                       placeholder="Örn: Deniz Balık Restoran" 
                       value={newRestForm.name}
                       onChange={(e) => setNewRestForm({...newRestForm, name: e.target.value, slug: e.target.value.toLowerCase().replace(/\s+/g, '-')})}
-                      className="w-full px-4 py-2 bg-slate-50 border border-slate-200 text-slate-800 rounded-xl text-sm outline-none focus:border-orange-500"
+                      className="w-full px-4 py-2 bg-slate-50 border border-slate-200 text-slate-800 rounded-xl text-sm outline-none focus:border-indigo-500"
                     />
                   </div>
                   <div>
@@ -575,7 +578,7 @@ export default function Dashboard() {
                   </div>
                   <div className="flex justify-end gap-2 pt-2">
                     <button type="button" onClick={() => setShowNewRestModal(false)} className="px-4 py-2 rounded-xl text-xs font-bold text-slate-500 hover:bg-slate-100">İptal</button>
-                    <button type="submit" className="bg-orange-500 hover:bg-orange-600 text-white px-5 py-2 rounded-xl text-xs font-bold shadow-xs">Oluştur</button>
+                    <button type="submit" className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2 rounded-xl text-xs font-bold shadow-xs">Oluştur</button>
                   </div>
                 </form>
               </div>
@@ -595,7 +598,7 @@ export default function Dashboard() {
                 </div>
                 <div className="bg-white border border-slate-200 p-6 rounded-2xl shadow-xs">
                   <p className="text-xs text-slate-400 uppercase font-bold tracking-wider">Alt Kategoriler</p>
-                  <h3 className="text-3xl font-black text-orange-600 mt-2">{subcategories.length}</h3>
+                  <h3 className="text-3xl font-black text-indigo-600 mt-2">{subcategories.length}</h3>
                 </div>
                 <div className="bg-white border border-slate-200 p-6 rounded-2xl shadow-xs">
                   <p className="text-xs text-slate-400 uppercase font-bold tracking-wider">Toplam Ürün</p>
@@ -610,7 +613,7 @@ export default function Dashboard() {
             <div className="max-w-5xl space-y-6">
               <div className="flex justify-between items-center">
                 <h1 className="text-2xl font-black text-slate-900">Restoran Bilgileri</h1>
-                <button onClick={saveRestaurant} className="bg-orange-500 hover:bg-orange-600 text-white px-5 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 transition shadow-xs">
+                <button onClick={saveRestaurant} className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 transition shadow-xs">
                   <Save size={16} /> Değişiklikleri Kaydet
                 </button>
               </div>
@@ -622,24 +625,24 @@ export default function Dashboard() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="text-xs text-slate-500 uppercase font-bold block mb-1">Firma Adı</label>
-                    <input type="text" value={restaurant?.name || ''} onChange={(e) => setRestaurant({...restaurant, name: e.target.value})} className="w-full p-2.5 bg-slate-50 border border-slate-200 text-slate-800 rounded-xl text-xs font-semibold outline-none focus:border-orange-500" placeholder="Livadya Restaurant" />
+                    <input type="text" value={restaurant?.name || ''} onChange={(e) => setRestaurant({...restaurant, name: e.target.value})} className="w-full p-2.5 bg-slate-50 border border-slate-200 text-slate-800 rounded-xl text-xs font-semibold outline-none focus:border-indigo-500" placeholder="Livadya Restaurant" />
                   </div>
 
                   <div>
                     <label className="text-xs text-slate-500 uppercase font-bold block mb-1">Firma Bağlantısı (Slug)</label>
-                    <input type="text" value={restaurant?.slug || ''} onChange={(e) => setRestaurant({...restaurant, slug: e.target.value})} className="w-full p-2.5 bg-slate-50 border border-slate-200 text-orange-600 font-mono font-bold rounded-xl text-xs outline-none" placeholder="livadya-restaurant" />
+                    <input type="text" value={restaurant?.slug || ''} onChange={(e) => setRestaurant({...restaurant, slug: e.target.value})} className="w-full p-2.5 bg-slate-50 border border-slate-200 text-indigo-600 font-mono font-bold rounded-xl text-xs outline-none" placeholder="livadya-restaurant" />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="text-xs text-slate-500 uppercase font-bold block mb-1">Firma Alt Başlığı</label>
-                    <input type="text" value={restaurant?.subtitle || ''} onChange={(e) => setRestaurant({...restaurant, subtitle: e.target.value})} className="w-full p-2.5 bg-slate-50 border border-slate-200 text-slate-800 rounded-xl text-xs font-semibold outline-none focus:border-orange-500" placeholder="Lezzet, Manzara ve Huzurun Adresi" />
+                    <input type="text" value={restaurant?.subtitle || ''} onChange={(e) => setRestaurant({...restaurant, subtitle: e.target.value})} className="w-full p-2.5 bg-slate-50 border border-slate-200 text-slate-800 rounded-xl text-xs font-semibold outline-none focus:border-indigo-500" placeholder="Lezzet, Manzara ve Huzurun Adresi" />
                   </div>
 
                   <div>
                     <label className="text-xs text-slate-500 uppercase font-bold block mb-1 flex items-center gap-1"><Clock size={12} /> Çalışma Zaman Aralığı</label>
-                    <input type="text" value={restaurant?.working_hours || ''} onChange={(e) => setRestaurant({...restaurant, working_hours: e.target.value})} className="w-full p-2.5 bg-slate-50 border border-slate-200 text-slate-800 rounded-xl text-xs font-semibold outline-none focus:border-orange-500" placeholder="08:00 - 24:00" />
+                    <input type="text" value={restaurant?.working_hours || ''} onChange={(e) => setRestaurant({...restaurant, working_hours: e.target.value})} className="w-full p-2.5 bg-slate-50 border border-slate-200 text-slate-800 rounded-xl text-xs font-semibold outline-none focus:border-indigo-500" placeholder="08:00 - 24:00" />
                   </div>
                 </div>
 
@@ -649,25 +652,25 @@ export default function Dashboard() {
                     rows={3}
                     value={restaurant?.description || ''} 
                     onChange={(e) => setRestaurant({...restaurant, description: e.target.value})} 
-                    className="w-full p-3 bg-slate-50 border border-slate-200 text-slate-800 rounded-xl text-xs font-medium outline-none focus:border-orange-500 leading-relaxed" 
+                    className="w-full p-3 bg-slate-50 border border-slate-200 text-slate-800 rounded-xl text-xs font-medium outline-none focus:border-indigo-500 leading-relaxed" 
                     placeholder="Lefke Gaziveren'in eşsiz sahilinde..."
                   />
                 </div>
 
                 <div>
                   <label className="text-xs text-slate-500 uppercase font-bold block mb-1 flex items-center gap-1"><MapPin size={12} /> Adresiniz</label>
-                  <input type="text" value={restaurant?.address || ''} onChange={(e) => setRestaurant({...restaurant, address: e.target.value})} className="w-full p-2.5 bg-slate-50 border border-slate-200 text-slate-800 rounded-xl text-xs font-semibold outline-none focus:border-orange-500" placeholder="Livadya Restaurant, Gaziveren, Lefke" />
+                  <input type="text" value={restaurant?.address || ''} onChange={(e) => setRestaurant({...restaurant, address: e.target.value})} className="w-full p-2.5 bg-slate-50 border border-slate-200 text-slate-800 rounded-xl text-xs font-semibold outline-none focus:border-indigo-500" placeholder="Livadya Restaurant, Gaziveren, Lefke" />
                 </div>
               </div>
 
-              {/* GÖRSEL YÖNETİMİ (SÜRÜKLE BIRAK / YÜKLEME) */}
+              {/* GÖRSEL YÖNETİMİ */}
               <div className="bg-white border border-slate-200 p-6 rounded-2xl space-y-4 shadow-xs">
                 <h2 className="font-extrabold text-slate-900 text-sm">Görsel Yönetimi</h2>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <label className="text-xs text-slate-500 uppercase font-bold block">Logonuz</label>
-                    <div className="border-2 border-dashed border-slate-200 hover:border-orange-500 bg-slate-50 p-4 rounded-2xl flex flex-col items-center justify-center gap-3 relative min-h-[150px] transition">
+                    <div className="border-2 border-dashed border-slate-200 hover:border-indigo-500 bg-slate-50 p-4 rounded-2xl flex flex-col items-center justify-center gap-3 relative min-h-[150px] transition">
                       <input 
                         type="file" 
                         accept="image/*"
@@ -689,7 +692,7 @@ export default function Dashboard() {
                         </div>
                       ) : (
                         <>
-                          <div className="w-10 h-10 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center">
+                          <div className="w-10 h-10 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center">
                             <UploadCloud size={20} />
                           </div>
                           <p className="text-xs font-bold text-slate-600 text-center">Logo Yüklemek İçin Tıklayın veya Sürükleyin</p>
@@ -700,7 +703,7 @@ export default function Dashboard() {
 
                   <div className="space-y-2">
                     <label className="text-xs text-slate-500 uppercase font-bold block">Firma Kapak Resmi</label>
-                    <div className="border-2 border-dashed border-slate-200 hover:border-orange-500 bg-slate-50 p-4 rounded-2xl flex flex-col items-center justify-center gap-3 relative min-h-[150px] transition">
+                    <div className="border-2 border-dashed border-slate-200 hover:border-indigo-500 bg-slate-50 p-4 rounded-2xl flex flex-col items-center justify-center gap-3 relative min-h-[150px] transition">
                       <input 
                         type="file" 
                         accept="image/*"
@@ -722,7 +725,7 @@ export default function Dashboard() {
                         </div>
                       ) : (
                         <>
-                          <div className="w-10 h-10 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center">
+                          <div className="w-10 h-10 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center">
                             <ImageIcon size={20} />
                           </div>
                           <p className="text-xs font-bold text-slate-600 text-center">Kapak Yüklemek İçin Tıklayın veya Sürükleyin</p>
@@ -740,37 +743,37 @@ export default function Dashboard() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="text-xs text-slate-500 uppercase font-bold block mb-1 flex items-center gap-1.5"><Instagram size={14} className="text-pink-500" /> Instagram</label>
-                    <input type="text" value={restaurant?.instagram || ''} onChange={(e) => setRestaurant({...restaurant, instagram: e.target.value})} className="w-full p-2.5 bg-slate-50 border border-slate-200 text-slate-800 rounded-xl text-xs font-semibold outline-none focus:border-orange-500" placeholder="https://www.instagram.com/..." />
+                    <input type="text" value={restaurant?.instagram || ''} onChange={(e) => setRestaurant({...restaurant, instagram: e.target.value})} className="w-full p-2.5 bg-slate-50 border border-slate-200 text-slate-800 rounded-xl text-xs font-semibold outline-none focus:border-indigo-500" placeholder="https://www.instagram.com/..." />
                   </div>
 
                   <div>
                     <label className="text-xs text-slate-500 uppercase font-bold block mb-1 flex items-center gap-1.5"><Facebook size={14} className="text-blue-600" /> Facebook</label>
-                    <input type="text" value={restaurant?.facebook || ''} onChange={(e) => setRestaurant({...restaurant, facebook: e.target.value})} className="w-full p-2.5 bg-slate-50 border border-slate-200 text-slate-800 rounded-xl text-xs font-semibold outline-none focus:border-orange-500" placeholder="https://www.facebook.com/..." />
+                    <input type="text" value={restaurant?.facebook || ''} onChange={(e) => setRestaurant({...restaurant, facebook: e.target.value})} className="w-full p-2.5 bg-slate-50 border border-slate-200 text-slate-800 rounded-xl text-xs font-semibold outline-none focus:border-indigo-500" placeholder="https://www.facebook.com/..." />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="text-xs text-slate-500 uppercase font-bold block mb-1 flex items-center gap-1.5"><Phone size={14} className="text-emerald-600" /> WhatsApp Numarası</label>
-                    <input type="text" value={restaurant?.whatsapp || ''} onChange={(e) => setRestaurant({...restaurant, whatsapp: e.target.value})} className="w-full p-2.5 bg-slate-50 border border-slate-200 text-slate-800 rounded-xl text-xs font-semibold outline-none focus:border-orange-500" placeholder="05338665278" />
+                    <input type="text" value={restaurant?.whatsapp || ''} onChange={(e) => setRestaurant({...restaurant, whatsapp: e.target.value})} className="w-full p-2.5 bg-slate-50 border border-slate-200 text-slate-800 rounded-xl text-xs font-semibold outline-none focus:border-indigo-500" placeholder="05338665278" />
                   </div>
 
                   <div>
                     <label className="text-xs text-slate-500 uppercase font-bold block mb-1 flex items-center gap-1.5"><Globe size={14} className="text-slate-600" /> İnternet Sitesi</label>
-                    <input type="text" value={restaurant?.website || ''} onChange={(e) => setRestaurant({...restaurant, website: e.target.value})} className="w-full p-2.5 bg-slate-50 border border-slate-200 text-slate-800 rounded-xl text-xs font-semibold outline-none focus:border-orange-500" placeholder="https://..." />
+                    <input type="text" value={restaurant?.website || ''} onChange={(e) => setRestaurant({...restaurant, website: e.target.value})} className="w-full p-2.5 bg-slate-50 border border-slate-200 text-slate-800 rounded-xl text-xs font-semibold outline-none focus:border-indigo-500" placeholder="https://..." />
                   </div>
                 </div>
 
                 <div>
                   <label className="text-xs text-slate-500 uppercase font-bold block mb-1 flex items-center gap-1.5"><Youtube size={14} className="text-red-600" /> Youtube Sayfa Linkiniz</label>
-                  <input type="text" value={restaurant?.youtube || ''} onChange={(e) => setRestaurant({...restaurant, youtube: e.target.value})} className="w-full p-2.5 bg-slate-50 border border-slate-200 text-slate-800 rounded-xl text-xs font-semibold outline-none focus:border-orange-500" placeholder="https://www.youtube.com/..." />
+                  <input type="text" value={restaurant?.youtube || ''} onChange={(e) => setRestaurant({...restaurant, youtube: e.target.value})} className="w-full p-2.5 bg-slate-50 border border-slate-200 text-slate-800 rounded-xl text-xs font-semibold outline-none focus:border-indigo-500" placeholder="https://www.youtube.com/..." />
                 </div>
               </div>
 
               {/* MENÜ ŞABLONU SEÇİMİ */}
               <div className="bg-white border border-slate-200 p-6 rounded-2xl space-y-4 shadow-xs">
                 <h2 className="font-extrabold text-slate-900 text-sm flex items-center gap-2">
-                  <LayoutTemplate size={18} className="text-orange-500" /> Menü Şablonu Seçin
+                  <LayoutTemplate size={18} className="text-indigo-600" /> Menü Şablonu Seçin
                 </h2>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-2">
@@ -779,31 +782,31 @@ export default function Dashboard() {
                     onClick={() => setRestaurant({...restaurant, template: 'bistro'})}
                     className={`border-2 rounded-2xl p-3 cursor-pointer transition flex flex-col justify-between relative overflow-hidden bg-slate-50 ${
                       (restaurant?.template || 'bistro') === 'bistro'
-                        ? 'border-orange-500 ring-2 ring-orange-500/20'
+                        ? 'border-indigo-600 ring-2 ring-indigo-600/20'
                         : 'border-slate-200 hover:border-slate-300'
                     }`}
                   >
                     <div className="h-44 bg-white rounded-xl p-2 flex flex-col gap-1.5 overflow-hidden text-slate-800 border border-slate-200 shadow-2xs">
-                      <div className="bg-orange-500 text-white p-1.5 rounded-lg text-[9px] font-extrabold flex justify-between items-center">
+                      <div className="bg-indigo-600 text-white p-1.5 rounded-lg text-[9px] font-extrabold flex justify-between items-center">
                         <span>≡ RESTORAN</span>
-                        <span className="text-[7px] bg-white text-orange-600 px-1 py-0.5 rounded font-bold">TR</span>
+                        <span className="text-[7px] bg-white text-indigo-600 px-1 py-0.5 rounded font-bold">TR</span>
                       </div>
-                      <div className="h-10 bg-orange-100 rounded-lg flex items-center justify-center text-orange-600 text-[8px] font-black">
+                      <div className="h-10 bg-indigo-100 rounded-lg flex items-center justify-center text-indigo-600 text-[8px] font-black">
                         [Kapak Görseli]
                       </div>
                       <div className="bg-slate-50 p-1.5 rounded-lg border text-[7px] flex justify-between items-center">
                         <div>
                           <p className="font-bold">Serpme Kahvaltı</p>
-                          <p className="text-orange-600 font-extrabold">₺150.00</p>
+                          <p className="text-indigo-600 font-extrabold">₺150.00</p>
                         </div>
-                        <span className="bg-orange-500 text-white px-1.5 py-0.5 rounded text-[6px] font-bold">EKLE +</span>
+                        <span className="bg-indigo-600 text-white px-1.5 py-0.5 rounded text-[6px] font-bold">EKLE +</span>
                       </div>
                     </div>
                     <div className="mt-3 text-center">
                       <h3 className="font-bold text-xs text-slate-900">Bistro & Cafe</h3>
                     </div>
                     {(restaurant?.template || 'bistro') === 'bistro' && (
-                      <span className="absolute top-2 right-2 bg-orange-500 text-white p-1 rounded-full shadow-md">
+                      <span className="absolute top-2 right-2 bg-indigo-600 text-white p-1 rounded-full shadow-md">
                         <Check size={12} />
                       </span>
                     )}
@@ -814,12 +817,12 @@ export default function Dashboard() {
                     onClick={() => setRestaurant({...restaurant, template: 'custom_grid'})}
                     className={`border-2 rounded-2xl p-3 cursor-pointer transition flex flex-col justify-between relative overflow-hidden bg-slate-50 ${
                       restaurant?.template === 'custom_grid'
-                        ? 'border-orange-500 ring-2 ring-orange-500/20'
+                        ? 'border-indigo-600 ring-2 ring-indigo-600/20'
                         : 'border-slate-200 hover:border-slate-300'
                     }`}
                   >
                     <div className="h-44 bg-white rounded-xl p-2 flex flex-col gap-1.5 overflow-hidden text-slate-800 border border-slate-200 shadow-2xs">
-                      <div className="bg-orange-500 text-white p-1 rounded-lg text-[8px] text-center font-extrabold">DN Özel Teması</div>
+                      <div className="bg-indigo-600 text-white p-1 rounded-lg text-[8px] text-center font-extrabold">DN Özel Teması</div>
                       <div className="grid grid-cols-2 gap-1 mt-0.5">
                         <div className="h-10 bg-slate-800 rounded-lg text-white text-[7px] flex items-center justify-center font-bold">KAMPANYALAR</div>
                         <div className="h-10 bg-slate-800 rounded-lg text-white text-[7px] flex items-center justify-center font-bold">KAHVALTILIKLAR</div>
@@ -831,7 +834,7 @@ export default function Dashboard() {
                       <h3 className="font-bold text-xs text-slate-900">DN Özel Teması</h3>
                     </div>
                     {restaurant?.template === 'custom_grid' && (
-                      <span className="absolute top-2 right-2 bg-orange-500 text-white p-1 rounded-full shadow-md">
+                      <span className="absolute top-2 right-2 bg-indigo-600 text-white p-1 rounded-full shadow-md">
                         <Check size={12} />
                       </span>
                     )}
@@ -842,12 +845,12 @@ export default function Dashboard() {
                     onClick={() => setRestaurant({...restaurant, template: 'pdf_image'})}
                     className={`border-2 rounded-2xl p-3 cursor-pointer transition flex flex-col justify-between relative overflow-hidden bg-slate-50 ${
                       restaurant?.template === 'pdf_image'
-                        ? 'border-orange-500 ring-2 ring-orange-500/20'
+                        ? 'border-indigo-600 ring-2 ring-indigo-600/20'
                         : 'border-slate-200 hover:border-slate-300'
                     }`}
                   >
                     <div className="h-44 bg-white rounded-xl p-2 flex flex-col items-center justify-center gap-2 border border-slate-200 shadow-2xs text-center">
-                      <div className="w-12 h-16 bg-orange-50 border-2 border-dashed border-orange-400 rounded-lg flex flex-col items-center justify-center text-orange-600">
+                      <div className="w-12 h-16 bg-indigo-50 border-2 border-dashed border-indigo-400 rounded-lg flex flex-col items-center justify-center text-indigo-600">
                         <FileText size={18} />
                       </div>
                       <p className="text-[8px] font-bold text-slate-600">PDF / Broşür Menü</p>
@@ -856,7 +859,7 @@ export default function Dashboard() {
                       <h3 className="font-bold text-xs text-slate-900">PDF / Broşür Menü</h3>
                     </div>
                     {restaurant?.template === 'pdf_image' && (
-                      <span className="absolute top-2 right-2 bg-orange-500 text-white p-1 rounded-full shadow-md">
+                      <span className="absolute top-2 right-2 bg-indigo-600 text-white p-1 rounded-full shadow-md">
                         <Check size={12} />
                       </span>
                     )}
@@ -867,13 +870,13 @@ export default function Dashboard() {
                     onClick={() => setRestaurant({...restaurant, template: 'classic'})}
                     className={`border-2 rounded-2xl p-3 cursor-pointer transition flex flex-col justify-between relative overflow-hidden bg-slate-50 ${
                       restaurant?.template === 'classic'
-                        ? 'border-orange-500 ring-2 ring-orange-500/20'
+                        ? 'border-indigo-600 ring-2 ring-indigo-600/20'
                         : 'border-slate-200 hover:border-slate-300'
                     }`}
                   >
                     <div className="h-44 bg-white rounded-xl overflow-hidden border border-slate-200 shadow-2xs flex flex-col">
                       <div className="h-16 bg-slate-800 relative flex items-end justify-center pb-1">
-                        <div className="w-8 h-8 rounded-full bg-white border border-slate-300 absolute -bottom-3 flex items-center justify-center text-[7px] font-bold text-orange-600">
+                        <div className="w-8 h-8 rounded-full bg-white border border-slate-300 absolute -bottom-3 flex items-center justify-center text-[7px] font-bold text-indigo-600">
                           LOGO
                         </div>
                       </div>
@@ -885,7 +888,7 @@ export default function Dashboard() {
                       <h3 className="font-bold text-xs text-slate-900">Gourmet & Dining</h3>
                     </div>
                     {restaurant?.template === 'classic' && (
-                      <span className="absolute top-2 right-2 bg-orange-500 text-white p-1 rounded-full shadow-md">
+                      <span className="absolute top-2 right-2 bg-indigo-600 text-white p-1 rounded-full shadow-md">
                         <Check size={12} />
                       </span>
                     )}
@@ -912,9 +915,9 @@ export default function Dashboard() {
                     placeholder="Ana Kategori Adı (Örn: Kahvaltılıklar, Çorbalar)" 
                     value={newCatName}
                     onChange={(e) => setNewCatName(e.target.value)}
-                    className="flex-1 px-4 py-2 bg-slate-50 border border-slate-200 text-slate-800 rounded-xl text-xs font-semibold outline-none focus:border-orange-500"
+                    className="flex-1 px-4 py-2 bg-slate-50 border border-slate-200 text-slate-800 rounded-xl text-xs font-semibold outline-none focus:border-indigo-500"
                   />
-                  <button type="submit" disabled={loadingCat} className="bg-orange-500 hover:bg-orange-600 text-white px-5 py-2 rounded-xl text-xs font-bold flex items-center gap-1 transition shadow-xs">
+                  <button type="submit" disabled={loadingCat} className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2 rounded-xl text-xs font-bold flex items-center gap-1 transition shadow-xs">
                     <Plus size={16} /> Ekle
                   </button>
                 </form>
@@ -934,7 +937,7 @@ export default function Dashboard() {
               {/* 2. ALT KATEGORİ YÖNETİMİ */}
               <div className="bg-white border border-slate-200 p-6 rounded-2xl space-y-4 shadow-xs">
                 <h2 className="font-extrabold text-slate-900 text-sm flex items-center gap-2">
-                  <FolderTree size={16} className="text-orange-500" /> 2. Alt Kategori Ekle
+                  <FolderTree size={16} className="text-indigo-600" /> 2. Alt Kategori Ekle
                 </h2>
 
                 <form onSubmit={addSubcategory} className="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -953,7 +956,7 @@ export default function Dashboard() {
                     placeholder="Alt Kategori Adı (Örn: Omletler)" 
                     value={subCatForm.name}
                     onChange={(e) => setSubCatForm({...subCatForm, name: e.target.value})}
-                    className="px-3 py-2 bg-slate-50 border border-slate-200 text-slate-800 rounded-xl text-xs font-semibold outline-none focus:border-orange-500"
+                    className="px-3 py-2 bg-slate-50 border border-slate-200 text-slate-800 rounded-xl text-xs font-semibold outline-none focus:border-indigo-500"
                   />
 
                   <button type="submit" disabled={loadingSubCat} className="bg-slate-900 hover:bg-slate-800 text-white px-5 py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1 transition shadow-xs">
@@ -964,7 +967,7 @@ export default function Dashboard() {
                 <div className="flex flex-wrap gap-2 pt-2">
                   {subcategories.map((sub) => (
                     <div key={sub.id} className="bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200 flex items-center gap-2 text-xs">
-                      <span className="text-orange-600 font-bold">{sub.categories?.name} &gt;</span>
+                      <span className="text-indigo-600 font-bold">{sub.categories?.name} &gt;</span>
                       <span className="font-bold text-slate-700">{sub.name}</span>
                       <button onClick={() => deleteSubcategory(sub.id)} className="text-rose-500 hover:text-rose-600 ml-1">
                         <Trash2 size={14} />
@@ -977,7 +980,7 @@ export default function Dashboard() {
               {/* 3. ÜRÜN EKLEME FORMU */}
               <div className="bg-white border border-slate-200 p-6 rounded-2xl space-y-4 shadow-xs">
                 <h2 className="font-extrabold text-slate-900 text-sm flex items-center gap-2">
-                  <Utensils size={16} className="text-orange-500" /> 3. Ürün Ekle
+                  <Utensils size={16} className="text-indigo-600" /> 3. Ürün Ekle
                 </h2>
 
                 <form onSubmit={addProduct} className="space-y-4">
@@ -989,7 +992,7 @@ export default function Dashboard() {
                         placeholder="Örn: Serpme Kahvaltılık" 
                         value={productForm.name}
                         onChange={(e) => setProductForm({...productForm, name: e.target.value})}
-                        className="w-full px-3 py-2 bg-slate-50 border border-slate-200 text-slate-800 rounded-xl text-xs font-semibold outline-none focus:border-orange-500"
+                        className="w-full px-3 py-2 bg-slate-50 border border-slate-200 text-slate-800 rounded-xl text-xs font-semibold outline-none focus:border-indigo-500"
                       />
                     </div>
 
@@ -1029,7 +1032,7 @@ export default function Dashboard() {
                         placeholder="150" 
                         value={productForm.price}
                         onChange={(e) => setProductForm({...productForm, price: e.target.value})}
-                        className="w-full px-3 py-2 bg-slate-50 border border-slate-200 text-slate-800 rounded-xl text-xs font-semibold outline-none focus:border-orange-500"
+                        className="w-full px-3 py-2 bg-slate-50 border border-slate-200 text-slate-800 rounded-xl text-xs font-semibold outline-none focus:border-indigo-500"
                       />
                     </div>
 
@@ -1053,7 +1056,7 @@ export default function Dashboard() {
                     <button 
                       type="button"
                       onClick={() => setShowAllergenDropdown(!showAllergenDropdown)}
-                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 text-slate-800 rounded-xl text-xs flex items-center justify-between text-left focus:border-orange-500 font-semibold"
+                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 text-slate-800 rounded-xl text-xs flex items-center justify-between text-left focus:border-indigo-500 font-semibold"
                     >
                       <div className="flex flex-wrap gap-1 items-center overflow-hidden">
                         {productForm.allergens.length === 0 ? (
@@ -1081,13 +1084,13 @@ export default function Dashboard() {
                               key={item.id}
                               onClick={() => toggleAllergen(item.id)}
                               className={`flex items-center justify-between p-2 rounded-xl cursor-pointer text-xs transition ${
-                                isSelected ? 'bg-orange-50 text-orange-600 font-bold' : 'hover:bg-slate-50 text-slate-700'
+                                isSelected ? 'bg-indigo-50 text-indigo-600 font-bold' : 'hover:bg-slate-50 text-slate-700'
                               }`}
                             >
                               <span className="flex items-center gap-2">
                                 <span>{item.icon}</span> {item.label}
                               </span>
-                              {isSelected && <Check size={14} className="text-orange-500" />}
+                              {isSelected && <Check size={14} className="text-indigo-600" />}
                             </div>
                           );
                         })}
@@ -1110,7 +1113,7 @@ export default function Dashboard() {
                           reader.readAsDataURL(file);
                         }
                       }}
-                      className="border-2 border-dashed border-slate-200 hover:border-orange-500 bg-slate-50 p-6 rounded-2xl flex flex-col items-center justify-center gap-2 cursor-pointer transition relative"
+                      className="border-2 border-dashed border-slate-200 hover:border-indigo-500 bg-slate-50 p-6 rounded-2xl flex flex-col items-center justify-center gap-2 cursor-pointer transition relative"
                     >
                       <input 
                         type="file" 
@@ -1133,7 +1136,7 @@ export default function Dashboard() {
                         </div>
                       ) : (
                         <>
-                          <div className="w-10 h-10 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center">
+                          <div className="w-10 h-10 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center">
                             <UploadCloud size={20} />
                           </div>
                           <p className="text-xs font-bold text-slate-600">Fotoğraf Yüklemek İçin Tıklayın veya Sürükleyin</p>
@@ -1149,14 +1152,14 @@ export default function Dashboard() {
                       placeholder="Örn: Beyaz peynir, kaşar peynir, tel peynir, bal, tereyağı..." 
                       value={productForm.description}
                       onChange={(e) => setProductForm({...productForm, description: e.target.value})}
-                      className="w-full p-2.5 bg-slate-50 border border-slate-200 text-slate-800 rounded-xl text-xs font-semibold outline-none focus:border-orange-500"
+                      className="w-full p-2.5 bg-slate-50 border border-slate-200 text-slate-800 rounded-xl text-xs font-semibold outline-none focus:border-indigo-500"
                     />
                   </div>
 
                   <button 
                     type="submit" 
                     disabled={loadingProd || uploadingImage}
-                    className="w-full bg-orange-500 hover:bg-orange-600 disabled:opacity-50 text-white py-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition shadow-xs"
+                    className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white py-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition shadow-xs"
                   >
                     <Plus size={16} /> {loadingProd ? 'Ekleniyor...' : 'Ürünü Menüye Ekle'}
                   </button>
@@ -1176,7 +1179,7 @@ export default function Dashboard() {
                         <div className="flex justify-between items-start">
                           <div>
                             <h3 className="font-bold text-slate-900 text-sm">{prod.name}</h3>
-                            <p className="text-[10px] text-orange-600 font-bold">
+                            <p className="text-[10px] text-indigo-600 font-bold">
                               {prod.categories?.name} {prod.subcategories?.name ? `> ${prod.subcategories.name}` : ''}
                             </p>
                           </div>
@@ -1195,7 +1198,7 @@ export default function Dashboard() {
             </div>
           )}
 
-          {/* QR OLUŞTURUCU (ATTIĞIN GÖRSELDEKİ BİREBİR ARAYÜZ) */}
+          {/* QR OLUŞTURUCU */}
           {activeTab === 'qr' && (
             <div className="max-w-5xl space-y-6">
               <div>
@@ -1207,7 +1210,7 @@ export default function Dashboard() {
                 {/* SOL: QR ÖNİZLEME VE İNDİRME */}
                 <div className="bg-white border border-slate-200 p-8 rounded-2xl flex flex-col items-center gap-6 shadow-xs">
                   <h2 className="font-extrabold text-slate-900 text-sm self-start flex items-center gap-2">
-                    <QrCode size={18} className="text-orange-500" /> QR Kodunuz
+                    <QrCode size={18} className="text-indigo-600" /> QR Kodunuz
                   </h2>
 
                   <div ref={qrRef} className="p-5 bg-white border-2 border-slate-100 rounded-2xl shadow-sm flex flex-col items-center">
@@ -1217,12 +1220,12 @@ export default function Dashboard() {
 
                   <div className="w-full space-y-2">
                     <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider text-center">Hedef URL</p>
-                    <p className="text-xs font-mono text-center font-bold text-orange-600 bg-slate-50 p-2 rounded-xl border border-slate-200 select-all">{liveMenuUrl}</p>
+                    <p className="text-xs font-mono text-center font-bold text-indigo-600 bg-slate-50 p-2 rounded-xl border border-slate-200 select-all">{liveMenuUrl}</p>
                   </div>
 
                   <button
                     onClick={downloadQR}
-                    className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition shadow-xs"
+                    className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition shadow-xs"
                   >
                     <Download size={16} /> Resmi İndir (PNG)
                   </button>
@@ -1231,12 +1234,12 @@ export default function Dashboard() {
                 {/* SAĞ: MASA / BROŞÜR TASARIM ÖNİZLEMESİ */}
                 <div className="bg-white border border-slate-200 p-6 rounded-2xl space-y-4 shadow-xs">
                   <h2 className="font-extrabold text-slate-900 text-sm flex items-center gap-2">
-                    <LayoutTemplate size={18} className="text-orange-500" /> Masa QR Şablonu
+                    <LayoutTemplate size={18} className="text-indigo-600" /> Masa QR Şablonu
                   </h2>
 
                   <div className="bg-gradient-to-b from-slate-900 to-slate-950 p-6 rounded-2xl text-white flex flex-col items-center text-center gap-4 relative overflow-hidden shadow-lg border border-slate-800">
                     <div className="space-y-1">
-                      <span className="bg-orange-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">Masa 1</span>
+                      <span className="bg-indigo-600 text-white text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">Masa 1</span>
                       <h3 className="font-black text-sm tracking-tight pt-1">QR KODU OKUTUN HEMEN SİPARİŞ VERİN</h3>
                     </div>
 
@@ -1250,8 +1253,8 @@ export default function Dashboard() {
                       <div>3. Menünüz Açılsın</div>
                     </div>
 
-                    <div className="w-full bg-orange-500 py-1.5 rounded-lg text-white font-extrabold text-xs">
-                      menum.co
+                    <div className="w-full bg-indigo-600 py-1.5 rounded-lg text-white font-extrabold text-xs flex items-center justify-center gap-1">
+                      <span>QR</span><span className="text-indigo-200">Menu</span>
                     </div>
                   </div>
                 </div>
