@@ -113,31 +113,61 @@ export default function PublicMenu({ params }: { params: { slug: string } }) {
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 font-sans pb-16">
-      {/* Header */}
-      <header className="bg-slate-900 border-b border-slate-800 p-6 text-center space-y-2">
-        <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-indigo-600 via-purple-600 to-pink-500 mx-auto flex items-center justify-center text-white text-2xl font-black shadow-lg shadow-indigo-500/20">
-          {restaurant.name ? restaurant.name[0] : 'R'}
+      {/* --- HEADER (KAPAK VE LOGO GÜNCELLENDİ) --- */}
+      <header className="bg-slate-900 border-b border-slate-800 relative pb-6">
+        
+        {/* Kapak Fotoğrafı Alanı */}
+        <div className="w-full h-40 sm:h-56 relative bg-slate-800">
+          {restaurant.cover_image && (
+            <img 
+              src={restaurant.cover_image} 
+              alt="Kapak Fotoğrafı" 
+              className="w-full h-full object-cover"
+            />
+          )}
+          {/* Fotoğrafın alt kısmına yumuşak bir karartma (gradient) ekler */}
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/40 to-transparent"></div>
         </div>
-        <h1 className="text-2xl font-extrabold text-white tracking-tight">{restaurant.name}</h1>
-        {restaurant.subtitle && (
-          <p className="text-xs text-slate-400 font-medium">{restaurant.subtitle}</p>
-        )}
 
-        <div className="flex justify-center items-center gap-4 text-[11px] text-slate-400 pt-2">
-          {restaurant.phone && (
-            <a href={`tel:${restaurant.phone}`} className="flex items-center gap-1 hover:text-indigo-400 transition">
-              <Phone size={12} /> {restaurant.phone}
-            </a>
+        {/* Bilgiler ve Logo Alanı */}
+        <div className="relative text-center px-6 -mt-14 z-10 space-y-3">
+          
+          {/* Logo Alanı */}
+          {restaurant.logo_url ? (
+            <img 
+              src={restaurant.logo_url} 
+              alt={`${restaurant.name} Logo`} 
+              className="w-24 h-24 rounded-2xl mx-auto object-cover border-4 border-slate-900 shadow-xl bg-white"
+            />
+          ) : (
+            <div className="w-24 h-24 rounded-2xl bg-gradient-to-tr from-indigo-600 via-purple-600 to-pink-500 mx-auto flex items-center justify-center text-white text-3xl font-black shadow-xl border-4 border-slate-900">
+              {restaurant.name ? restaurant.name[0] : 'R'}
+            </div>
           )}
-          {restaurant.address && (
-            <span className="flex items-center gap-1">
-              <MapPin size={12} /> {restaurant.address}
-            </span>
-          )}
+
+          <div>
+            <h1 className="text-2xl font-extrabold text-white tracking-tight">{restaurant.name}</h1>
+            {restaurant.subtitle && (
+              <p className="text-xs text-slate-400 font-medium mt-1">{restaurant.subtitle}</p>
+            )}
+          </div>
+
+          <div className="flex justify-center items-center gap-4 text-[11px] text-slate-400 pt-1">
+            {restaurant.phone && (
+              <a href={`tel:${restaurant.phone}`} className="flex items-center gap-1 hover:text-indigo-400 transition">
+                <Phone size={12} /> {restaurant.phone}
+              </a>
+            )}
+            {restaurant.address && (
+              <span className="flex items-center gap-1">
+                <MapPin size={12} /> {restaurant.address}
+              </span>
+            )}
+          </div>
         </div>
       </header>
 
-      {/* Tablar */}
+      {/* Tablar (Kategoriler) */}
       <div className="sticky top-0 z-20 bg-slate-950/90 backdrop-blur-md border-b border-slate-800/80 px-4 py-3">
         <div className="max-w-xl mx-auto flex gap-2 overflow-x-auto no-scrollbar">
           <button
