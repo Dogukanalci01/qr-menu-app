@@ -36,7 +36,8 @@ import {
   Lock,
   Mail,
   Activity,
-  History
+  History,
+  Pencil
 } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 
@@ -142,6 +143,11 @@ export default function Dashboard() {
   const [loadingSubCat, setLoadingSubCat] = useState(false);
   const [loadingProd, setLoadingProd] = useState(false);
 
+  // --- DÜZENLEME (EDIT) STATELERİ ---
+  const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null);
+  const [editingSubcategoryId, setEditingSubcategoryId] = useState<string | null>(null);
+  const [editingProductId, setEditingProductId] = useState<string | null>(null);
+
   const qrRef = useRef<HTMLDivElement>(null);
   const liveMenuUrl = `${MAIN_DOMAIN}/menu`;
 
@@ -159,7 +165,6 @@ export default function Dashboard() {
 
   // --- AUTH CHECK & LISTENER ---
   useEffect(() => {
-    // E-POSTAYI HATIRLA
     const savedEmail = localStorage.getItem('qr_menu_saved_email');
     if (savedEmail) {
       setAuthEmail(savedEmail);
@@ -197,6 +202,11 @@ export default function Dashboard() {
       fetchCategories(selectedRestaurantId);
       fetchSubcategories(selectedRestaurantId);
       fetchProducts(selectedRestaurantId);
+      
+      // Restaurant değiştiğinde formları sıfırla
+      cancelEditCategory();
+      cancelEditSubcategory();
+      cancelEditProduct();
     }
   }, [selectedRestaurantId]);
 
@@ -212,7 +222,7 @@ export default function Dashboard() {
       } else {
         setAuthMessage('Kayıt başarılı! Şimdi giriş yapabilirsiniz.');
         setIsSignUp(false);
-        localStorage.setItem('qr_menu_saved_email', authEmail); // Kayıt başarılıysa maile kaydet
+        localStorage.setItem('qr_menu_saved_email', authEmail);
         logActivity('Yeni Hesap', `${authEmail} adresli hesap oluşturuldu.`);
       }
     } else {
@@ -221,7 +231,7 @@ export default function Dashboard() {
         setAuthMessage('Hata: ' + error.message);
       } else {
         setAuthMessage('Giriş başarılı!');
-        localStorage.setItem('qr_menu_saved_email', authEmail); // Giriş başarılıysa maile kaydet
+        localStorage.setItem('qr_menu_saved_email', authEmail);
         logActivity('Oturum Açıldı', `${authEmail} sisteme giriş yaptı.`);
       }
     }
@@ -233,7 +243,6 @@ export default function Dashboard() {
     await supabase.auth.signOut();
   };
 
-  // --- UPDATE EMAIL & PASSWORD ---
   const handleUpdateSettings = async (e: React.FormEvent) => {
     e.preventDefault();
     setSettingsLoading(true);
@@ -293,38 +302,23 @@ export default function Dashboard() {
   };
 
   const fetchCategories = async (restId: string) => {
-    const { data } = await supabase
-      .from('categories')
-      .select('*')
-      .eq('restaurant_id', restId)
-      .order('sort_order', { ascending: true });
-
+    const { data } = await supabase.from('categories').select('*').eq('restaurant_id', restId).order('sort_order', { ascending: true });
     if (data) {
       setCategories(data);
-      if (data.length > 0) {
-        setSubCatForm((prev) => ({ ...prev, category_id: data[0].id }));
-        setProductForm((prev) => ({ ...prev, category_id: data[0].id }));
+      if (data.length > 0 && !editingProductId) {
+        setSubCatForm((prev) => ({ ...prev, category_id: prev.category_id || data[0].id }));
+        setProductForm((prev) => ({ ...prev, category_id: prev.category_id || data[0].id }));
       }
     }
   };
 
   const fetchSubcategories = async (restId: string) => {
-    const { data } = await supabase
-      .from('subcategories')
-      .select('*, categories(name)')
-      .eq('restaurant_id', restId)
-      .order('sort_order', { ascending: true });
-
+    const { data } = await supabase.from('subcategories').select('*, categories(name)').eq('restaurant_id', restId).order('sort_order', { ascending: true });
     if (data) setSubcategories(data);
   };
 
   const fetchProducts = async (restId: string) => {
-    const { data } = await supabase
-      .from('products')
-      .select('*, categories(name), subcategories(name)')
-      .eq('restaurant_id', restId)
-      .order('id', { ascending: false });
-
+    const { data } = await supabase.from('products').select('*, categories(name), subcategories(name)').eq('restaurant_id', restId).order('id', { ascending: false });
     if (data) setProducts(data);
   };
 
@@ -334,19 +328,13 @@ export default function Dashboard() {
       const fileName = `${folder}_${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${fileExt}`;
       const filePath = `${folder}/${fileName}`;
 
-      const { error: uploadError } = await supabase.storage
-        .from('product-images')
-        .upload(filePath, file);
+      const { error: uploadError } = await supabase.storage.from('product-images').upload(filePath, file);
 
-      if (uploadError) {
-        console.error('Storage Upload Error:', uploadError.message);
-        return '';
-      }
+      if (uploadError) return '';
 
       const { data } = supabase.storage.from('product-images').getPublicUrl(filePath);
       return data.publicUrl;
     } catch (err) {
-      console.error('Upload Exception:', err);
       return '';
     }
   };
@@ -357,9 +345,7 @@ export default function Dashboard() {
       alert('Lütfen restoran adı ve URL (slug) girin!');
       return;
     }
-
     const formattedSlug = newRestForm.slug.toLowerCase().trim().replace(/[^a-z0-9-]/g, '-');
-
     const { data, error } = await supabase.from('restaurants').insert([{
       name: newRestForm.name.trim(),
       slug: formattedSlug,
@@ -403,7 +389,6 @@ export default function Dashboard() {
         logActivity('QR İndirildi', `${restaurant.name} için masa QR kodu indirildi.`);
       }
     };
-
     img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)));
   };
 
@@ -426,22 +411,13 @@ export default function Dashboard() {
       const uploadedUrl = await uploadToStorage(logoFile, 'logos');
       if (uploadedUrl) updatedLogoUrl = uploadedUrl;
     }
-
     if (coverFile) {
       const uploadedUrl = await uploadToStorage(coverFile, 'covers');
       if (uploadedUrl) updatedCoverUrl = uploadedUrl;
     }
 
-    const payload = { 
-      ...restaurant,
-      logo_url: updatedLogoUrl,
-      cover_image: updatedCoverUrl
-    };
-
-    const { data, error } = await supabase
-      .from('restaurants')
-      .upsert([payload], { onConflict: 'id' })
-      .select();
+    const payload = { ...restaurant, logo_url: updatedLogoUrl, cover_image: updatedCoverUrl };
+    const { data, error } = await supabase.from('restaurants').upsert([payload], { onConflict: 'id' }).select();
 
     if (!error && data) {
       setRestaurant(data[0]);
@@ -458,27 +434,51 @@ export default function Dashboard() {
     }
   };
 
+  // --- KATEGORİ YÖNETİMİ ---
   const addCategory = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (!newCatName.trim() || !selectedRestaurantId) return;
 
     setLoadingCat(true);
-    const insertData: any = { 
-      name: newCatName.trim(), 
-      sort_order: categories.length + 1,
-      restaurant_id: selectedRestaurantId
-    };
-
-    const { error } = await supabase.from('categories').insert([insertData]);
-    setLoadingCat(false);
-
-    if (!error) {
-      logActivity('Kategori Eklendi', `"${newCatName.trim()}" ana kategorisi eklendi.`);
-      setNewCatName('');
-      fetchCategories(selectedRestaurantId);
+    
+    if (editingCategoryId) {
+      const { error } = await supabase.from('categories').update({ name: newCatName.trim() }).eq('id', editingCategoryId);
+      if (!error) {
+        logActivity('Kategori Güncellendi', `Kategori adı "${newCatName.trim()}" olarak güncellendi.`);
+        cancelEditCategory();
+        fetchCategories(selectedRestaurantId);
+      }
+    } else {
+      const insertData = { name: newCatName.trim(), sort_order: categories.length + 1, restaurant_id: selectedRestaurantId };
+      const { error } = await supabase.from('categories').insert([insertData]);
+      if (!error) {
+        logActivity('Kategori Eklendi', `"${newCatName.trim()}" ana kategorisi eklendi.`);
+        setNewCatName('');
+        fetchCategories(selectedRestaurantId);
+      }
     }
+    setLoadingCat(false);
   };
 
+  const handleEditCategory = (cat: any) => {
+    setEditingCategoryId(cat.id);
+    setNewCatName(cat.name);
+  };
+
+  const cancelEditCategory = () => {
+    setEditingCategoryId(null);
+    setNewCatName('');
+  };
+
+  const deleteCategory = async (id: string) => {
+    if(!confirm('Bu kategoriyi silmek istediğinize emin misiniz? Altındaki ürünler boşa çıkabilir.')) return;
+    await supabase.from('categories').delete().eq('id', id);
+    logActivity('Kategori Silindi', 'Bir ana kategori kaldırıldı.');
+    fetchCategories(selectedRestaurantId);
+    fetchSubcategories(selectedRestaurantId);
+  };
+
+  // --- ALT KATEGORİ YÖNETİMİ ---
   const addSubcategory = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!subCatForm.name.trim() || !subCatForm.category_id || !selectedRestaurantId) {
@@ -487,23 +487,53 @@ export default function Dashboard() {
     }
 
     setLoadingSubCat(true);
-    const insertData: any = {
-      name: subCatForm.name.trim(),
-      category_id: subCatForm.category_id,
-      restaurant_id: selectedRestaurantId,
-      sort_order: subcategories.length + 1
-    };
 
-    const { error } = await supabase.from('subcategories').insert([insertData]);
-    setLoadingSubCat(false);
+    if (editingSubcategoryId) {
+      const { error } = await supabase.from('subcategories').update({
+        name: subCatForm.name.trim(),
+        category_id: subCatForm.category_id
+      }).eq('id', editingSubcategoryId);
 
-    if (!error) {
-      logActivity('Alt Kategori Eklendi', `"${subCatForm.name.trim()}" alt kategorisi eklendi.`);
-      setSubCatForm({ name: '', category_id: categories[0]?.id || '' });
-      fetchSubcategories(selectedRestaurantId);
+      if (!error) {
+        logActivity('Alt Kategori Güncellendi', `Alt kategori "${subCatForm.name.trim()}" olarak güncellendi.`);
+        cancelEditSubcategory();
+        fetchSubcategories(selectedRestaurantId);
+      }
+    } else {
+      const insertData = {
+        name: subCatForm.name.trim(),
+        category_id: subCatForm.category_id,
+        restaurant_id: selectedRestaurantId,
+        sort_order: subcategories.length + 1
+      };
+      const { error } = await supabase.from('subcategories').insert([insertData]);
+      if (!error) {
+        logActivity('Alt Kategori Eklendi', `"${subCatForm.name.trim()}" alt kategorisi eklendi.`);
+        setSubCatForm({ name: '', category_id: categories[0]?.id || '' });
+        fetchSubcategories(selectedRestaurantId);
+      }
     }
+    setLoadingSubCat(false);
   };
 
+  const handleEditSubcategory = (sub: any) => {
+    setEditingSubcategoryId(sub.id);
+    setSubCatForm({ name: sub.name, category_id: sub.category_id });
+  };
+
+  const cancelEditSubcategory = () => {
+    setEditingSubcategoryId(null);
+    setSubCatForm({ name: '', category_id: categories[0]?.id || '' });
+  };
+
+  const deleteSubcategory = async (id: string) => {
+    if(!confirm('Bu alt kategoriyi silmek istediğinize emin misiniz?')) return;
+    await supabase.from('subcategories').delete().eq('id', id);
+    logActivity('Alt Kategori Silindi', 'Bir alt kategori kaldırıldı.');
+    fetchSubcategories(selectedRestaurantId);
+  };
+
+  // --- ÜRÜN YÖNETİMİ ---
   const addProduct = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!productForm.name.trim() || !productForm.price || !productForm.category_id || !selectedRestaurantId) {
@@ -523,7 +553,7 @@ export default function Dashboard() {
     }
     setUploadingImage(false);
 
-    const insertProduct: any = {
+    const payload: any = {
       name: productForm.name.trim(),
       description: productForm.description.trim(),
       price: parseFloat(productForm.price),
@@ -535,44 +565,69 @@ export default function Dashboard() {
       restaurant_id: selectedRestaurantId
     };
 
-    const { error } = await supabase.from('products').insert([insertProduct]);
-    setLoadingProd(false);
+    if (editingProductId) {
+      const { error } = await supabase.from('products').update(payload).eq('id', editingProductId);
+      setLoadingProd(false);
 
-    if (error) {
-      alert('Ürün Ekleme Hatası: ' + error.message);
+      if (error) {
+        alert('Ürün Güncelleme Hatası: ' + error.message);
+      } else {
+        logActivity('Ürün Güncellendi', `"${productForm.name.trim()}" bilgileri güncellendi.`);
+        cancelEditProduct();
+        fetchProducts(selectedRestaurantId);
+      }
     } else {
-      logActivity('Ürün Eklendi', `"${productForm.name.trim()}" menüye (₺${productForm.price}) eklendi.`);
-      setProductForm({
-        name: '',
-        description: '',
-        price: '',
-        calories: '',
-        image_url: '',
-        category_id: categories[0]?.id || '',
-        subcategory_id: '',
-        allergens: []
-      });
-      setImageFile(null);
-      setImagePreview('');
-      setShowAllergenDropdown(false);
-      fetchProducts(selectedRestaurantId);
+      const { error } = await supabase.from('products').insert([payload]);
+      setLoadingProd(false);
+
+      if (error) {
+        alert('Ürün Ekleme Hatası: ' + error.message);
+      } else {
+        logActivity('Ürün Eklendi', `"${productForm.name.trim()}" menüye (₺${productForm.price}) eklendi.`);
+        cancelEditProduct();
+        fetchProducts(selectedRestaurantId);
+      }
     }
   };
 
-  const deleteCategory = async (id: string) => {
-    await supabase.from('categories').delete().eq('id', id);
-    logActivity('Kategori Silindi', 'Bir ana kategori kaldırıldı.');
-    fetchCategories(selectedRestaurantId);
-    fetchSubcategories(selectedRestaurantId);
+  const handleEditProduct = (prod: any) => {
+    setEditingProductId(prod.id);
+    setProductForm({
+      name: prod.name,
+      description: prod.description || '',
+      price: prod.price ? prod.price.toString() : '',
+      calories: prod.calories ? prod.calories.toString() : '',
+      image_url: prod.image_url || '',
+      category_id: prod.category_id,
+      subcategory_id: prod.subcategory_id || '',
+      allergens: prod.allergens || []
+    });
+    setImagePreview(prod.image_url || '');
+    setImageFile(null);
+    
+    // Sayfayı hafif yukarı kaydırıp formun görünmesini sağla
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const deleteSubcategory = async (id: string) => {
-    await supabase.from('subcategories').delete().eq('id', id);
-    logActivity('Alt Kategori Silindi', 'Bir alt kategori kaldırıldı.');
-    fetchSubcategories(selectedRestaurantId);
+  const cancelEditProduct = () => {
+    setEditingProductId(null);
+    setProductForm({
+      name: '',
+      description: '',
+      price: '',
+      calories: '',
+      image_url: '',
+      category_id: categories[0]?.id || '',
+      subcategory_id: '',
+      allergens: []
+    });
+    setImageFile(null);
+    setImagePreview('');
+    setShowAllergenDropdown(false);
   };
 
   const deleteProduct = async (id: string) => {
+    if(!confirm('Bu ürünü silmek istediğinize emin misiniz?')) return;
     await supabase.from('products').delete().eq('id', id);
     logActivity('Ürün Silindi', 'Menüden bir ürün kaldırıldı.');
     fetchProducts(selectedRestaurantId);
@@ -863,7 +918,7 @@ export default function Dashboard() {
             </div>
           )}
 
-          {/* HESAP AYARLARI (E-POSTA VE ŞİFRE DEĞİŞTİRME) */}
+          {/* HESAP AYARLARI */}
           {activeTab === 'settings' && (
             <div className="max-w-xl space-y-6">
               <div>
@@ -887,7 +942,6 @@ export default function Dashboard() {
                       onChange={(e) => setNewEmail(e.target.value)}
                       required
                       className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 text-slate-800 rounded-xl text-xs font-semibold outline-none focus:border-indigo-500"
-                      placeholder="E-posta adresiniz"
                     />
                   </div>
 
@@ -964,13 +1018,11 @@ export default function Dashboard() {
               <div className="bg-white border border-slate-200 p-6 rounded-2xl space-y-4 shadow-xs">
                 <h2 className="font-extrabold text-slate-900 text-sm">Firma Adı ve Teması</h2>
                 
-                {/* RENK SEÇİCİ VE FİRMA ADI YANYANA (SENKRONİZE EDİLDİ) */}
                 <div>
                   <label className="text-xs text-slate-500 uppercase font-bold block mb-1">
                     *Firma Adı ve Rengi Seçin
                   </label>
                   <div className="flex items-center gap-3">
-                    {/* Tıklanabilir Renk Seçici Kutusu */}
                     <div className="relative flex items-center justify-center w-11 h-11 rounded-xl border border-slate-300 shadow-2xs overflow-hidden cursor-pointer flex-shrink-0" style={{ backgroundColor: restaurant?.primary_color || '#4f46e5' }}>
                       <input 
                         type="color" 
@@ -980,8 +1032,6 @@ export default function Dashboard() {
                         title="Renk Seçmek İçin Tıklayın"
                       />
                     </div>
-
-                    {/* Firma Adı Input Alanı */}
                     <input 
                       type="text" 
                       value={restaurant?.name || ''} 
@@ -991,7 +1041,6 @@ export default function Dashboard() {
                     />
                   </div>
 
-                  {/* SENKRONİZE HEX KOD GİRİŞİ */}
                   <div className="mt-2.5 flex items-center gap-2">
                     <span className="text-[11px] text-slate-400 font-bold">Özel HEX Renk Kodu:</span>
                     <input 
@@ -1287,16 +1336,19 @@ export default function Dashboard() {
             </div>
           )}
 
-          {/* MENÜ YÖNETİMİ */}
+          {/* MENÜ YÖNETİMİ (Ekle & Düzenle Bir Arada) */}
           {activeTab === 'menu' && (
             <div className="max-w-4xl space-y-6">
               <div>
                 <h1 className="text-2xl font-black text-slate-900">Menü Yönetimi</h1>
-                <p className="text-slate-500 text-xs font-medium mt-0.5">Kategori, alt kategori ve lezzetlerinizi tanımlayın.</p>
+                <p className="text-slate-500 text-xs font-medium mt-0.5">Kategori, alt kategori ve lezzetlerinizi ekleyin veya düzenleyin.</p>
               </div>
 
+              {/* 1. ANA KATEGORİ YÖNETİMİ */}
               <div className="bg-white border border-slate-200 p-6 rounded-2xl space-y-4 shadow-xs">
-                <h2 className="font-extrabold text-slate-900 text-sm">1. Ana Kategori Ekle</h2>
+                <h2 className="font-extrabold text-slate-900 text-sm">
+                  {editingCategoryId ? '1. Ana Kategoriyi Düzenle' : '1. Ana Kategori Ekle'}
+                </h2>
                 <form onSubmit={addCategory} className="flex gap-3">
                   <input 
                     type="text" 
@@ -1305,8 +1357,14 @@ export default function Dashboard() {
                     onChange={(e) => setNewCatName(e.target.value)}
                     className="flex-1 px-4 py-2 bg-slate-50 border border-slate-200 text-slate-800 rounded-xl text-xs font-semibold outline-none focus:border-indigo-500"
                   />
-                  <button type="submit" disabled={loadingCat} className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2 rounded-xl text-xs font-bold flex items-center gap-1 transition shadow-xs">
-                    <Plus size={16} /> Ekle
+                  {editingCategoryId && (
+                    <button type="button" onClick={cancelEditCategory} className="bg-slate-200 hover:bg-slate-300 text-slate-700 px-4 py-2 rounded-xl text-xs font-bold transition">
+                      İptal
+                    </button>
+                  )}
+                  <button type="submit" disabled={loadingCat} className={`${editingCategoryId ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-indigo-600 hover:bg-indigo-700'} text-white px-5 py-2 rounded-xl text-xs font-bold flex items-center gap-1 transition shadow-xs`}>
+                    {editingCategoryId ? <Save size={16} /> : <Plus size={16} />} 
+                    {editingCategoryId ? 'Güncelle' : 'Ekle'}
                   </button>
                 </form>
 
@@ -1314,24 +1372,31 @@ export default function Dashboard() {
                   {categories.map((cat) => (
                     <div key={cat.id} className="bg-slate-50 px-3.5 py-1.5 rounded-xl border border-slate-200 flex items-center gap-3">
                       <span className="font-bold text-xs text-slate-700">{cat.name}</span>
-                      <button onClick={() => deleteCategory(cat.id)} className="text-rose-500 hover:text-rose-600">
-                        <Trash2 size={14} />
-                      </button>
+                      <div className="flex items-center gap-1.5">
+                        <button onClick={() => handleEditCategory(cat)} className="text-indigo-500 hover:text-indigo-600" title="Düzenle">
+                          <Pencil size={14} />
+                        </button>
+                        <button onClick={() => deleteCategory(cat.id)} className="text-rose-500 hover:text-rose-600" title="Sil">
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
               </div>
 
+              {/* 2. ALT KATEGORİ YÖNETİMİ */}
               <div className="bg-white border border-slate-200 p-6 rounded-2xl space-y-4 shadow-xs">
                 <h2 className="font-extrabold text-slate-900 text-sm flex items-center gap-2">
-                  <FolderTree size={16} className="text-indigo-600" /> 2. Alt Kategori Ekle
+                  <FolderTree size={16} className="text-indigo-600" /> 
+                  {editingSubcategoryId ? '2. Alt Kategoriyi Düzenle' : '2. Alt Kategori Ekle'}
                 </h2>
 
-                <form onSubmit={addSubcategory} className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <form onSubmit={addSubcategory} className="grid grid-cols-1 md:grid-cols-4 gap-3">
                   <select 
                     value={subCatForm.category_id}
                     onChange={(e) => setSubCatForm({...subCatForm, category_id: e.target.value})}
-                    className="px-3 py-2 bg-slate-50 border border-slate-200 text-slate-800 rounded-xl text-xs font-semibold outline-none"
+                    className="col-span-1 px-3 py-2 bg-slate-50 border border-slate-200 text-slate-800 rounded-xl text-xs font-semibold outline-none"
                   >
                     {categories.map((cat) => (
                       <option key={cat.id} value={cat.id}>{cat.name}</option>
@@ -1343,12 +1408,20 @@ export default function Dashboard() {
                     placeholder="Alt Kategori Adı (Örn: Omletler)" 
                     value={subCatForm.name}
                     onChange={(e) => setSubCatForm({...subCatForm, name: e.target.value})}
-                    className="px-3 py-2 bg-slate-50 border border-slate-200 text-slate-800 rounded-xl text-xs font-semibold outline-none focus:border-indigo-500"
+                    className="col-span-1 md:col-span-2 px-3 py-2 bg-slate-50 border border-slate-200 text-slate-800 rounded-xl text-xs font-semibold outline-none focus:border-indigo-500"
                   />
 
-                  <button type="submit" disabled={loadingSubCat} className="bg-slate-900 hover:bg-slate-800 text-white px-5 py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1 transition shadow-xs">
-                    <Plus size={16} /> Alt Kategori Ekle
-                  </button>
+                  <div className="col-span-1 flex gap-2">
+                    {editingSubcategoryId && (
+                      <button type="button" onClick={cancelEditSubcategory} className="bg-slate-200 hover:bg-slate-300 text-slate-700 px-3 py-2 rounded-xl text-xs font-bold transition flex-1">
+                        İptal
+                      </button>
+                    )}
+                    <button type="submit" disabled={loadingSubCat} className={`${editingSubcategoryId ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-slate-900 hover:bg-slate-800'} text-white px-3 py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1 transition shadow-xs flex-1`}>
+                      {editingSubcategoryId ? <Save size={16} /> : <Plus size={16} />} 
+                      {editingSubcategoryId ? 'Güncelle' : 'Ekle'}
+                    </button>
+                  </div>
                 </form>
 
                 <div className="flex flex-wrap gap-2 pt-2">
@@ -1356,17 +1429,24 @@ export default function Dashboard() {
                     <div key={sub.id} className="bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200 flex items-center gap-2 text-xs">
                       <span className="text-indigo-600 font-bold">{sub.categories?.name} &gt;</span>
                       <span className="font-bold text-slate-700">{sub.name}</span>
-                      <button onClick={() => deleteSubcategory(sub.id)} className="text-rose-500 hover:text-rose-600 ml-1">
-                        <Trash2 size={14} />
-                      </button>
+                      <div className="flex items-center gap-1.5 ml-1 border-l pl-2 border-slate-200">
+                        <button onClick={() => handleEditSubcategory(sub)} className="text-indigo-500 hover:text-indigo-600" title="Düzenle">
+                          <Pencil size={14} />
+                        </button>
+                        <button onClick={() => deleteSubcategory(sub.id)} className="text-rose-500 hover:text-rose-600" title="Sil">
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
               </div>
 
+              {/* 3. ÜRÜN YÖNETİMİ */}
               <div className="bg-white border border-slate-200 p-6 rounded-2xl space-y-4 shadow-xs">
-                <h2 className="font-extrabold text-slate-900 text-sm flex items-center gap-2">
-                  <Utensils size={16} className="text-indigo-600" /> 3. Ürün Ekle
+                <h2 className={`font-extrabold text-sm flex items-center gap-2 ${editingProductId ? 'text-emerald-600' : 'text-slate-900'}`}>
+                  <Utensils size={16} className={editingProductId ? 'text-emerald-600' : 'text-indigo-600'} /> 
+                  {editingProductId ? '3. Ürünü Düzenle' : '3. Ürün Ekle'}
                 </h2>
 
                 <form onSubmit={addProduct} className="space-y-4">
@@ -1497,7 +1577,7 @@ export default function Dashboard() {
                           reader.readAsDataURL(file);
                         }
                       }}
-                      className="border-2 border-dashed border-slate-200 hover:border-indigo-500 bg-slate-50 p-6 rounded-2xl flex flex-col items-center justify-center gap-2 cursor-pointer transition relative"
+                      className={`border-2 border-dashed ${editingProductId && productForm.image_url ? 'border-emerald-200 hover:border-emerald-500' : 'border-slate-200 hover:border-indigo-500'} bg-slate-50 p-6 rounded-2xl flex flex-col items-center justify-center gap-2 cursor-pointer transition relative`}
                     >
                       <input 
                         type="file" 
@@ -1520,10 +1600,10 @@ export default function Dashboard() {
                         </div>
                       ) : (
                         <>
-                          <div className="w-10 h-10 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center">
+                          <div className={`w-10 h-10 rounded-full ${editingProductId ? 'bg-emerald-100 text-emerald-600' : 'bg-indigo-100 text-indigo-600'} flex items-center justify-center`}>
                             <UploadCloud size={20} />
                           </div>
-                          <p className="text-xs font-bold text-slate-600">Fotoğraf Yüklemek İçin Tıklayın veya Sürükleyin</p>
+                          <p className="text-xs font-bold text-slate-600">Yeni Fotoğraf Yüklemek İçin Tıklayın veya Sürükleyin</p>
                         </>
                       )}
                     </div>
@@ -1540,13 +1620,25 @@ export default function Dashboard() {
                     />
                   </div>
 
-                  <button 
-                    type="submit" 
-                    disabled={loadingProd || uploadingImage}
-                    className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white py-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition shadow-xs"
-                  >
-                    <Plus size={16} /> {loadingProd || uploadingImage ? 'Yükleniyor & Ekleniyor...' : 'Ürünü Menüye Ekle'}
-                  </button>
+                  <div className="flex gap-3">
+                    {editingProductId && (
+                      <button 
+                        type="button" 
+                        onClick={cancelEditProduct}
+                        className="bg-slate-200 hover:bg-slate-300 text-slate-700 py-3 px-6 rounded-xl text-xs font-bold transition"
+                      >
+                        İptal
+                      </button>
+                    )}
+                    <button 
+                      type="submit" 
+                      disabled={loadingProd || uploadingImage}
+                      className={`flex-1 ${editingProductId ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-indigo-600 hover:bg-indigo-700'} disabled:opacity-50 text-white py-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition shadow-xs`}
+                    >
+                      {editingProductId ? <Save size={16} /> : <Plus size={16} />}
+                      {loadingProd || uploadingImage ? 'İşleniyor...' : (editingProductId ? 'Ürünü Güncelle' : 'Ürünü Menüye Ekle')}
+                    </button>
+                  </div>
                 </form>
 
                 <div className="space-y-3 pt-4 border-t border-slate-100">
@@ -1555,7 +1647,7 @@ export default function Dashboard() {
                       {prod.image_url ? (
                         <img src={prod.image_url} alt={prod.name} className="w-16 h-16 object-cover rounded-xl border border-slate-200" />
                       ) : (
-                        <div className="w-16 h-16 bg-white rounded-xl flex items-center justify-center text-[10px] text-slate-400 font-bold border border-slate-200">Görsel Yok</div>
+                        <div className="w-16 h-16 bg-white rounded-xl flex items-center justify-center text-[10px] text-slate-400 font-bold border border-slate-200 text-center px-1">Görsel Yok</div>
                       )}
                       
                       <div className="flex-1 min-w-0">
@@ -1571,9 +1663,14 @@ export default function Dashboard() {
                         <p className="text-xs text-slate-500 line-clamp-1 mt-0.5">{prod.description}</p>
                       </div>
 
-                      <button onClick={() => deleteProduct(prod.id)} className="p-2 text-rose-500 hover:bg-rose-100 rounded-xl transition">
-                        <Trash2 size={16} />
-                      </button>
+                      <div className="flex flex-col gap-1 border-l pl-3 ml-1 border-slate-200">
+                        <button onClick={() => handleEditProduct(prod)} className="p-2 text-indigo-500 hover:bg-indigo-100 rounded-xl transition" title="Düzenle">
+                          <Pencil size={16} />
+                        </button>
+                        <button onClick={() => deleteProduct(prod.id)} className="p-2 text-rose-500 hover:bg-rose-100 rounded-xl transition" title="Sil">
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
