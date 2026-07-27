@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { supabase } from '../lib/supabase'; // lib/supabase.ts yolun
+import { supabase } from '../lib/supabase';
 import { 
   Plus, 
   Trash2, 
@@ -15,8 +15,9 @@ import {
 import { QRCodeSVG } from 'qrcode.react';
 
 export default function Dashboard() {
-  const [activeTab, setActiveTab] = useState('dashboard');
+  const [activeTab, setActiveTab] = useState('menu');
   const [restaurant, setRestaurant] = useState<any>({
+    id: null,
     name: 'Livadya Restaurant',
     slug: 'livadya-restaurant',
     subtitle: 'Lezzet, Manzara ve Huzurun Adresi',
@@ -37,8 +38,8 @@ export default function Dashboard() {
     : `https://example.com/menu/${restaurant.slug}`;
 
   useEffect(() => {
-    fetchCategories();
     fetchRestaurant();
+    fetchCategories();
   }, []);
 
   const fetchRestaurant = async () => {
@@ -53,7 +54,7 @@ export default function Dashboard() {
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('Fetch Error:', error);
+      console.error('Fetch Error:', error.message);
     } else if (data) {
       setCategories(data);
     }
@@ -67,17 +68,30 @@ export default function Dashboard() {
     }
 
     setLoading(true);
-    const { error } = await supabase
+
+    // Kategori objesini hazırlıyoruz
+    const insertData: any = {
+      name: newCatName.trim()
+    };
+
+    // Eğer veritabanından gelen restoran ID'si varsa onu ekliyoruz
+    if (restaurant?.id) {
+      insertData.restaurant_id = restaurant.id;
+    }
+
+    const { data, error } = await supabase
       .from('categories')
-      .insert([{ name: newCatName.trim() }]);
+      .insert([insertData])
+      .select();
 
     setLoading(false);
 
     if (error) {
+      console.error('Supabase Ekleme Hatası:', error);
       alert('Ekleme Hatası: ' + error.message);
     } else {
       setNewCatName('');
-      fetchCategories();
+      fetchCategories(); // Listeyi anında yenile
     }
   };
 
