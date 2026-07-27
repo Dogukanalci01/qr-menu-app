@@ -18,7 +18,6 @@ export default function PublicMenu() {
 
   useEffect(() => {
     fetchData();
-    // Google Translate scriptini sayfaya ekle
     if (!document.getElementById('google-translate-script')) {
       const script = document.createElement('script');
       script.id = 'google-translate-script';
@@ -28,14 +27,13 @@ export default function PublicMenu() {
 
       (window as any).googleTranslateElementInit = () => {
         new (window as any).google.translate.TranslateElement(
-          { pageLanguage: 'tr', includedLanguages: 'tr,en,ru,de', autoDisplay: false },
+          { pageLanguage: 'tr', includedLanguages: 'tr,en,ru,de,el', autoDisplay: false },
           'google_translate_element'
         );
       };
     }
   }, []);
 
-  // Google Translate dil değiştirme tetikleyicisi
   const changeGoogleLanguage = (langCode: string) => {
     setCurrentLang(langCode);
     setIsLangOpen(false);
@@ -112,7 +110,6 @@ export default function PublicMenu() {
   // Ortak Üst Bar
   const renderHeader = () => (
     <header className="text-white p-3 px-4 flex justify-between items-center shadow-md relative" style={{ backgroundColor: pColor }}>
-      {/* Gizli Google Translate Elementi (Çeviriyi arkada yönetir) */}
       <div id="google_translate_element" style={{ display: 'none' }}></div>
 
       <div className="flex items-center gap-3">
@@ -135,30 +132,35 @@ export default function PublicMenu() {
           <Bell size={16} />
         </button>
 
-        {/* DİL SEÇİCİ MENÜSÜ */}
+        {/* BAYRAKLI VE KODLU DİL SEÇİCİ MENÜSÜ */}
         <div className="relative">
           <button 
             onClick={() => setIsLangOpen(!isLangOpen)} 
-            className="bg-white px-3 py-1 rounded-lg text-xs font-bold flex items-center gap-1.5 shadow-sm transition cursor-pointer"
+            className="bg-white px-3 py-1.5 rounded-xl text-xs font-extrabold flex items-center gap-1.5 shadow-sm transition cursor-pointer"
             style={{ color: pColor }}
           >
             <Globe size={13} /> <span>{currentLang}</span> <ChevronDown size={12} />
           </button>
 
           {isLangOpen && (
-            <div className="absolute right-0 mt-2 w-36 bg-white border border-slate-200 rounded-2xl shadow-xl z-50 overflow-hidden text-slate-800 py-1">
+            <div className="absolute right-0 mt-2 w-40 bg-white border border-slate-200 rounded-2xl shadow-xl z-50 overflow-hidden text-slate-800 py-1">
               {[
                 { code: 'TR', label: 'Türkçe', flag: '🇹🇷' },
                 { code: 'EN', label: 'English', flag: '🇬🇧' },
                 { code: 'RU', label: 'Русский', flag: '🇷🇺' },
-                { code: 'DE', label: 'Deutsch', flag: '🇩🇪' }
+                { code: 'DE', label: 'Deutsch', flag: '🇩🇪' },
+                { code: 'EL', label: 'Ελληνικά', flag: '🇬🇷' }
               ].map(lang => (
                 <button
                   key={lang.code}
                   onClick={() => changeGoogleLanguage(lang.code)}
-                  className={`w-full text-left px-3.5 py-2 text-xs font-bold hover:bg-slate-100 transition flex items-center gap-2 cursor-pointer ${currentLang === lang.code ? 'text-indigo-600 bg-indigo-50' : ''}`}
+                  className={`w-full text-left px-3.5 py-2.5 text-xs font-bold hover:bg-slate-100 transition flex items-center justify-between cursor-pointer ${currentLang === lang.code ? 'text-indigo-600 bg-indigo-50 font-black' : ''}`}
                 >
-                  <span className="text-sm">{lang.flag}</span> <span>{lang.label}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-mono font-extrabold text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded">{lang.code}</span>
+                    <span>{lang.label}</span>
+                  </div>
+                  <span className="text-sm">{lang.flag}</span>
                 </button>
               ))}
             </div>
