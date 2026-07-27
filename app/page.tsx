@@ -159,6 +159,12 @@ export default function Dashboard() {
 
   // --- AUTH CHECK & LISTENER ---
   useEffect(() => {
+    // E-POSTAYI HATIRLA
+    const savedEmail = localStorage.getItem('qr_menu_saved_email');
+    if (savedEmail) {
+      setAuthEmail(savedEmail);
+    }
+
     supabase.auth.getUser().then(({ data: { user } }) => {
       setSessionUser(user);
       if (user?.email) setNewEmail(user.email);
@@ -206,6 +212,7 @@ export default function Dashboard() {
       } else {
         setAuthMessage('Kayıt başarılı! Şimdi giriş yapabilirsiniz.');
         setIsSignUp(false);
+        localStorage.setItem('qr_menu_saved_email', authEmail); // Kayıt başarılıysa maile kaydet
         logActivity('Yeni Hesap', `${authEmail} adresli hesap oluşturuldu.`);
       }
     } else {
@@ -214,6 +221,7 @@ export default function Dashboard() {
         setAuthMessage('Hata: ' + error.message);
       } else {
         setAuthMessage('Giriş başarılı!');
+        localStorage.setItem('qr_menu_saved_email', authEmail); // Giriş başarılıysa maile kaydet
         logActivity('Oturum Açıldı', `${authEmail} sisteme giriş yaptı.`);
       }
     }
@@ -409,7 +417,6 @@ export default function Dashboard() {
     });
   };
 
-  // --- RESTORAN BİLGİLERİ VE RESİMLERİ KAYDETME GÜNCELLENDİ ---
   const saveRestaurant = async () => {
     setSaveStatus('Kaydediliyor...');
     let updatedLogoUrl = restaurant.logo_url;
@@ -712,7 +719,7 @@ export default function Dashboard() {
 
             <div className="space-y-1">
               <p className="text-[10px] font-bold uppercase text-slate-400 px-3 tracking-wider">Yönetim</p>
-               
+              
               <button 
                 onClick={() => setActiveTab('dashboard')} 
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold transition ${
@@ -752,7 +759,7 @@ export default function Dashboard() {
 
             <div className="space-y-1 border-t border-slate-100 pt-4">
               <p className="text-[10px] font-bold uppercase text-slate-400 px-3 tracking-wider">Hesap</p>
-               
+              
               <button 
                 onClick={() => setActiveTab('logs')} 
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold transition ${
@@ -953,10 +960,10 @@ export default function Dashboard() {
                 </div>
               </div>
               {saveStatus && <p className="text-xs text-emerald-600 bg-emerald-50 border border-emerald-200 p-3 rounded-xl font-bold">{saveStatus}</p>}
-               
+              
               <div className="bg-white border border-slate-200 p-6 rounded-2xl space-y-4 shadow-xs">
                 <h2 className="font-extrabold text-slate-900 text-sm">Firma Adı ve Teması</h2>
-                 
+                
                 {/* RENK SEÇİCİ VE FİRMA ADI YANYANA (SENKRONİZE EDİLDİ) */}
                 <div>
                   <label className="text-xs text-slate-500 uppercase font-bold block mb-1">
@@ -1550,7 +1557,7 @@ export default function Dashboard() {
                       ) : (
                         <div className="w-16 h-16 bg-white rounded-xl flex items-center justify-center text-[10px] text-slate-400 font-bold border border-slate-200">Görsel Yok</div>
                       )}
-                       
+                      
                       <div className="flex-1 min-w-0">
                         <div className="flex justify-between items-start">
                           <div>
