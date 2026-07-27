@@ -102,7 +102,8 @@ export default function Dashboard() {
 
   const qrRef = useRef<HTMLDivElement>(null);
 
-  const liveMenuUrl = `${MAIN_DOMAIN}/menu/${restaurant?.slug || 'livadya-restaurant'}`;
+  // Doğrudan yeni açtığımız /menu sayfasına yönlendirir
+  const liveMenuUrl = `${MAIN_DOMAIN}/menu`;
 
   useEffect(() => {
     fetchAllRestaurants();
