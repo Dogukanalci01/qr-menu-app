@@ -42,6 +42,9 @@ const ALLERGEN_OPTIONS = [
   { id: 'caffeine', label: 'Kafein', icon: '☕' }
 ];
 
+// SABİT PROD ANA DOMAIN ADRESIN
+const MAIN_DOMAIN = 'https://qr-menu-app-three-beta.vercel.app';
+
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState('menu');
   
@@ -95,9 +98,8 @@ export default function Dashboard() {
 
   const qrRef = useRef<HTMLDivElement>(null);
 
-  const liveMenuUrl = typeof window !== 'undefined' 
-    ? `${window.location.origin}/menu/${restaurant?.slug || 'livadya-restaurant'}` 
-    : `https://example.com/menu/${restaurant?.slug || 'livadya-restaurant'}`;
+  // Sabit ana domain üzerinden dinamik menü adresi üretimi
+  const liveMenuUrl = `${MAIN_DOMAIN}/menu/${restaurant?.slug || 'livadya-restaurant'}`;
 
   useEffect(() => {
     fetchAllRestaurants();
