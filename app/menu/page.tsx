@@ -142,7 +142,6 @@ export default function PublicMenu() {
   const [selectedCat, setSelectedCat] = useState<string>('all');
   const [loading, setLoading] = useState(true);
 
-  // --- STATELER ---
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isLangOpen, setIsLangOpen] = useState(false);
   const [currentLang, setCurrentLang] = useState('TR');
@@ -153,7 +152,6 @@ export default function PublicMenu() {
 
   const t = translations[currentLang] || translations.TR;
 
-  // GOOGLE TRANSLATE ZIRHI (Tıklamaların bozulmaması için)
   useEffect(() => {
     fetchData();
     if (!document.getElementById('google-translate-script')) {
@@ -259,7 +257,6 @@ export default function PublicMenu() {
     return true;
   });
 
-  // --- SEPET ÇEKMECESİ ---
   const renderCartDrawer = () => {
     if (!isCartOpen) return null;
     return (
@@ -326,7 +323,6 @@ export default function PublicMenu() {
     );
   };
 
-  // --- ÜRÜN DETAY MODALI (Tıklanınca Büyüyen Ekran) ---
   const renderProductModal = () => {
     if (!selectedProduct) return null;
     return (
@@ -341,7 +337,9 @@ export default function PublicMenu() {
             {selectedProduct.image_url ? (
               <img src={selectedProduct.image_url} alt={selectedProduct.name} className="w-full h-64 sm:h-72 object-cover sm:rounded-t-3xl" />
             ) : (
-              <div className="w-full h-24 bg-slate-100 sm:rounded-t-3xl flex items-center justify-center font-bold text-xs text-slate-400"><span>Görsel Yok</span></div>
+              <div className="w-full h-24 bg-slate-100 sm:rounded-t-3xl flex items-center justify-center font-bold text-xs text-slate-400">
+                <span>Görsel Yok</span>
+              </div>
             )}
             
             <div className="p-6 space-y-4">
@@ -495,7 +493,6 @@ export default function PublicMenu() {
     );
   };
 
-  // 1. PDF / GÖRSEL ŞABLON
   if (template === 'pdf_image') {
     return (
       <div className="min-h-[100dvh] bg-slate-900 text-white font-sans flex flex-col items-center">
@@ -514,10 +511,9 @@ export default function PublicMenu() {
     );
   }
 
-  // 2. KARE GRID ŞABLON (FOTOĞRAFTAKİ DN ÖZEL TEMA)
   if (template === 'custom_grid') {
     return (
-      <div className="min-h-[100dvh] bg-slate-50 text-slate-900 font-sans pb-28 relative overflow-x-hidden">
+      <div className="min-h-[100dvh] bg-slate-100 text-slate-900 font-sans pb-28 relative overflow-x-hidden">
         {renderCartDrawer()}
         {renderProductModal()}
         {renderSidebar()}
@@ -540,7 +536,7 @@ export default function PublicMenu() {
           </div>
           <div className="space-y-1 text-xs text-slate-600 pt-3 border-t mt-3">
             <p className="flex items-center gap-1.5"><Clock size={14} style={{ color: pColor }} /> <span className="notranslate">{restaurant.working_hours || '08:00 - 24:00'}</span></p>
-            {restaurant.address && <p className="flex items-center gap-1.5"><MapPin size={14} style={{ color: pColor }} /> <span className="notranslate">{restaurant.address}</span></p>}
+            {restaurant.address && <p className="flex items-center gap-1.5"><MapPin size={14} style={{ color: pColor }} /> <span>{restaurant.address}</span></p>}
           </div>
         </div>
 
@@ -589,7 +585,6 @@ export default function PublicMenu() {
     );
   }
 
-  // 3. KLASİK TEMA
   if (template === 'classic') {
     return (
       <div className="min-h-[100dvh] bg-slate-100 text-slate-900 font-sans pb-28 relative overflow-x-hidden">
@@ -638,7 +633,6 @@ export default function PublicMenu() {
     );
   }
 
-  // 4. MODERN BİSTRO (VARSAYILAN TEMALANMA)
   return (
     <div className="min-h-[100dvh] bg-slate-100 text-slate-900 font-sans pb-28 relative overflow-x-hidden">
       {renderCartDrawer()}
@@ -679,7 +673,7 @@ export default function PublicMenu() {
               <div className="p-3.5 bg-slate-50 border-b border-slate-100 flex justify-between items-center font-bold text-sm text-slate-800">
                 <div className="flex items-center gap-2.5">
                   {cat.image_url && <img src={cat.image_url} alt={cat.name} className="w-7 h-7 rounded-lg object-cover border border-slate-200" />}
-                  <span>{cat.name}</span>
+                  <span className="notranslate">{cat.name}</span>
                 </div>
                 <ChevronDown size={16} className="text-slate-400" />
               </div>
@@ -690,17 +684,17 @@ export default function PublicMenu() {
                     {prod.image_url && <img src={prod.image_url} alt={prod.name} className="w-20 h-20 object-cover rounded-xl border border-slate-100 flex-shrink-0" />}
                     <div className="flex-1 min-w-0 space-y-1 py-1">
                       <div className="flex justify-between items-start gap-1">
-                        <h3 className="font-bold text-xs text-slate-900 leading-snug"><span>{prod.name}</span></h3>
-                        <button onClick={(e) => { e.stopPropagation(); addToCart(prod); }} className="bg-slate-100 text-[10px] font-extrabold px-3 py-1.5 rounded-lg transition flex-shrink-0 hover:bg-slate-200" style={{ color: pColor }}>
-                          <span>{t.addBtn}</span>
+                        <h3 className="font-bold text-xs text-slate-900 leading-snug"><span className="notranslate">{prod.name}</span></h3>
+                        <button onClick={(e) => addToCart(prod, e)} className="bg-slate-100 text-[10px] font-extrabold px-3 py-1.5 rounded-lg transition flex-shrink-0 hover:bg-slate-200" style={{ color: pColor }}>
+                          <span className="notranslate">{t.addBtn}</span>
                         </button>
                       </div>
-                      <p className="font-extrabold text-sm" style={{ color: pColor }}>₺<span>{prod.price}</span></p>
-                      <p className="text-[10px] text-slate-400 line-clamp-2 pr-2 leading-relaxed"><span>{prod.description}</span></p>
+                      <p className="font-extrabold text-sm" style={{ color: pColor }}>₺<span className="notranslate">{prod.price}</span></p>
+                      <p className="text-[10px] text-slate-400 line-clamp-2 pr-2 leading-relaxed"><span className="notranslate">{prod.description}</span></p>
                       
                       {prod.allergens && prod.allergens.length > 0 && (
                         <div className="flex items-center gap-1.5 pt-1.5">
-                          <span className="text-[9px] font-bold text-slate-400"><span>{t.allergens}</span></span>
+                          <span className="text-[9px] font-bold text-slate-400"><span className="notranslate">{t.allergens}</span></span>
                           {prod.allergens.map((algId: string) => {
                             const alg = ALLERGEN_OPTIONS.find(a => a.id === algId);
                             return alg ? <span key={algId} className="text-xs grayscale opacity-70 notranslate" title={alg.label}>{alg.icon}</span> : null;
