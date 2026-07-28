@@ -239,7 +239,7 @@ export default function PublicMenu({ params }: { params: { slug?: string } }) {
       <div className="min-h-[100dvh] bg-white text-slate-800 flex items-center justify-center p-4 font-sans">
         <div className="flex flex-col items-center gap-3">
           <div className="w-10 h-10 border-4 border-slate-300 border-t-slate-800 rounded-full animate-spin"></div>
-          <p className="text-slate-500 text-xs font-semibold"><span className="notranslate">{t.loading}</span></p>
+          <p className="text-slate-500 text-xs font-semibold"><span>{t.loading}</span></p>
         </div>
       </div>
     );
@@ -251,7 +251,7 @@ export default function PublicMenu({ params }: { params: { slug?: string } }) {
         <div className="w-16 h-16 bg-rose-500/10 text-rose-500 rounded-2xl flex items-center justify-center mb-4">
           <Info size={32} />
         </div>
-        <h1 className="text-xl font-bold"><span className="notranslate">{t.notFound}</span></h1>
+        <h1 className="text-xl font-bold"><span>{t.notFound}</span></h1>
       </div>
     );
   }
@@ -274,7 +274,7 @@ export default function PublicMenu({ params }: { params: { slug?: string } }) {
           <div className="p-5 flex justify-between items-center border-b border-slate-100" style={{ backgroundColor: pColor }}>
             <div className="flex items-center gap-2 text-white">
               <ShoppingBag size={20} />
-              <h2 className="font-black text-lg"><span className="notranslate">{t.cartTitle}</span></h2>
+              <h2 className="font-black text-lg"><span>{t.cartTitle}</span></h2>
             </div>
             <button onClick={() => setIsCartOpen(false)} className="p-1 hover:bg-white/20 rounded-full text-white transition cursor-pointer">
               <X size={20} />
@@ -285,7 +285,7 @@ export default function PublicMenu({ params }: { params: { slug?: string } }) {
             {cart.length === 0 ? (
               <div className="h-full flex flex-col items-center justify-center text-slate-400 gap-3">
                 <ShoppingBag size={48} className="opacity-20" />
-                <p className="text-sm font-bold"><span className="notranslate">{t.emptyCart}</span></p>
+                <p className="text-sm font-bold"><span>{t.emptyCart}</span></p>
               </div>
             ) : (
               <div className="space-y-4">
@@ -297,14 +297,14 @@ export default function PublicMenu({ params }: { params: { slug?: string } }) {
                       <div className="w-16 h-16 bg-slate-100 rounded-xl flex-shrink-0"></div>
                     )}
                     <div className="flex-1 min-w-0">
-                      <h4 className="font-bold text-sm text-slate-900 truncate pr-2"><span className="notranslate">{item.name}</span></h4>
-                      <p className="font-extrabold text-sm" style={{ color: pColor }}>₺<span className="notranslate">{item.price * item.quantity}</span></p>
+                      <h4 className="font-bold text-sm text-slate-900 truncate pr-2"><span>{item.name}</span></h4>
+                      <p className="font-extrabold text-sm" style={{ color: pColor }}>₺<span>{item.price * item.quantity}</span></p>
                     </div>
                     <div className="flex items-center gap-3 bg-slate-50 border border-slate-200 rounded-xl px-2 py-1">
                       <button onClick={() => updateCartQuantity(item.id, -1)} className="text-slate-500 hover:text-slate-800 p-1">
                         {item.quantity === 1 ? <Trash2 size={14} className="text-rose-500" /> : <Minus size={14} />}
                       </button>
-                      <span className="font-black text-sm w-4 text-center"><span className="notranslate">{item.quantity}</span></span>
+                      <span className="font-black text-sm w-4 text-center"><span>{item.quantity}</span></span>
                       <button onClick={() => updateCartQuantity(item.id, 1)} className="text-slate-500 hover:text-slate-800 p-1">
                         <Plus size={14} />
                       </button>
@@ -318,11 +318,11 @@ export default function PublicMenu({ params }: { params: { slug?: string } }) {
           {cart.length > 0 && (
             <div className="p-5 bg-white border-t border-slate-100 shadow-[0_-10px_20px_rgba(0,0,0,0.03)] space-y-4 pb-safe">
               <div className="flex justify-between items-center text-lg">
-                <span className="font-bold text-slate-500"><span className="notranslate">{t.total}</span>:</span>
-                <span className="font-black text-slate-900 text-2xl">₺<span className="notranslate">{cartTotal}</span></span>
+                <span className="font-bold text-slate-500"><span>{t.total}</span>:</span>
+                <span className="font-black text-slate-900 text-2xl">₺<span>{cartTotal}</span></span>
               </div>
               <button onClick={handlePlaceOrder} className="w-full py-4 rounded-2xl text-white font-black text-sm shadow-lg flex items-center justify-center gap-2 hover:opacity-90 transition active:scale-95 cursor-pointer" style={{ backgroundColor: pColor }}>
-                <span className="notranslate">{t.placeOrder}</span>
+                <span>{t.placeOrder}</span>
               </button>
             </div>
           )}
@@ -346,18 +346,18 @@ export default function PublicMenu({ params }: { params: { slug?: string } }) {
             {selectedProduct.image_url ? (
               <img src={selectedProduct.image_url} alt={selectedProduct.name} className="w-full h-64 sm:h-72 object-cover sm:rounded-t-3xl" />
             ) : (
-              <div className="w-full h-24 bg-slate-100 sm:rounded-t-3xl flex items-center justify-center text-slate-400 font-bold text-xs"><span className="notranslate">Görsel Yok</span></div>
+              <div className="w-full h-24 bg-slate-100 sm:rounded-t-3xl flex items-center justify-center text-slate-400 font-bold text-xs"><span>Görsel Yok</span></div>
             )}
             
             <div className="p-6 space-y-4">
               <div className="flex justify-between items-start gap-4">
-                <h2 className="text-2xl font-black text-slate-900 leading-tight"><span className="notranslate">{selectedProduct.name}</span></h2>
-                <p className="text-2xl font-extrabold whitespace-nowrap" style={{ color: pColor }}>₺<span className="notranslate">{selectedProduct.price}</span></p>
+                <h2 className="text-2xl font-black text-slate-900 leading-tight"><span>{selectedProduct.name}</span></h2>
+                <p className="text-2xl font-extrabold whitespace-nowrap" style={{ color: pColor }}>₺<span>{selectedProduct.price}</span></p>
               </div>
               
               {selectedProduct.description && (
                 <p className="text-sm text-slate-600 leading-relaxed font-medium">
-                  <span className="notranslate">{selectedProduct.description}</span>
+                  <span>{selectedProduct.description}</span>
                 </p>
               )}
 
@@ -371,7 +371,7 @@ export default function PublicMenu({ params }: { params: { slug?: string } }) {
                       return (
                         <div key={algId} className="flex items-center gap-2 bg-slate-50 border border-slate-200 px-3 py-2 rounded-xl shadow-sm">
                           <span className="text-lg notranslate">{alg.icon}</span>
-                          <span className="text-xs font-bold text-slate-700"><span className="notranslate">{alg.label}</span></span>
+                          <span className="text-xs font-bold text-slate-700"><span>{alg.label}</span></span>
                         </div>
                       )
                     })}
@@ -384,7 +384,7 @@ export default function PublicMenu({ params }: { params: { slug?: string } }) {
                 className="w-full py-4 mt-6 rounded-2xl text-white font-black text-sm shadow-lg flex items-center justify-center gap-2 hover:opacity-90 transition active:scale-95 cursor-pointer" 
                 style={{ backgroundColor: pColor }}
               >
-                <ShoppingBag size={18} /> <span className="notranslate">{t.addToOrder}</span>
+                <ShoppingBag size={18} /> <span>{t.addToOrder}</span>
               </button>
             </div>
           </div>
@@ -401,7 +401,7 @@ export default function PublicMenu({ params }: { params: { slug?: string } }) {
         <button onClick={() => setIsSidebarOpen(true)} className="p-1.5 bg-white/10 hover:bg-white/20 rounded-lg transition cursor-pointer" title={t.menuContent}>
           <MenuIcon size={20} />
         </button>
-        <span className="font-extrabold text-sm tracking-wide line-clamp-1"><span className="notranslate">{restaurant.name}</span></span>
+        <span className="font-extrabold text-sm tracking-wide line-clamp-1"><span>{restaurant.name}</span></span>
       </div>
 
       <div className="flex items-center gap-2 relative">
@@ -426,7 +426,7 @@ export default function PublicMenu({ params }: { params: { slug?: string } }) {
                 <button key={lang.code} onClick={() => changeGoogleLanguage(lang.code, lang.display)} className={`w-full text-left px-3.5 py-2.5 text-xs font-bold hover:bg-slate-100 transition flex items-center justify-between cursor-pointer ${currentLang === lang.display ? 'text-indigo-600 bg-indigo-50 font-black' : ''}`}>
                   <div className="flex items-center gap-2.5">
                     <span className="text-[10px] font-mono font-extrabold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">{lang.rightTag}</span>
-                    <span className="flex items-center gap-1.5"><span className="text-sm">{lang.flag}</span> <span className="notranslate">{lang.label}</span></span>
+                    <span className="flex items-center gap-1.5"><span className="text-sm">{lang.flag}</span> <span>{lang.label}</span></span>
                   </div>
                   <span className="text-[10px] font-mono font-bold text-slate-400">{lang.rightTag}</span>
                 </button>
@@ -519,7 +519,7 @@ export default function PublicMenu({ params }: { params: { slug?: string } }) {
     );
   }
 
-  // 2. KARE GRID ŞABLON (DN ÖZEL TEMA - İSTEDİĞİN 2 AŞAMALI YAPI)
+  // 2. KARE GRID ŞABLON (DN ÖZEL TEMA - ÇALIŞMA SAATLERİ VE ADRES ÇEVRİLEBİLİR HALE GETİRİLDİ)
   if (template === 'custom_grid') {
     return (
       <div className="min-h-[100dvh] bg-slate-100 text-slate-900 font-sans pb-28 relative overflow-x-hidden">
@@ -544,8 +544,9 @@ export default function PublicMenu({ params }: { params: { slug?: string } }) {
             </div>
           </div>
           <div className="space-y-1 text-xs text-slate-600 pt-3 border-t mt-3">
-            <p className="flex items-center gap-1.5"><Clock size={14} style={{ color: pColor }} /> <span className="notranslate">{restaurant.working_hours || '08:00 - 24:00'}</span></p>
-            {restaurant.address && <p className="flex items-center gap-1.5"><MapPin size={14} style={{ color: pColor }} /> <span className="notranslate">{restaurant.address}</span></p>}
+            {/* ÇALIŞMA SAATLERİ VE ADRES ARTIK ÇEVİRİYE AÇIK */}
+            <p className="flex items-center gap-1.5"><Clock size={14} style={{ color: pColor }} /> <span>{restaurant.working_hours || '08:00 - 24:00'}</span></p>
+            {restaurant.address && <p className="flex items-center gap-1.5"><MapPin size={14} style={{ color: pColor }} /> <span>{restaurant.address}</span></p>}
           </div>
         </div>
 
@@ -669,8 +670,8 @@ export default function PublicMenu({ params }: { params: { slug?: string } }) {
           </div>
         </div>
         <div className="flex flex-wrap gap-3 text-[11px] text-slate-600 pt-2 border-t mt-2">
-          <span className="flex items-center gap-1"><Clock size={12} style={{ color: pColor }} /> <span className="notranslate">{restaurant.working_hours || '08:00 - 24:00'}</span></span>
-          {restaurant.address && <span className="flex items-center gap-1"><MapPin size={12} style={{ color: pColor }} /> <span className="notranslate">{restaurant.address}</span></span>}
+          <span className="flex items-center gap-1"><Clock size={12} style={{ color: pColor }} /> <span>{restaurant.working_hours || '08:00 - 24:00'}</span></span>
+          {restaurant.address && <span className="flex items-center gap-1"><MapPin size={12} style={{ color: pColor }} /> <span>{restaurant.address}</span></span>}
         </div>
       </div>
 
