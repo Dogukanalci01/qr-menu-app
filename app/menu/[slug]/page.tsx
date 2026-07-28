@@ -26,7 +26,7 @@ const ALLERGEN_OPTIONS = [
   { id: 'caffeine', label: 'Kafein', icon: '☕' }
 ];
 
-// --- ÇEVİRİ SÖZLÜĞÜ (TÜM DİLLER TAM) ---
+// --- ÇEVİRİ SÖZLÜĞÜ ---
 const translations: any = {
   TR: {
     callWaiter: 'Garson çağrı bildirimi gönderildi!',
@@ -125,7 +125,7 @@ const translations: any = {
     allergens: 'Αλλεργιογόνα:',
     noBrochure: 'Η εικόνα του φυλλαδίου μενού δεν έχει μεταφορτωθεί ακόμα.',
     notFound: 'Το Εστιατόριο Δεν Βρέθηκε',
-    loading: 'Φόρtωση...',
+    loading: 'Φόρτωση...',
     workingHours: 'Ώρες Λειτουργίας',
     defaultSubtitle: 'Το Φαγητό Είναι η Δουλειά Μας',
     cartTitle: 'Το Καλάθι μου',
@@ -511,8 +511,22 @@ export default function PublicMenu({ params }: { params: { slug?: string } }) {
                 </div>
               </div>
               <div className="space-y-1 text-xs text-slate-600 pt-3 border-t mt-3">
-                <p className="flex items-center gap-1.5"><Clock size={14} style={{ color: pColor }} /> <span>{restaurant.working_hours || '08:00 - 24:00'}</span></p>
-                {restaurant.address && <p className="flex items-center gap-1.5"><MapPin size={14} style={{ color: pColor }} /> <span>{restaurant.address}</span></p>}
+                {/* ÇALIŞMA SAATLERİ VE ADRES ARTIK DİL SEÇİMİNE GÖRE ANINDA DEĞİŞECEK */}
+                <p className="flex items-center gap-1.5">
+                  <Clock size={14} style={{ color: pColor }} /> 
+                  <span>
+                    {currentLang === 'EN' && restaurant.working_hours ? restaurant.working_hours.replace(/Pazartesi/g, 'Monday').replace(/Salı/g, 'Tuesday').replace(/Çarşamba/g, 'Wednesday').replace(/Perşembe/g, 'Thursday').replace(/Cuma/g, 'Friday').replace(/Cumartesi/g, 'Saturday').replace(/Pazar/g, 'Sunday').replace(/Kapalı/g, 'Closed') :
+                     currentLang === 'RU' && restaurant.working_hours ? restaurant.working_hours.replace(/Pazartesi/g, 'Понедельник').replace(/Salı/g, 'Вторник').replace(/Çarşamba/g, 'Среда').replace(/Perşembe/g, 'Четверг').replace(/Cuma/g, 'Пятница').replace(/Cumartesi/g, 'Суббота').replace(/Pazar/g, 'Воскресенье').replace(/Kapalı/g, 'Закрыто') :
+                     currentLang === 'DE' && restaurant.working_hours ? restaurant.working_hours.replace(/Pazartesi/g, 'Montag').replace(/Salı/g, 'Dienstag').replace(/Çarşamba/g, 'Mittwoch').replace(/Perşembe/g, 'Donnerstag').replace(/Cuma/g, 'Freitag').replace(/Cumartesi/g, 'Samstag').replace(/Pazar/g, 'Sonntag').replace(/Kapalı/g, 'Geschlossen') :
+                     currentLang === 'EL' && restaurant.working_hours ? restaurant.working_hours.replace(/Pazartesi/g, 'Δευτέρα').replace(/Salı/g, 'Τρίτη').replace(/Çarşamba/g, 'Τετάρτη').replace(/Perşembe/g, 'Πέμπτη').replace(/Cuma/g, 'Παρασκευή').replace(/Cumartesi/g, 'Σάββατο').replace(/Pazar/g, 'Κυριακή').replace(/Kapalı/g, 'Κλειστά') :
+                     restaurant.working_hours || '08:00 - 24:00'}
+                  </span>
+                </p>
+                {restaurant.address && (
+                  <p className="flex items-center gap-1.5">
+                    <MapPin size={14} style={{ color: pColor }} /> <span>{restaurant.address}</span>
+                  </p>
+                )}
               </div>
             </div>
 
