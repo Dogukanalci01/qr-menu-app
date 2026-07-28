@@ -142,6 +142,7 @@ export default function PublicMenu({ params }: { params: { slug?: string } }) {
   const [selectedCat, setSelectedCat] = useState<string>('all');
   const [loading, setLoading] = useState(true);
 
+  // --- STATELER ---
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isLangOpen, setIsLangOpen] = useState(false);
   const [currentLang, setCurrentLang] = useState('TR');
@@ -152,6 +153,7 @@ export default function PublicMenu({ params }: { params: { slug?: string } }) {
 
   const t = translations[currentLang] || translations.TR;
 
+  // GOOGLE TRANSLATE ZIRHI
   useEffect(() => {
     fetchData();
     if (!document.getElementById('google-translate-script')) {
@@ -262,6 +264,7 @@ export default function PublicMenu({ params }: { params: { slug?: string } }) {
     return true;
   });
 
+  // --- SEPET ÇEKMECESİ ---
   const renderCartDrawer = () => {
     if (!isCartOpen) return null;
     return (
@@ -328,6 +331,7 @@ export default function PublicMenu({ params }: { params: { slug?: string } }) {
     );
   };
 
+  // --- ÜRÜN DETAY MODALI (BÜYÜYEN EKRAN) ---
   const renderProductModal = () => {
     if (!selectedProduct) return null;
     return (
@@ -473,9 +477,8 @@ export default function PublicMenu({ params }: { params: { slug?: string } }) {
             })}
           </div>
 
-          <div className="p-4 border-t text-[11px] text-slate-500 space-y-1 bg-slate-50 pb-safe">
-            {/* ÇALIŞMA SAATLERİ ARTIK ZORUNLU ÇEVİRİYE AÇIK */}
-            {restaurant.working_hours && <p className="flex items-center gap-1.5" translate="yes"><Clock size={12} /> <span>{restaurant.working_hours}</span></p>}
+          <div className="p-4 border-t text-[11px] text-slate-500 space-y-1 bg-slate-50 pb-safe" translate="yes">
+            {restaurant.working_hours && <p className="flex items-center gap-1.5" translate="yes"><Clock size={12} /> <span translate="yes">{restaurant.working_hours}</span></p>}
             {restaurant.phone && <p className="flex items-center gap-1.5"><Phone size={12} /> <span className="notranslate">{restaurant.phone}</span></p>}
           </div>
         </div>
@@ -516,7 +519,7 @@ export default function PublicMenu({ params }: { params: { slug?: string } }) {
     );
   }
 
-  // 2. KARE GRID ŞABLON (DN ÖZEL TEMA - ÇALIŞMA SAATLERİ VE ADRES ZORUNLU ÇEVİRİDE)
+  // 2. KARE GRID ŞABLON (DN ÖZEL TEMA - 2 AŞAMALI YAPI)
   if (template === 'custom_grid') {
     return (
       <div className="min-h-[100dvh] bg-slate-100 text-slate-900 font-sans pb-28 relative overflow-x-hidden">
@@ -526,66 +529,82 @@ export default function PublicMenu({ params }: { params: { slug?: string } }) {
         {renderHeader()}
         {renderFloatingCartButton()}
 
-        {restaurant.cover_image && (
-          <div className="w-full h-36 bg-cover bg-center" style={{ backgroundImage: `url(${restaurant.cover_image})` }}></div>
-        )}
-
-        <div className="bg-white p-5 shadow-sm space-y-2 border-b">
-          <div className="flex items-center gap-3">
-            {restaurant.logo_url && (
-              <img src={restaurant.logo_url} alt="Logo" className="w-14 h-14 rounded-xl object-cover shadow-sm border border-slate-100" />
-            )}
-            <div>
-              <h1 className="text-xl font-extrabold"><span>{restaurant.name}</span></h1>
-              <p className="text-xs text-slate-500 font-medium"><span>{restaurant.subtitle || t.defaultSubtitle}</span></p>
-            </div>
-          </div>
-          <div className="space-y-1 text-xs text-slate-600 pt-3 border-t mt-3" translate="yes">
-            {/* ÇALIŞMA SAATLERİ VE ADRES GOOGLE TRANSLATE TARAFINDAN KESİNLİKLE ÇEVRİLECEK */}
-            <p className="flex items-center gap-1.5" translate="yes"><Clock size={14} style={{ color: pColor }} /> <span translate="yes">{restaurant.working_hours || '08:00 - 24:00'}</span></p>
-            {restaurant.address && <p className="flex items-center gap-1.5" translate="yes"><MapPin size={14} style={{ color: pColor }} /> <span translate="yes">{restaurant.address}</span></p>}
-          </div>
-        </div>
-
         {selectedCat === 'all' ? (
-          <div className="max-w-md mx-auto p-4 space-y-3">
-            <h2 className="text-xs uppercase font-extrabold text-slate-400 tracking-wider"><span>{t.categoriesTitle}</span></h2>
-            <div className="grid grid-cols-2 gap-3">
-              {categories.map((cat) => (
-                <div key={cat.id} onClick={() => setSelectedCat(cat.id)} className="h-28 bg-slate-800 rounded-2xl relative overflow-hidden cursor-pointer shadow-md flex items-end p-3 border border-slate-700 bg-cover bg-center" style={{ backgroundImage: cat.image_url ? `linear-gradient(to top, rgba(0,0,0,0.8), rgba(0,0,0,0.2)), url(${cat.image_url})` : 'none' }}>
-                  <span className="font-extrabold text-sm text-white relative z-20 uppercase"><span>{cat.name}</span></span>
+          <>
+            {restaurant.cover_image && (
+              <div className="w-full h-40 bg-cover bg-center" style={{ backgroundImage: `url(${restaurant.cover_image})` }}></div>
+            )}
+            <div className="bg-white p-5 shadow-sm space-y-2 border-b">
+              <div className="flex items-center gap-3">
+                {restaurant.logo_url && (
+                  <img src={restaurant.logo_url} alt="Logo" className="w-14 h-14 rounded-xl object-cover shadow-sm border border-slate-100" />
+                )}
+                <div>
+                  <h1 className="text-xl font-extrabold"><span>{restaurant.name}</span></h1>
+                  <p className="text-xs text-slate-500 font-medium"><span>{restaurant.subtitle || t.defaultSubtitle}</span></p>
                 </div>
-              ))}
+              </div>
+              <div className="space-y-1 text-xs text-slate-600 pt-3 border-t mt-3" translate="yes">
+                <p className="flex items-center gap-1.5" translate="yes"><Clock size={14} style={{ color: pColor }} /> <span translate="yes">{restaurant.working_hours || '08:00 - 24:00'}</span></p>
+                {restaurant.address && <p className="flex items-center gap-1.5" translate="yes"><MapPin size={14} style={{ color: pColor }} /> <span translate="yes">{restaurant.address}</span></p>}
+              </div>
             </div>
-          </div>
+
+            <div className="max-w-4xl mx-auto p-4 md:p-8 space-y-4">
+              <h2 className="text-xs uppercase font-extrabold text-slate-400 tracking-wider text-center sm:text-left"><span className="notranslate">{t.categoriesTitle}</span></h2>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {categories.map((cat) => (
+                  <div key={cat.id} onClick={() => setSelectedCat(cat.id)} className="h-32 sm:h-36 rounded-2xl relative overflow-hidden cursor-pointer shadow-md flex items-end p-4 border border-slate-200 bg-cover bg-center hover:shadow-lg transition-transform hover:-translate-y-1" style={{ backgroundImage: cat.image_url ? `linear-gradient(to top, rgba(0,0,0,0.9), rgba(0,0,0,0.1)), url(${cat.image_url})` : 'none', backgroundColor: '#1e293b' }}>
+                    <span className="font-black text-sm text-white relative z-20 uppercase"><span className="notranslate">{cat.name}</span></span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </>
         ) : (
-          <div className="max-w-md mx-auto p-4 space-y-3">
-            <button onClick={() => setSelectedCat('all')} className="text-xs font-bold px-3 py-1.5 rounded-xl cursor-pointer inline-block mb-2" style={{ color: pColor, backgroundColor: `${pColor}20` }}>
-              <span>{t.backToCategories}</span>
-            </button>
-            <div className="space-y-3">
+          <div className="w-full">
+            <div className="bg-white shadow-sm sticky top-[60px] z-30 border-b border-slate-200">
+              <div className="max-w-4xl mx-auto overflow-x-auto whitespace-nowrap flex gap-2 p-3 px-4 scrollbar-hide items-center">
+                 <button onClick={() => setSelectedCat('all')} className="px-4 py-2 rounded-full text-xs font-bold transition border border-slate-200 text-slate-600 hover:bg-slate-50">
+                   <span>{t.allProducts}</span>
+                 </button>
+                 {categories.map(cat => (
+                   <button key={cat.id} onClick={() => setSelectedCat(cat.id)} className={`px-4 py-2 rounded-full text-xs font-bold transition border ${selectedCat === cat.id ? 'text-white border-transparent shadow-md' : 'text-slate-600 border-slate-200 hover:bg-slate-50'}`} style={selectedCat === cat.id ? { backgroundColor: pColor } : {}}>
+                     <span>{cat.name}</span>
+                   </button>
+                 ))}
+              </div>
+            </div>
+
+            <main className="max-w-3xl mx-auto p-4 space-y-4 mt-2">
               {filteredProducts.map((prod) => (
-                <div key={prod.id} onClick={() => setSelectedProduct(prod)} className="bg-white p-3 rounded-2xl border shadow-sm flex gap-3 cursor-pointer hover:border-slate-300 transition">
-                  {prod.image_url && <img src={prod.image_url} alt={prod.name} className="w-24 h-24 object-cover rounded-xl flex-shrink-0" />}
-                  <div className="flex-1 space-y-1">
-                    <div className="flex justify-between items-start">
-                      <h3 className="font-bold text-sm text-slate-900 leading-snug pr-2"><span>{prod.name}</span></h3>
-                      <span className="font-extrabold text-sm whitespace-nowrap" style={{ color: pColor }}>₺<span>{prod.price}</span></span>
+                <div key={prod.id} onClick={() => setSelectedProduct(prod)} className="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-col sm:flex-row gap-4 cursor-pointer hover:shadow-md transition">
+                  {prod.image_url && <img src={prod.image_url} alt={prod.name} className="w-full sm:w-32 h-40 sm:h-32 object-cover rounded-xl flex-shrink-0" />}
+                  <div className="flex-1 flex flex-col justify-between space-y-2">
+                    <div>
+                      <div className="flex justify-between items-start gap-2">
+                        <h3 className="font-extrabold text-base text-slate-900 leading-snug uppercase"><span>{prod.name}</span></h3>
+                        <span className="font-black text-sm px-3 py-1 rounded-lg text-white whitespace-nowrap" style={{ backgroundColor: pColor }}>₺<span>{prod.price}</span></span>
+                      </div>
+                      <p className="text-xs text-slate-500 line-clamp-2 mt-1.5 leading-relaxed"><span>{prod.description}</span></p>
                     </div>
-                    <p className="text-[11px] text-slate-500 line-clamp-2"><span>{prod.description}</span></p>
                     {prod.allergens && prod.allergens.length > 0 && (
-                      <div className="flex items-center gap-1 pt-1">
-                        <span className="text-[9px] font-bold text-slate-400"><span>{t.allergens}</span></span>
+                      <div className="flex items-center gap-2 pt-2 border-t border-slate-50">
                         {prod.allergens.map((algId: string) => {
                           const alg = ALLERGEN_OPTIONS.find(a => a.id === algId);
-                          return alg ? <span key={algId} className="text-[11px] notranslate" title={alg.label}>{alg.icon}</span> : null;
+                          return alg ? <span key={algId} className="text-sm notranslate grayscale opacity-70" title={alg.label}>{alg.icon}</span> : null;
                         })}
                       </div>
                     )}
                   </div>
                 </div>
               ))}
-            </div>
+              {filteredProducts.length === 0 && (
+                <div className="text-center py-10 text-slate-500 text-xs font-semibold">
+                  <span>Bu kategoride ürün bulunamadı.</span>
+                </div>
+              )}
+            </main>
           </div>
         )}
       </div>
@@ -641,7 +660,7 @@ export default function PublicMenu({ params }: { params: { slug?: string } }) {
     );
   }
 
-  // 4. MODERN BİSTRO (VARSAYILAN TEMALANMA)
+  // 4. MODERN BİSTRO (VARSAYILAN)
   return (
     <div className="min-h-[100dvh] bg-slate-100 text-slate-900 font-sans pb-28 relative overflow-x-hidden">
       {renderCartDrawer()}
