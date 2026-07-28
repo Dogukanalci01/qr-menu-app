@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { Phone, MapPin, Clock, Info, Bell, ChevronDown, Menu as MenuIcon, X, Globe, Layers, ShoppingBag, Plus, Minus, Trash2 } from 'lucide-react';
 
+// --- ALERJEN LİSTESİ ---
 const ALLERGEN_OPTIONS = [
   { id: 'gluten', label: 'Gluten', icon: '🌾' },
   { id: 'crustaceans', label: 'Kabuklular', icon: '🦐' },
@@ -25,6 +26,7 @@ const ALLERGEN_OPTIONS = [
   { id: 'caffeine', label: 'Kafein', icon: '☕' }
 ];
 
+// --- ÇEVİRİ SÖZLÜĞÜ ---
 const translations: any = {
   TR: {
     callWaiter: 'Garson çağrı bildirimi gönderildi!',
@@ -145,10 +147,11 @@ export default function PublicMenu() {
   const [selectedCat, setSelectedCat] = useState<string>('all');
   const [loading, setLoading] = useState(true);
 
+  // --- MOBİL MENÜ, DİL, POPUP VE SEPET STATELERİ ---
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isLangOpen, setIsLangOpen] = useState(false);
   const [currentLang, setCurrentLang] = useState('TR');
-  const [selectedProduct, setSelectedProduct] = useState<any>(null);
+  const [selectedProduct, setSelectedProduct] = useState<any>(null); // Ürüne tıklandığında büyüten pop-up state'i
   
   const [cart, setCart] = useState<any[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -217,6 +220,7 @@ export default function PublicMenu() {
   const cartTotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
   const cartItemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
+  // WHATSAPP SİPARİŞ TAMAMLAMA FONKSİYONU
   const handlePlaceOrder = () => {
     if (cart.length === 0) return;
     
@@ -262,6 +266,7 @@ export default function PublicMenu() {
     return true;
   });
 
+  // --- SEPET ÇEKMECESİ ---
   const renderCartDrawer = () => {
     if (!isCartOpen) return null;
     return (
@@ -328,11 +333,12 @@ export default function PublicMenu() {
     );
   };
 
+  // --- ÜRÜN DETAY MODALI (ÜRÜNE TIKLAYINCA AÇILAN DEV EKRAN) ---
   const renderProductModal = () => {
     if (!selectedProduct) return null;
     return (
-      <div className="fixed inset-0 z-[100] flex items-end justify-center sm:items-center">
-        <div className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity" onClick={() => setSelectedProduct(null)} />
+      <div className="fixed inset-0 z-[9999] flex items-end justify-center sm:items-center">
+        <div className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity cursor-pointer" onClick={() => setSelectedProduct(null)} />
         <div className="relative w-full max-w-md bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl animate-in slide-in-from-bottom duration-300 max-h-[90dvh] flex flex-col">
           <button onClick={() => setSelectedProduct(null)} className="absolute top-4 right-4 bg-white/80 backdrop-blur text-slate-800 p-2 rounded-full shadow-md z-10 hover:bg-white transition cursor-pointer">
             <X size={20} />
@@ -389,6 +395,7 @@ export default function PublicMenu() {
     );
   };
 
+  // --- ÜST BAR (DİL, GARSON ÇAĞIR, YAN MENÜ) ---
   const renderHeader = () => (
     <header className="text-white p-3 px-4 flex justify-between items-center shadow-md relative z-40 sticky top-0" style={{ backgroundColor: pColor }}>
       <div id="google_translate_element" style={{ display: 'none' }}></div>
