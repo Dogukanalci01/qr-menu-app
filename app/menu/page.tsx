@@ -34,11 +34,16 @@ const translations: any = {
     menuContent: 'Menü İçeriği',
     allProducts: 'Tüm Menü',
     categories: 'Kategoriler',
+    categoriesTitle: 'Kategoriler',
+    backToCategories: '← Kategorilere Dön',
     addBtn: 'Ekle',
     addToOrder: 'Siparişe Ekle',
     allergens: 'Alerjenler:',
+    noBrochure: 'Henüz menü broşür görseli yüklenmedi.',
     notFound: 'Restoran Bulunamadı',
     loading: 'Menü Yükleniyor...',
+    workingHours: 'Çalışma Saatleri',
+    defaultSubtitle: 'Lezzet, Manzara ve Huzurun Adresi',
     cartTitle: 'Sepetim',
     emptyCart: 'Sepetiniz şu an boş.',
     total: 'Toplam',
@@ -50,11 +55,16 @@ const translations: any = {
     menuContent: 'Menu Content',
     allProducts: 'All Menu',
     categories: 'Categories',
+    categoriesTitle: 'Categories',
+    backToCategories: '← Back to Categories',
     addBtn: 'Add',
     addToOrder: 'Add to Order',
     allergens: 'Allergens:',
+    noBrochure: 'Menu brochure image has not been uploaded yet.',
     notFound: 'Restaurant Not Found',
     loading: 'Loading Menu...',
+    workingHours: 'Working Hours',
+    defaultSubtitle: 'Address of Taste, Scenery and Peace',
     cartTitle: 'My Cart',
     emptyCart: 'Your cart is currently empty.',
     total: 'Total',
@@ -66,11 +76,16 @@ const translations: any = {
     menuContent: 'Содержание меню',
     allProducts: 'Все меню',
     categories: 'Категории',
+    categoriesTitle: 'Категории',
+    backToCategories: '← Назад к категориям',
     addBtn: 'Добавить',
     addToOrder: 'Добавить к заказу',
     allergens: 'Аллергены:',
+    noBrochure: 'Изображение брошюры меню еще не загружено.',
     notFound: 'Ресторан не найден',
     loading: 'Загрузка меню...',
+    workingHours: 'Часы работы',
+    defaultSubtitle: 'Адрес вкуса, пейзажа и покоя',
     cartTitle: 'Моя корзина',
     emptyCart: 'Ваша корзина пуста.',
     total: 'Итого',
@@ -82,11 +97,16 @@ const translations: any = {
     menuContent: 'Menüinhalte',
     allProducts: 'Alle Menüs',
     categories: 'Kategorien',
+    categoriesTitle: 'Kategorien',
+    backToCategories: '← Zurück zu Kategorien',
     addBtn: 'Hinzufügen',
     addToOrder: 'Zur Bestellung hinzufügen',
     allergens: 'Allergene:',
+    noBrochure: 'Menü-Broschürenbild wurde noch nicht hochgeladen.',
     notFound: 'Restaurant nicht gefunden',
     loading: 'Menü wird geladen...',
+    workingHours: 'Öffnungszeiten',
+    defaultSubtitle: 'Adresse von Geschmack, Landschaft und Frieden',
     cartTitle: 'Mein Warenkorb',
     emptyCart: 'Ihr Warenkorb ist derzeit leer.',
     total: 'Gesamt',
@@ -98,11 +118,16 @@ const translations: any = {
     menuContent: 'Περιεχόμενο Μενού',
     allProducts: 'Όλο το Μενού',
     categories: 'Κατηγορίες',
+    categoriesTitle: 'Κατηγορίες',
+    backToCategories: '← Πίσω στις Κατηγορίες',
     addBtn: 'Προσθήκη',
     addToOrder: 'Προσθήκη στην Παραγγελία',
     allergens: 'Αλλεργιογόνα:',
+    noBrochure: 'Η εικόνα του φυλλαδίου μενού δεν έχει μεταφορτωθεί ακόμα.',
     notFound: 'Το Εστιατόριο Δεν Βρέθηκε',
     loading: 'Φόρτωση Μενού...',
+    workingHours: 'Ώρες Λειτουργίας',
+    defaultSubtitle: 'Διεύθυνση Γεύσης, Τοπίου και Ειρήνης',
     cartTitle: 'Το Καλάθι μου',
     emptyCart: 'Το καλάθι σας είναι άδειο.',
     total: 'Σύνολο',
@@ -128,7 +153,7 @@ export default function PublicMenu() {
 
   const t = translations[currentLang] || translations.TR;
 
-  // GOOGLE TRANSLATE ENTEGRASYONU
+  // GOOGLE TRANSLATE ENTEGRASYONU (React uyumlu)
   useEffect(() => {
     fetchData();
     if (!document.getElementById('google-translate-script')) {
@@ -217,7 +242,7 @@ export default function PublicMenu() {
 
   if (!restaurant) {
     return (
-      <div className="min-h-[100dvh] bg-[#0A0F1C] text-white flex flex-col items-center justify-center p-6 text-center font-sans">
+      <div className="min-h-[100dvh] bg-slate-900 text-white flex flex-col items-center justify-center p-6 text-center font-sans">
         <div className="w-16 h-16 bg-rose-500/10 text-rose-500 rounded-2xl flex items-center justify-center mb-4">
           <Info size={32} />
         </div>
@@ -227,66 +252,21 @@ export default function PublicMenu() {
   }
 
   const pColor = restaurant.primary_color || '#4f46e5';
+  const template = restaurant.template || 'bistro';
 
   const filteredProducts = products.filter(p => {
     if (selectedCat !== 'all' && p.category_id !== selectedCat) return false;
     return true;
   });
 
-  // --- ÜST BAR (HEADER) ---
-  const renderHeader = () => (
-    <header className="bg-[#0A0F1C] border-b border-[#1E293B] text-white p-3 px-4 flex justify-between items-center sticky top-0 z-40">
-      <div id="google_translate_element" style={{ display: 'none' }}></div>
-
-      <div className="flex items-center gap-3">
-        <button onClick={() => setIsSidebarOpen(true)} className="p-1.5 bg-white/5 hover:bg-white/10 rounded-lg transition cursor-pointer" title={t.menuContent}>
-          <MenuIcon size={20} />
-        </button>
-        <span className="font-black text-sm tracking-wide line-clamp-1">{restaurant.name}</span>
-      </div>
-
-      <div className="flex items-center gap-2 relative">
-        <button onClick={() => alert(t.callWaiter)} className="bg-white/5 hover:bg-white/10 p-1.5 rounded-lg transition cursor-pointer flex-shrink-0" title={t.waiterBtn}>
-          <Bell size={16} />
-        </button>
-
-        {/* DİL SEÇİCİ */}
-        <div className="relative">
-          <button onClick={() => setIsLangOpen(!isLangOpen)} className="bg-white/10 px-2 sm:px-3 py-1.5 rounded-xl text-xs font-extrabold flex items-center gap-1.5 transition cursor-pointer text-white">
-            <Globe size={13} style={{ color: pColor }} /> <span className="notranslate">{currentLang}</span> <ChevronDown size={12} className="text-slate-400" />
-          </button>
-
-          {isLangOpen && (
-            <div className="absolute right-0 mt-2 w-48 bg-[#151D2C] border border-[#1E293B] rounded-2xl shadow-xl z-50 overflow-hidden text-white py-1 notranslate">
-              {[
-                { code: 'tr', display: 'TR', label: 'Türkçe', flag: '🇹🇷', rightTag: 'TR' },
-                { code: 'en', display: 'EN', label: 'English', flag: '🇬🇧', rightTag: 'GB' },
-                { code: 'ru', display: 'RU', label: 'Русский', flag: '🇷🇺', rightTag: 'RU' },
-                { code: 'de', display: 'DE', label: 'Deutsch', flag: '🇩🇪', rightTag: 'DE' },
-                { code: 'el', display: 'EL', label: 'Ελληνικά', flag: '🇬🇷', rightTag: 'GR' }
-              ].map(lang => (
-                <button key={lang.code} onClick={() => changeGoogleLanguage(lang.code, lang.display)} className={`w-full text-left px-3.5 py-2.5 text-xs font-bold hover:bg-white/5 transition flex items-center justify-between cursor-pointer ${currentLang === lang.display ? 'bg-indigo-500/20 text-indigo-400' : ''}`}>
-                  <div className="flex items-center gap-2.5">
-                    <span className="text-[10px] font-mono font-extrabold text-slate-400 bg-black/30 px-1.5 py-0.5 rounded border border-white/10">{lang.rightTag}</span>
-                    <span className="flex items-center gap-1.5"><span className="text-sm">{lang.flag}</span> <span>{lang.label}</span></span>
-                  </div>
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-    </header>
-  );
-
   // --- SEPET ÇEKMECESİ (DRAWER) ---
-  const renderCartDrawer = () => {
+  const renderCartDrawer = (isDark: boolean = false) => {
     if (!isCartOpen) return null;
     return (
       <div className="fixed inset-0 z-[120] flex justify-end">
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity" onClick={() => setIsCartOpen(false)} />
-        <div className="relative w-full max-w-sm bg-[#0B1120] h-[100dvh] shadow-2xl flex flex-col font-sans animate-in slide-in-from-right duration-300 border-l border-[#1E293B]">
-          <div className="p-5 flex justify-between items-center border-b border-[#1E293B]" style={{ backgroundColor: pColor }}>
+        <div className={`relative w-full max-w-sm h-[100dvh] shadow-2xl flex flex-col font-sans animate-in slide-in-from-right duration-300 ${isDark ? 'bg-[#0B1120] border-l border-[#1E293B]' : 'bg-white'}`}>
+          <div className="p-5 flex justify-between items-center border-b border-white/10" style={{ backgroundColor: pColor }}>
             <div className="flex items-center gap-2 text-white">
               <ShoppingBag size={20} />
               <h2 className="font-black text-lg"><span>{t.cartTitle}</span></h2>
@@ -296,31 +276,31 @@ export default function PublicMenu() {
             </button>
           </div>
 
-          <div className="flex-1 overflow-y-auto p-5 bg-[#0B1120]">
+          <div className={`flex-1 overflow-y-auto p-5 ${isDark ? 'bg-[#0B1120]' : 'bg-slate-50'}`}>
             {cart.length === 0 ? (
-              <div className="h-full flex flex-col items-center justify-center text-slate-500 gap-3">
+              <div className={`h-full flex flex-col items-center justify-center gap-3 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
                 <ShoppingBag size={48} className="opacity-20" />
                 <p className="text-sm font-bold"><span>{t.emptyCart}</span></p>
               </div>
             ) : (
               <div className="space-y-4">
                 {cart.map((item) => (
-                  <div key={item.id} className="bg-[#151D2C] p-3 rounded-2xl border border-[#1E293B] flex gap-3 items-center">
+                  <div key={item.id} className={`p-3 rounded-2xl flex gap-3 items-center border ${isDark ? 'bg-[#151D2C] border-[#1E293B]' : 'bg-white border-slate-100 shadow-sm'}`}>
                     {item.image_url ? (
                       <img src={item.image_url} alt={item.name} className="w-16 h-16 object-cover rounded-xl flex-shrink-0" />
                     ) : (
-                      <div className="w-16 h-16 bg-slate-800 rounded-xl flex-shrink-0"></div>
+                      <div className={`w-16 h-16 rounded-xl flex-shrink-0 ${isDark ? 'bg-slate-800' : 'bg-slate-100'}`}></div>
                     )}
                     <div className="flex-1 min-w-0">
-                      <h4 className="font-bold text-sm text-white truncate pr-2"><span>{item.name}</span></h4>
-                      <p className="font-extrabold text-sm text-indigo-400">₺{item.price * item.quantity}</p>
+                      <h4 className={`font-bold text-sm truncate pr-2 ${isDark ? 'text-white' : 'text-slate-900'}`}><span>{item.name}</span></h4>
+                      <p className="font-extrabold text-sm" style={{ color: isDark ? '#818cf8' : pColor }}>₺{item.price * item.quantity}</p>
                     </div>
-                    <div className="flex items-center gap-3 bg-black/30 border border-[#1E293B] rounded-xl px-2 py-1">
-                      <button onClick={() => updateCartQuantity(item.id, -1)} className="text-slate-400 hover:text-white p-1">
+                    <div className={`flex items-center gap-3 rounded-xl px-2 py-1 border ${isDark ? 'bg-black/30 border-[#1E293B]' : 'bg-slate-50 border-slate-200'}`}>
+                      <button onClick={() => updateCartQuantity(item.id, -1)} className={`p-1 ${isDark ? 'text-slate-400 hover:text-white' : 'text-slate-500 hover:text-slate-800'}`}>
                         {item.quantity === 1 ? <Trash2 size={14} className="text-rose-500" /> : <Minus size={14} />}
                       </button>
-                      <span className="font-black text-sm w-4 text-center text-white">{item.quantity}</span>
-                      <button onClick={() => updateCartQuantity(item.id, 1)} className="text-slate-400 hover:text-white p-1">
+                      <span className={`font-black text-sm w-4 text-center ${isDark ? 'text-white' : 'text-slate-800'}`}><span>{item.quantity}</span></span>
+                      <button onClick={() => updateCartQuantity(item.id, 1)} className={`p-1 ${isDark ? 'text-slate-400 hover:text-white' : 'text-slate-500 hover:text-slate-800'}`}>
                         <Plus size={14} />
                       </button>
                     </div>
@@ -331,10 +311,10 @@ export default function PublicMenu() {
           </div>
 
           {cart.length > 0 && (
-            <div className="p-5 bg-[#151D2C] border-t border-[#1E293B] shadow-[0_-10px_20px_rgba(0,0,0,0.5)] space-y-4 pb-safe">
-              <div className="flex justify-between items-center text-lg text-white">
-                <span className="font-bold text-slate-400"><span>{t.total}</span>:</span>
-                <span className="font-black text-2xl">₺{cartTotal}</span>
+            <div className={`p-5 space-y-4 pb-safe border-t ${isDark ? 'bg-[#151D2C] border-[#1E293B] shadow-[0_-10px_20px_rgba(0,0,0,0.5)]' : 'bg-white border-slate-100 shadow-[0_-10px_20px_rgba(0,0,0,0.03)]'}`}>
+              <div className={`flex justify-between items-center text-lg ${isDark ? 'text-white' : 'text-slate-800'}`}>
+                <span className={`font-bold ${isDark ? 'text-slate-400' : 'text-slate-500'}`}><span>{t.total}</span>:</span>
+                <span className="font-black text-2xl">₺<span>{cartTotal}</span></span>
               </div>
               <button onClick={handlePlaceOrder} className="w-full py-4 rounded-2xl text-white font-black text-sm shadow-lg flex items-center justify-center gap-2 hover:opacity-90 transition active:scale-95 cursor-pointer" style={{ backgroundColor: pColor }}>
                 <span>{t.placeOrder}</span>
@@ -346,14 +326,14 @@ export default function PublicMenu() {
     );
   };
 
-  // --- ÜRÜN DETAY MODALI (ÜRÜNE TIKLAYINCA AÇILAN POPUP) ---
-  const renderProductModal = () => {
+  // --- ÜRÜN DETAY MODALI (POPUP) ---
+  const renderProductModal = (isDark: boolean = false) => {
     if (!selectedProduct) return null;
     return (
       <div className="fixed inset-0 z-[200] flex items-end justify-center sm:items-center p-0 sm:p-4">
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm transition-opacity cursor-pointer" onClick={() => setSelectedProduct(null)} />
-        <div className="relative w-full max-w-md bg-[#151D2C] rounded-t-3xl sm:rounded-3xl shadow-2xl z-10 overflow-hidden animate-in slide-in-from-bottom duration-300 max-h-[90dvh] flex flex-col border border-[#1E293B]">
-          <button onClick={() => setSelectedProduct(null)} className="absolute top-4 right-4 bg-black/50 backdrop-blur text-white p-2 rounded-full shadow-lg z-20 hover:bg-black/70 transition cursor-pointer border border-white/10">
+        <div className={`absolute inset-0 backdrop-blur-sm transition-opacity cursor-pointer ${isDark ? 'bg-black/80' : 'bg-black/60'}`} onClick={() => setSelectedProduct(null)} />
+        <div className={`relative w-full max-w-md rounded-t-3xl sm:rounded-3xl shadow-2xl z-10 overflow-hidden animate-in slide-in-from-bottom duration-300 max-h-[90dvh] flex flex-col ${isDark ? 'bg-[#151D2C] border border-[#1E293B]' : 'bg-white'}`}>
+          <button onClick={() => setSelectedProduct(null)} className={`absolute top-4 right-4 p-2 rounded-full shadow-lg z-20 transition cursor-pointer ${isDark ? 'bg-black/50 backdrop-blur text-white hover:bg-black/70 border border-white/10' : 'bg-white/90 backdrop-blur text-slate-800 hover:bg-white'}`}>
             <X size={20} />
           </button>
           
@@ -361,32 +341,32 @@ export default function PublicMenu() {
             {selectedProduct.image_url ? (
               <img src={selectedProduct.image_url} alt={selectedProduct.name} className="w-full h-64 sm:h-72 object-cover" />
             ) : (
-              <div className="w-full h-28 bg-[#0B1120] flex items-center justify-center text-slate-600 font-bold text-xs">Görsel Yok</div>
+              <div className={`w-full h-28 flex items-center justify-center font-bold text-xs ${isDark ? 'bg-[#0B1120] text-slate-600' : 'bg-slate-100 text-slate-400'}`}><span>Görsel Yok</span></div>
             )}
             
             <div className="p-6 space-y-4">
               <div className="flex justify-between items-start gap-4">
-                <h2 className="text-xl sm:text-2xl font-black text-white leading-tight"><span>{selectedProduct.name}</span></h2>
-                <p className="text-xl sm:text-2xl font-extrabold whitespace-nowrap text-indigo-400">₺{selectedProduct.price}</p>
+                <h2 className={`text-xl sm:text-2xl font-black leading-tight ${isDark ? 'text-white' : 'text-slate-900'}`}><span>{selectedProduct.name}</span></h2>
+                <p className="text-xl sm:text-2xl font-extrabold whitespace-nowrap" style={{ color: isDark ? '#818cf8' : pColor }}>₺<span>{selectedProduct.price}</span></p>
               </div>
               
               {selectedProduct.description && (
-                <p className="text-xs sm:text-sm text-slate-300 leading-relaxed font-medium bg-[#0B1120] p-4 rounded-2xl border border-[#1E293B]">
+                <p className={`text-xs sm:text-sm leading-relaxed font-medium p-4 rounded-2xl border ${isDark ? 'text-slate-300 bg-[#0B1120] border-[#1E293B]' : 'text-slate-600 bg-slate-50 border-slate-100'}`}>
                   <span>{selectedProduct.description}</span>
                 </p>
               )}
 
               {selectedProduct.allergens && selectedProduct.allergens.length > 0 && (
                 <div className="pt-2">
-                  <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2.5"><span>{t.allergens}</span></p>
+                  <p className={`text-[10px] font-bold uppercase tracking-wider mb-2.5 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}><span>{t.allergens}</span></p>
                   <div className="flex flex-wrap gap-2">
                     {selectedProduct.allergens.map((algId: string) => {
                       const alg = ALLERGEN_OPTIONS.find(a => a.id === algId);
                       if(!alg) return null;
                       return (
-                        <div key={algId} className="flex items-center gap-2 bg-[#0B1120] border border-[#1E293B] px-3 py-1.5 rounded-xl">
+                        <div key={algId} className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border ${isDark ? 'bg-[#0B1120] border-[#1E293B]' : 'bg-slate-100 border-slate-200'}`}>
                           <span className="text-base notranslate">{alg.icon}</span>
-                          <span className="text-xs font-bold text-slate-300"><span>{alg.label}</span></span>
+                          <span className={`text-xs font-bold ${isDark ? 'text-slate-300' : 'text-slate-700'}`}><span>{alg.label}</span></span>
                         </div>
                       )
                     })}
@@ -408,27 +388,272 @@ export default function PublicMenu() {
     );
   };
 
-  const renderFloatingCartButton = () => {
+  // --- ÜST BAR VE MENÜ (ORTAK) ---
+  const renderHeader = (isDark: boolean = false) => (
+    <header className={`p-3 px-4 flex justify-between items-center shadow-md relative z-40 sticky top-0 ${isDark ? 'bg-[#0A0F1C] border-b border-[#1E293B] text-white' : 'text-white'}`} style={isDark ? {} : { backgroundColor: pColor }}>
+      <div id="google_translate_element" style={{ display: 'none' }}></div>
+
+      <div className="flex items-center gap-3">
+        <button onClick={() => setIsSidebarOpen(true)} className="p-1.5 bg-white/10 hover:bg-white/20 rounded-lg transition cursor-pointer" title={t.menuContent}>
+          <MenuIcon size={20} />
+        </button>
+        <span className="font-extrabold text-sm tracking-wide line-clamp-1"><span>{restaurant.name}</span></span>
+      </div>
+
+      <div className="flex items-center gap-2 relative">
+        <button onClick={() => alert(t.callWaiter)} className="bg-white/20 hover:bg-white/30 p-1.5 rounded-lg transition cursor-pointer flex-shrink-0" title={t.waiterBtn}>
+          <Bell size={16} />
+        </button>
+
+        <div className="relative">
+          <button onClick={() => setIsLangOpen(!isLangOpen)} className={`px-2 sm:px-3 py-1.5 rounded-xl text-xs font-extrabold flex items-center gap-1.5 transition cursor-pointer ${isDark ? 'bg-white/10 text-white' : 'bg-white text-slate-800 shadow-sm'}`}>
+            <Globe size={13} style={{ color: isDark ? pColor : pColor }} /> <span className="notranslate">{currentLang}</span> <ChevronDown size={12} className={isDark ? 'text-slate-400' : 'text-slate-400'} />
+          </button>
+
+          {isLangOpen && (
+            <div className={`absolute right-0 mt-2 w-48 rounded-2xl shadow-xl z-50 overflow-hidden py-1 notranslate ${isDark ? 'bg-[#151D2C] border border-[#1E293B] text-white' : 'bg-white border border-slate-200 text-slate-800'}`}>
+              {[
+                { code: 'tr', display: 'TR', label: 'Türkçe', flag: '🇹🇷', rightTag: 'TR' },
+                { code: 'en', display: 'EN', label: 'English', flag: '🇬🇧', rightTag: 'GB' },
+                { code: 'ru', display: 'RU', label: 'Русский', flag: '🇷🇺', rightTag: 'RU' },
+                { code: 'de', display: 'DE', label: 'Deutsch', flag: '🇩🇪', rightTag: 'DE' },
+                { code: 'el', display: 'EL', label: 'Ελληνικά', flag: '🇬🇷', rightTag: 'GR' }
+              ].map(lang => (
+                <button key={lang.code} onClick={() => changeGoogleLanguage(lang.code, lang.display)} className={`w-full text-left px-3.5 py-2.5 text-xs font-bold transition flex items-center justify-between cursor-pointer ${currentLang === lang.display ? (isDark ? 'bg-indigo-500/20 text-indigo-400' : 'text-indigo-600 bg-indigo-50 font-black') : (isDark ? 'hover:bg-white/5' : 'hover:bg-slate-100')}`}>
+                  <div className="flex items-center gap-2.5">
+                    <span className={`text-[10px] font-mono font-extrabold px-1.5 py-0.5 rounded border ${isDark ? 'text-slate-400 bg-black/30 border-white/10' : 'text-slate-500 bg-slate-100 border-slate-200'}`}>{lang.rightTag}</span>
+                    <span className="flex items-center gap-1.5"><span className="text-sm">{lang.flag}</span> <span>{lang.label}</span></span>
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </header>
+  );
+
+  const renderSidebar = (isDark: boolean = false) => {
+    if (!isSidebarOpen) return null;
+    return (
+      <div className="fixed inset-0 z-50 flex">
+        <div className={`fixed inset-0 backdrop-blur-xs transition-opacity ${isDark ? 'bg-black/60' : 'bg-black/50'}`} onClick={() => setIsSidebarOpen(false)} />
+        <div className={`relative w-72 h-[100dvh] shadow-2xl z-10 flex flex-col font-sans animate-in slide-in-from-left duration-200 ${isDark ? 'bg-[#0B1120]' : 'bg-white'}`}>
+          <div className="p-4 flex justify-between items-center text-white" style={{ backgroundColor: pColor }}>
+            <div className="flex items-center gap-2">
+              <Layers size={18} />
+              <h2 className="font-black text-sm"><span>{t.menuContent}</span></h2>
+            </div>
+            <button onClick={() => setIsSidebarOpen(false)} className="p-1 hover:bg-white/20 rounded-lg transition cursor-pointer">
+              <X size={18} />
+            </button>
+          </div>
+
+          <div className={`p-4 border-b space-y-1 ${isDark ? 'bg-[#151D2C] border-[#1E293B]' : 'bg-slate-50 border-slate-100'}`}>
+            <h3 className={`font-extrabold text-xs ${isDark ? 'text-white' : 'text-slate-900'}`}><span>{restaurant.name}</span></h3>
+            <p className={`text-[11px] ${isDark ? 'text-slate-400' : 'text-slate-500'}`}><span>{restaurant.subtitle || t.defaultSubtitle}</span></p>
+          </div>
+
+          <div className="flex-1 overflow-y-auto p-3 space-y-1">
+            <p className={`text-[10px] font-bold uppercase px-2 mb-2 tracking-wider ${isDark ? 'text-slate-500' : 'text-slate-400'}`}><span>{t.categories}</span></p>
+            <button onClick={() => { setSelectedCat('all'); setIsSidebarOpen(false); }} className={`w-full text-left px-3 py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-between cursor-pointer ${selectedCat === 'all' ? (isDark ? 'bg-indigo-500/20 text-indigo-400' : 'bg-indigo-50 text-indigo-600') : (isDark ? 'text-slate-300 hover:bg-[#1E293B]' : 'text-slate-700 hover:bg-slate-100')}`}>
+              <span>{t.allProducts}</span>
+              <span className={`text-[10px] px-2 py-0.5 rounded-full ${isDark ? 'bg-black/50' : 'bg-slate-200'}`}><span>{products.length}</span></span>
+            </button>
+
+            {categories.map(cat => {
+              const count = products.filter(p => p.category_id === cat.id).length;
+              return (
+                <button key={cat.id} onClick={() => { setSelectedCat(cat.id); setIsSidebarOpen(false); }} className={`w-full text-left px-3 py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-between cursor-pointer ${selectedCat === cat.id ? (isDark ? 'bg-indigo-500/20 text-indigo-400' : 'bg-indigo-50 text-indigo-600') : (isDark ? 'text-slate-300 hover:bg-[#1E293B]' : 'text-slate-700 hover:bg-slate-100')}`}>
+                  <span className="truncate"><span>{cat.name}</span></span>
+                  <span className={`text-[10px] px-2 py-0.5 rounded-full ${isDark ? 'bg-black/50' : 'bg-slate-200'}`}><span>{count}</span></span>
+                </button>
+              );
+            })}
+          </div>
+
+          <div className={`p-4 border-t space-y-1 pb-safe ${isDark ? 'bg-[#151D2C] border-[#1E293B] text-slate-400' : 'bg-slate-50 border-slate-100 text-slate-500'}`}>
+            {restaurant.working_hours && <p className="flex items-center gap-1.5 text-[11px]"><Clock size={12} /> <span className="notranslate">{restaurant.working_hours}</span></p>}
+            {restaurant.phone && <p className="flex items-center gap-1.5 text-[11px]"><Phone size={12} /> <span className="notranslate">{restaurant.phone}</span></p>}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const renderFloatingCartButton = (isDark: boolean = false) => {
     if (cartItemCount === 0) return null;
     return (
-      <button onClick={() => setIsCartOpen(true)} className="fixed bottom-8 right-6 p-4 rounded-full shadow-2xl text-white z-[90] flex items-center justify-center animate-bounce duration-1000 cursor-pointer border-2 border-white/20" style={{ backgroundColor: pColor }}>
+      <button onClick={() => setIsCartOpen(true)} className={`fixed bottom-8 right-6 p-4 rounded-full shadow-2xl text-white z-[90] flex items-center justify-center animate-bounce duration-1000 cursor-pointer border-2 ${isDark ? 'border-white/20' : 'border-white'}`} style={{ backgroundColor: pColor }}>
         <div className="relative">
           <ShoppingBag size={24} />
           <span className="absolute -top-3 -right-3 bg-rose-500 text-white text-[11px] font-black w-6 h-6 flex items-center justify-center rounded-full shadow-sm">
-            {cartItemCount}
+            <span>{cartItemCount}</span>
           </span>
         </div>
       </button>
     );
   };
 
-  // --- KARANLIK TEMA (DARK MODE) ANA GÖRÜNÜMÜ ---
+  // --------------------------------------------------------
+  // ŞABLON 1: PDF / GÖRSEL (AÇIK/GENEL TEMA)
+  // --------------------------------------------------------
+  if (template === 'pdf_image') {
+    return (
+      <div className="min-h-[100dvh] bg-slate-900 text-white font-sans flex flex-col items-center">
+        {renderSidebar(true)}
+        {renderHeader(true)}
+        <main className="max-w-md w-full p-2 space-y-3 mt-4">
+          {restaurant.custom_menu_image ? (
+            <img src={restaurant.custom_menu_image} alt="Menü" className="w-full rounded-xl shadow-2xl" />
+          ) : (
+            <div className="bg-slate-800 p-12 text-center rounded-2xl text-slate-400 text-xs">
+              <span>{t.noBrochure}</span>
+            </div>
+          )}
+        </main>
+      </div>
+    );
+  }
+
+  // --------------------------------------------------------
+  // ŞABLON 2: ÖZEL GRID TEMA (AÇIK TEMA)
+  // --------------------------------------------------------
+  if (template === 'custom_grid') {
+    return (
+      <div className="min-h-[100dvh] bg-slate-100 text-slate-900 font-sans pb-28 relative overflow-x-hidden">
+        {renderCartDrawer()}
+        {renderProductModal()}
+        {renderSidebar()}
+        {renderHeader()}
+        {renderFloatingCartButton()}
+
+        {restaurant.cover_image && (
+          <div className="w-full h-36 bg-cover bg-center" style={{ backgroundImage: `url(${restaurant.cover_image})` }}></div>
+        )}
+
+        <div className="bg-white p-5 shadow-sm space-y-2 border-b">
+          <div className="flex items-center gap-3">
+            {restaurant.logo_url && (
+              <img src={restaurant.logo_url} alt="Logo" className="w-14 h-14 rounded-xl object-cover shadow-sm border border-slate-100" />
+            )}
+            <div>
+              <h1 className="text-xl font-extrabold"><span>{restaurant.name}</span></h1>
+              <p className="text-xs text-slate-500 font-medium"><span>{restaurant.subtitle || t.defaultSubtitle}</span></p>
+            </div>
+          </div>
+          <div className="space-y-1 text-xs text-slate-600 pt-3 border-t mt-3">
+            <p className="flex items-center gap-1.5"><Clock size={14} style={{ color: pColor }} /> <span className="notranslate">{restaurant.working_hours || '08:00 - 24:00'}</span></p>
+            {restaurant.address && <p className="flex items-center gap-1.5"><MapPin size={14} style={{ color: pColor }} /> <span>{restaurant.address}</span></p>}
+          </div>
+        </div>
+
+        {selectedCat === 'all' ? (
+          <div className="max-w-md mx-auto p-4 space-y-3">
+            <h2 className="text-xs uppercase font-extrabold text-slate-400 tracking-wider"><span>{t.categoriesTitle}</span></h2>
+            <div className="grid grid-cols-2 gap-3">
+              {categories.map((cat) => (
+                <div key={cat.id} onClick={() => setSelectedCat(cat.id)} className="h-28 bg-slate-800 rounded-2xl relative overflow-hidden cursor-pointer shadow-md flex items-end p-3 border border-slate-700 bg-cover bg-center" style={{ backgroundImage: cat.image_url ? `linear-gradient(to top, rgba(0,0,0,0.8), rgba(0,0,0,0.2)), url(${cat.image_url})` : 'none' }}>
+                  <span className="font-extrabold text-sm text-white relative z-20 uppercase"><span>{cat.name}</span></span>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <div className="max-w-md mx-auto p-4 space-y-3">
+            <button onClick={() => setSelectedCat('all')} className="text-xs font-bold px-3 py-1.5 rounded-xl cursor-pointer inline-block mb-2" style={{ color: pColor, backgroundColor: `${pColor}20` }}>
+              <span>{t.backToCategories}</span>
+            </button>
+            <div className="space-y-3">
+              {filteredProducts.map((prod) => (
+                <div key={prod.id} onClick={() => setSelectedProduct(prod)} className="bg-white p-3 rounded-2xl border shadow-sm flex gap-3 cursor-pointer hover:border-slate-300 transition">
+                  {prod.image_url && <img src={prod.image_url} alt={prod.name} className="w-24 h-24 object-cover rounded-xl flex-shrink-0" />}
+                  <div className="flex-1 space-y-1">
+                    <div className="flex justify-between items-start">
+                      <h3 className="font-bold text-sm text-slate-900 leading-snug pr-2"><span>{prod.name}</span></h3>
+                      <span className="font-extrabold text-sm whitespace-nowrap" style={{ color: pColor }}>₺<span>{prod.price}</span></span>
+                    </div>
+                    <p className="text-[11px] text-slate-500 line-clamp-2"><span>{prod.description}</span></p>
+                    {prod.allergens && prod.allergens.length > 0 && (
+                      <div className="flex items-center gap-1 pt-1">
+                        <span className="text-[9px] font-bold text-slate-400"><span>{t.allergens}</span></span>
+                        {prod.allergens.map((algId: string) => {
+                          const alg = ALLERGEN_OPTIONS.find(a => a.id === algId);
+                          return alg ? <span key={algId} className="text-[11px] notranslate" title={alg.label}>{alg.icon}</span> : null;
+                        })}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // --------------------------------------------------------
+  // ŞABLON 3: KLASİK TEMA (AÇIK TEMA)
+  // --------------------------------------------------------
+  if (template === 'classic') {
+    return (
+      <div className="min-h-[100dvh] bg-slate-100 text-slate-900 font-sans pb-28 relative overflow-x-hidden">
+        {renderCartDrawer()}
+        {renderProductModal()}
+        {renderSidebar()}
+        {renderHeader()}
+        {renderFloatingCartButton()}
+
+        <div className="h-44 bg-slate-800 relative bg-cover bg-center" style={{ backgroundImage: restaurant.cover_image ? `url(${restaurant.cover_image})` : 'none' }}>
+          <div className="absolute inset-0 bg-black/40" />
+          <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 w-20 h-20 rounded-full bg-white border-4 border-white shadow-lg overflow-hidden flex items-center justify-center font-bold text-xl" style={{ color: pColor }}>
+            {restaurant.logo_url ? <img src={restaurant.logo_url} alt="Logo" className="w-full h-full object-cover" /> : <span>{restaurant.name[0]}</span>}
+          </div>
+        </div>
+
+        <div className="pt-12 text-center px-4 space-y-1">
+          <h1 className="font-extrabold text-xl text-slate-900"><span>{restaurant.name}</span></h1>
+          <p className="text-xs text-slate-500 font-semibold"><span>{restaurant.subtitle}</span></p>
+        </div>
+
+        <main className="max-w-md mx-auto p-4 space-y-3 mt-4">
+          {filteredProducts.map((prod) => (
+            <div key={prod.id} onClick={() => setSelectedProduct(prod)} className="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-sm flex gap-3 items-center cursor-pointer hover:border-slate-300 transition">
+              {prod.image_url && <img src={prod.image_url} alt={prod.name} className="w-20 h-20 object-cover rounded-xl flex-shrink-0" />}
+              <div className="flex-1 min-w-0 space-y-1">
+                <div className="flex justify-between items-start">
+                  <h3 className="font-bold text-sm text-slate-900 pr-2"><span>{prod.name}</span></h3>
+                  <span className="font-extrabold text-sm whitespace-nowrap" style={{ color: pColor }}>₺<span>{prod.price}</span></span>
+                </div>
+                <p className="text-[11px] text-slate-500 line-clamp-2"><span>{prod.description}</span></p>
+                {prod.allergens && prod.allergens.length > 0 && (
+                  <div className="flex items-center gap-1 pt-0.5">
+                    <span className="text-[9px] font-bold text-slate-400"><span>{t.allergens}</span></span>
+                    {prod.allergens.map((algId: string) => {
+                      const alg = ALLERGEN_OPTIONS.find(a => a.id === algId);
+                      return alg ? <span key={algId} className="text-[11px] notranslate" title={alg.label}>{alg.icon}</span> : null;
+                    })}
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+        </main>
+      </div>
+    );
+  }
+
+  // --------------------------------------------------------
+  // ŞABLON 4: BISTRO / MODERN TEMA (İSTEDİĞİN KARANLIK / DARK TEMA)
+  // --------------------------------------------------------
   return (
     <div className="min-h-[100dvh] bg-[#0A0F1C] text-white font-sans pb-28 relative overflow-x-hidden">
-      {renderCartDrawer()}
-      {renderProductModal()}
-      {renderHeader()}
-      {renderFloatingCartButton()}
+      {renderCartDrawer(true)}
+      {renderProductModal(true)}
+      {renderSidebar(true)}
+      {renderHeader(true)}
+      {renderFloatingCartButton(true)}
 
       {/* RESTORAN BİLGİ ALANI */}
       <div className="flex flex-col items-center justify-center py-6 px-4 space-y-2 text-center">
@@ -439,8 +664,8 @@ export default function PublicMenu() {
         </div>
       </div>
 
-      {/* YATAY KAYDIRILABİLİR KATEGORİ SEKMELERİ ("ŞABLONLAR" DEDİĞİN KISIM) */}
-      <div className="sticky top-[60px] z-30 bg-[#0A0F1C] border-b border-[#1E293B]">
+      {/* YATAY KAYDIRILABİLİR KATEGORİ SEKMELERİ */}
+      <div className="sticky top-[60px] z-30 bg-[#0A0F1C] border-b border-[#1E293B] shadow-md">
         <div className="max-w-3xl mx-auto overflow-x-auto whitespace-nowrap flex gap-2 p-3 px-4 scrollbar-hide">
           <button 
             onClick={() => setSelectedCat('all')} 
@@ -468,7 +693,7 @@ export default function PublicMenu() {
         {filteredProducts.map((prod) => (
           <div 
             key={prod.id} 
-            onClick={() => setSelectedProduct(prod)} // TIKLAYINCA POPUP AÇAR
+            onClick={() => setSelectedProduct(prod)} // POPUP AÇAR
             className="bg-[#151D2C] border border-[#1E293B] rounded-2xl p-4 flex gap-4 cursor-pointer hover:border-slate-600 transition"
           >
             {/* Fotoğraf */}
@@ -484,7 +709,7 @@ export default function PublicMenu() {
                 <div className="flex justify-between items-start gap-2">
                   <h3 className="font-bold text-sm text-white leading-snug"><span>{prod.name}</span></h3>
                   <span className="font-black text-xs px-2.5 py-1 rounded-lg bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 whitespace-nowrap">
-                    {prod.price} ₺
+                    <span>{prod.price}</span> ₺
                   </span>
                 </div>
                 <p className="text-[11px] text-slate-400 line-clamp-2 mt-1.5 leading-relaxed"><span>{prod.description}</span></p>
@@ -495,7 +720,7 @@ export default function PublicMenu() {
                 <div className="flex items-center gap-1.5 pt-2">
                   {prod.allergens.map((algId: string) => {
                     const alg = ALLERGEN_OPTIONS.find(a => a.id === algId);
-                    return alg ? <span key={algId} className="bg-[#0B1120] p-1 rounded border border-[#1E293B] text-[10px] grayscale opacity-80" title={alg.label}>{alg.icon}</span> : null;
+                    return alg ? <span key={algId} className="bg-[#0B1120] p-1 rounded border border-[#1E293B] text-[10px] grayscale opacity-80 notranslate" title={alg.label}>{alg.icon}</span> : null;
                   })}
                 </div>
               )}
