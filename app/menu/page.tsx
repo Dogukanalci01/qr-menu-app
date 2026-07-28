@@ -138,7 +138,7 @@ export default function PublicMenu() {
 
   const t = translations[currentLang] || translations.TR;
 
-  // GOOGLE TRANSLATE
+  // GOOGLE TRANSLATE ZIRHI (Tıklamaların bozulmaması için)
   useEffect(() => {
     fetchData();
     if (!document.getElementById('google-translate-script')) {
@@ -160,6 +160,7 @@ export default function PublicMenu() {
   const changeGoogleLanguage = (langCode: string, displayCode: string) => {
     setCurrentLang(displayCode);
     setIsLangOpen(false);
+
     const selectEl = document.querySelector('.goog-te-combo') as HTMLSelectElement;
     if (selectEl) {
       selectEl.value = langCode.toLowerCase();
@@ -215,7 +216,7 @@ export default function PublicMenu() {
     return (
       <div className="min-h-[100dvh] bg-slate-50 text-slate-800 flex items-center justify-center p-4 font-sans">
         <div className="flex flex-col items-center gap-3">
-          <div className="w-10 h-10 border-4 border-slate-800 border-t-transparent rounded-full animate-spin"></div>
+          <div className="w-10 h-10 border-4 border-[#1e3a8a] border-t-transparent rounded-full animate-spin"></div>
           <p className="text-slate-500 text-xs font-semibold"><span>{t.loading}</span></p>
         </div>
       </div>
@@ -233,7 +234,8 @@ export default function PublicMenu() {
     );
   }
 
-  const pColor = restaurant.primary_color || '#1e293b'; 
+  // SENİN O EFSANEVİ LACİVERT RENGİN (Resimlerdeki)
+  const pColor = restaurant.primary_color || '#1e3a8a'; 
   const template = restaurant.template || 'custom_grid';
 
   const filteredProducts = products.filter(p => {
@@ -242,120 +244,53 @@ export default function PublicMenu() {
   });
 
   // ==========================================================
-  // ORTAK BİLEŞENLER (MODAL, HEADER, SIDEBAR, CART)
+  // ORTAK: SEPET ÇEKMECESİ
   // ==========================================================
-
-  // MÜKEMMEL BÜYÜYEN ÜRÜN MODALI (İkinci Fotoğraftaki Gibi)
-  const renderProductModal = () => {
-    if (!selectedProduct) return null;
-    return (
-      <div className="fixed inset-0 z-[9999] flex items-end justify-center sm:items-center p-0 sm:p-4">
-        <div className="absolute inset-0 bg-black/70 backdrop-blur-sm transition-opacity cursor-pointer" onClick={() => setSelectedProduct(null)} />
-        <div className="relative w-full max-w-md bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl z-10 overflow-hidden animate-in slide-in-from-bottom duration-300 max-h-[90dvh] flex flex-col">
-          
-          <button onClick={() => setSelectedProduct(null)} className="absolute top-4 right-4 bg-white text-slate-800 p-2 rounded-full shadow-lg z-20 hover:bg-slate-100 transition cursor-pointer">
-            <X size={20} />
-          </button>
-          
-          <div className="overflow-y-auto pb-safe">
-            {selectedProduct.image_url ? (
-              <img src={selectedProduct.image_url} alt={selectedProduct.name} className="w-full h-64 sm:h-72 object-cover" />
-            ) : (
-              <div className="w-full h-32 bg-slate-100 flex items-center justify-center font-bold text-xs text-slate-400"><span>Görsel Yok</span></div>
-            )}
-            
-            <div className="p-6 space-y-5">
-              <div className="flex justify-between items-start gap-4">
-                <h2 className="text-2xl font-black text-[#1e293b] leading-tight uppercase"><span>{selectedProduct.name}</span></h2>
-                <p className="text-2xl font-extrabold whitespace-nowrap text-[#1e293b]">₺<span className="notranslate">{selectedProduct.price}</span></p>
-              </div>
-              
-              {selectedProduct.description && (
-                <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                  <p className="text-sm text-slate-600 leading-relaxed font-semibold">
-                    <span>{selectedProduct.description}</span>
-                  </p>
-                </div>
-              )}
-
-              {selectedProduct.allergens && selectedProduct.allergens.length > 0 && (
-                <div className="pt-2">
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-2.5"><span>{t.allergens}</span></p>
-                  <div className="flex flex-wrap gap-2">
-                    {selectedProduct.allergens.map((algId: string) => {
-                      const alg = ALLERGEN_OPTIONS.find(a => a.id === algId);
-                      if(!alg) return null;
-                      return (
-                        <div key={algId} className="flex items-center gap-2 px-4 py-2 rounded-xl border bg-slate-50 border-slate-200">
-                          <span className="text-base notranslate">{alg.icon}</span>
-                          <span className="text-xs font-bold text-slate-700"><span>{alg.label}</span></span>
-                        </div>
-                      )
-                    })}
-                  </div>
-                </div>
-              )}
-              
-              <button 
-                onClick={() => { addToCart(selectedProduct); setSelectedProduct(null); }}
-                className="w-full py-4 mt-2 rounded-2xl text-white font-black text-base shadow-lg flex items-center justify-center gap-2 hover:opacity-90 transition active:scale-95 cursor-pointer bg-[#1e293b]" 
-              >
-                <ShoppingBag size={20} /> <span>{t.addToOrder}</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
   const renderCartDrawer = () => {
     if (!isCartOpen) return null;
     return (
       <div className="fixed inset-0 z-[120] flex justify-end">
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity" onClick={() => setIsCartOpen(false)} />
         <div className="relative w-full max-w-sm h-[100dvh] bg-white shadow-2xl flex flex-col font-sans animate-in slide-in-from-right duration-300">
-          <div className="p-5 flex justify-between items-center border-b border-slate-100" style={{ backgroundColor: pColor }}>
-            <div className="flex items-center gap-2 text-white">
+          <div className="p-5 flex justify-between items-center border-b border-white/10 text-white" style={{ backgroundColor: pColor }}>
+            <div className="flex items-center gap-2">
               <ShoppingBag size={20} />
               <h2 className="font-black text-lg"><span>{t.cartTitle}</span></h2>
             </div>
-            <button onClick={() => setIsCartOpen(false)} className="p-1 hover:bg-white/20 rounded-full text-white transition cursor-pointer">
+            <button onClick={() => setIsCartOpen(false)} className="p-1 hover:bg-white/20 rounded-full transition cursor-pointer">
               <X size={20} />
             </button>
           </div>
 
-          <div className="flex-1 overflow-y-auto p-5 bg-slate-50">
+          <div className="flex-1 overflow-y-auto p-5 bg-slate-50 space-y-4">
             {cart.length === 0 ? (
               <div className="h-full flex flex-col items-center justify-center gap-3 text-slate-400">
                 <ShoppingBag size={48} className="opacity-20" />
                 <p className="text-sm font-bold"><span>{t.emptyCart}</span></p>
               </div>
             ) : (
-              <div className="space-y-4">
-                {cart.map((item) => (
-                  <div key={item.id} className="p-3 rounded-2xl flex gap-3 items-center border bg-white border-slate-100 shadow-sm">
-                    {item.image_url ? (
-                      <img src={item.image_url} alt={item.name} className="w-16 h-16 object-cover rounded-xl flex-shrink-0" />
-                    ) : (
-                      <div className="w-16 h-16 rounded-xl flex-shrink-0 bg-slate-100"></div>
-                    )}
-                    <div className="flex-1 min-w-0">
-                      <h4 className="font-bold text-sm truncate pr-2 text-slate-900"><span>{item.name}</span></h4>
-                      <p className="font-extrabold text-sm" style={{ color: pColor }}>₺<span className="notranslate">{item.price * item.quantity}</span></p>
-                    </div>
-                    <div className="flex items-center gap-3 rounded-xl px-2 py-1 border bg-slate-50 border-slate-200">
-                      <button onClick={() => updateCartQuantity(item.id, -1)} className="p-1 text-slate-500 hover:text-slate-800">
-                        {item.quantity === 1 ? <Trash2 size={14} className="text-rose-500" /> : <Minus size={14} />}
-                      </button>
-                      <span className="font-black text-sm w-4 text-center text-slate-800"><span className="notranslate">{item.quantity}</span></span>
-                      <button onClick={() => updateCartQuantity(item.id, 1)} className="p-1 text-slate-500 hover:text-slate-800">
-                        <Plus size={14} />
-                      </button>
-                    </div>
+              cart.map((item) => (
+                <div key={item.id} className="p-3 rounded-2xl flex gap-3 items-center border bg-white border-slate-100 shadow-sm">
+                  {item.image_url ? (
+                    <img src={item.image_url} alt={item.name} className="w-16 h-16 object-cover rounded-xl flex-shrink-0" />
+                  ) : (
+                    <div className="w-16 h-16 rounded-xl flex-shrink-0 bg-slate-100"></div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-bold text-sm truncate pr-2 text-slate-900"><span>{item.name}</span></h4>
+                    <p className="font-extrabold text-sm" style={{ color: pColor }}>₺{item.price * item.quantity}</p>
                   </div>
-                ))}
-              </div>
+                  <div className="flex items-center gap-3 rounded-xl px-2 py-1 border bg-slate-50 border-slate-200">
+                    <button onClick={() => updateCartQuantity(item.id, -1)} className="p-1 text-slate-500 hover:text-slate-800">
+                      {item.quantity === 1 ? <Trash2 size={14} className="text-rose-500" /> : <Minus size={14} />}
+                    </button>
+                    <span className="font-black text-sm w-4 text-center text-slate-800"><span>{item.quantity}</span></span>
+                    <button onClick={() => updateCartQuantity(item.id, 1)} className="p-1 text-slate-500 hover:text-slate-800">
+                      <Plus size={14} />
+                    </button>
+                  </div>
+                </div>
+              ))
             )}
           </div>
 
@@ -363,7 +298,7 @@ export default function PublicMenu() {
             <div className="p-5 space-y-4 pb-safe border-t bg-white border-slate-100 shadow-[0_-10px_20px_rgba(0,0,0,0.03)]">
               <div className="flex justify-between items-center text-lg text-slate-800">
                 <span className="font-bold text-slate-500"><span>{t.total}</span>:</span>
-                <span className="font-black text-2xl text-slate-900">₺<span className="notranslate">{cartTotal}</span></span>
+                <span className="font-black text-2xl">₺<span>{cartTotal}</span></span>
               </div>
               <button onClick={handlePlaceOrder} className="w-full py-4 rounded-2xl text-white font-black text-sm shadow-lg flex items-center justify-center gap-2 hover:opacity-90 transition active:scale-95 cursor-pointer" style={{ backgroundColor: pColor }}>
                 <span>{t.placeOrder}</span>
@@ -375,80 +310,81 @@ export default function PublicMenu() {
     );
   };
 
-  const renderHeader = () => (
-    <header className="p-3 px-4 flex justify-between items-center shadow-md relative z-40 sticky top-0 text-white" style={{ backgroundColor: pColor }}>
-      <div id="google_translate_element" style={{ display: 'none' }}></div>
-      <div className="flex items-center gap-3">
-        <button onClick={() => setIsSidebarOpen(true)} className="p-1.5 bg-white/10 hover:bg-white/20 rounded-lg transition cursor-pointer" title="Menü">
-          <MenuIcon size={20} />
-        </button>
-        <span className="font-extrabold text-sm tracking-wide line-clamp-1"><span className="notranslate">{restaurant.name}</span></span>
-      </div>
-      <div className="flex items-center gap-2 relative">
-        <button onClick={() => alert(t.callWaiter)} className="bg-white/20 hover:bg-white/30 p-1.5 rounded-lg transition cursor-pointer flex-shrink-0" title="Garson">
-          <Bell size={16} />
-        </button>
-        <div className="relative">
-          <button onClick={() => setIsLangOpen(!isLangOpen)} className="px-2 sm:px-3 py-1.5 rounded-xl text-xs font-extrabold flex items-center gap-1.5 transition cursor-pointer bg-white text-slate-800 shadow-sm">
-            <Globe size={13} style={{ color: pColor }} /> <span className="notranslate">{currentLang}</span> <ChevronDown size={12} className="text-slate-400" />
-          </button>
-          {isLangOpen && (
-            <div className="absolute right-0 mt-2 w-48 rounded-2xl shadow-xl z-50 overflow-hidden py-1 notranslate bg-white border border-slate-200 text-slate-800">
-              {[
-                { code: 'tr', display: 'TR', label: 'Türkçe', flag: '🇹🇷', rightTag: 'TR' },
-                { code: 'en', display: 'EN', label: 'English', flag: '🇬🇧', rightTag: 'GB' },
-                { code: 'ru', display: 'RU', label: 'Русский', flag: '🇷🇺', rightTag: 'RU' },
-                { code: 'de', display: 'DE', label: 'Deutsch', flag: '🇩🇪', rightTag: 'DE' },
-                { code: 'el', display: 'EL', label: 'Ελληνικά', flag: '🇬🇷', rightTag: 'GR' }
-              ].map(lang => (
-                <button key={lang.code} onClick={() => changeGoogleLanguage(lang.code, lang.display)} className={`w-full text-left px-3.5 py-2.5 text-xs font-bold transition flex items-center justify-between cursor-pointer ${currentLang === lang.display ? 'text-indigo-600 bg-indigo-50 font-black' : 'hover:bg-slate-100'}`}>
-                  <div className="flex items-center gap-2.5">
-                    <span className="text-[10px] font-mono font-extrabold px-1.5 py-0.5 rounded border text-slate-500 bg-slate-100 border-slate-200">{lang.rightTag}</span>
-                    <span className="flex items-center gap-1.5"><span className="text-sm">{lang.flag}</span> <span>{lang.label}</span></span>
-                  </div>
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-    </header>
-  );
-
-  const renderSidebar = () => {
-    if (!isSidebarOpen) return null;
+  // ==========================================================
+  // ORTAK: EFSANEVİ BÜYÜYEN ÜRÜN DETAY MODALI (Senin Resmindeki)
+  // ==========================================================
+  const renderProductModal = () => {
+    if (!selectedProduct) return null;
     return (
-      <div className="fixed inset-0 z-50 flex">
-        <div className="fixed inset-0 backdrop-blur-xs transition-opacity bg-black/50" onClick={() => setIsSidebarOpen(false)} />
-        <div className="relative w-72 h-[100dvh] shadow-2xl z-10 flex flex-col font-sans animate-in slide-in-from-left duration-200 bg-white">
-          <div className="p-4 flex justify-between items-center text-white" style={{ backgroundColor: pColor }}>
-            <div className="flex items-center gap-2">
-              <Layers size={18} />
-              <h2 className="font-black text-sm"><span>Menü</span></h2>
+      <div className="fixed inset-0 z-[9999] flex items-end justify-center sm:items-center p-0 sm:p-4">
+        <div className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity cursor-pointer" onClick={() => setSelectedProduct(null)} />
+        <div className="relative w-full max-w-md bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl z-10 flex flex-col max-h-[90dvh] overflow-hidden animate-in slide-in-from-bottom duration-300">
+          
+          {/* Çarpı Butonu */}
+          <button onClick={() => setSelectedProduct(null)} className="absolute top-4 right-4 bg-white text-slate-800 p-2 rounded-full shadow-md z-20 hover:bg-slate-100 transition cursor-pointer">
+            <X size={20} />
+          </button>
+          
+          <div className="overflow-y-auto pb-safe">
+            {/* Fotoğraf Alanı */}
+            {selectedProduct.image_url ? (
+              <img src={selectedProduct.image_url} alt={selectedProduct.name} className="w-full h-64 sm:h-72 object-cover" />
+            ) : (
+              <div className="w-full h-32 bg-slate-100 flex items-center justify-center text-slate-400 font-bold text-sm">
+                <span className="notranslate">Görsel Yok</span>
+              </div>
+            )}
+            
+            <div className="p-6 space-y-5">
+              {/* Başlık ve Fiyat */}
+              <div className="flex justify-between items-start gap-4">
+                <h2 className="text-2xl font-black uppercase leading-tight" style={{ color: pColor }}>
+                  <span>{selectedProduct.name}</span>
+                </h2>
+                <p className="text-2xl font-extrabold whitespace-nowrap" style={{ color: pColor }}>
+                  ₺<span>{selectedProduct.price}</span>
+                </p>
+              </div>
+              
+              {/* Açıklama Kutusu */}
+              {selectedProduct.description && (
+                <div className="bg-slate-50 border border-slate-100 p-4 rounded-2xl">
+                  <p className="text-sm text-slate-600 leading-relaxed font-medium">
+                    <span>{selectedProduct.description}</span>
+                  </p>
+                </div>
+              )}
+
+              {/* Alerjenler */}
+              {selectedProduct.allergens && selectedProduct.allergens.length > 0 && (
+                <div className="pt-2">
+                  <p className="text-[10px] font-black uppercase tracking-wider mb-2.5 text-slate-400">
+                    <span>{t.allergens}</span>
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedProduct.allergens.map((algId: string) => {
+                      const alg = ALLERGEN_OPTIONS.find(a => a.id === algId);
+                      if(!alg) return null;
+                      return (
+                        <div key={algId} className="flex items-center gap-2 px-3 py-1.5 rounded-xl border bg-slate-50 border-slate-200">
+                          <span className="text-base notranslate">{alg.icon}</span>
+                          <span className="text-xs font-bold text-slate-700"><span>{alg.label}</span></span>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
+              
+              {/* Sepete Ekle Butonu */}
+              <button 
+                onClick={() => { addToCart(selectedProduct); setSelectedProduct(null); }}
+                className="w-full py-4 rounded-2xl text-white font-black text-sm shadow-lg flex items-center justify-center gap-2 hover:opacity-90 transition active:scale-95 cursor-pointer mt-4" 
+                style={{ backgroundColor: pColor }}
+              >
+                <ShoppingBag size={18} /> <span>{t.addToOrder}</span>
+              </button>
             </div>
-            <button onClick={() => setIsSidebarOpen(false)} className="p-1 hover:bg-white/20 rounded-lg transition cursor-pointer">
-              <X size={18} />
-            </button>
-          </div>
-          <div className="p-4 border-b space-y-1 bg-slate-50 border-slate-100">
-            <h3 className="font-extrabold text-xs text-slate-900"><span className="notranslate">{restaurant.name}</span></h3>
-            <p className="text-[11px] text-slate-500"><span className="notranslate">{restaurant.subtitle}</span></p>
-          </div>
-          <div className="flex-1 overflow-y-auto p-3 space-y-1">
-            <p className="text-[10px] font-bold uppercase px-2 mb-2 tracking-wider text-slate-400"><span>{t.categories}</span></p>
-            <button onClick={() => { setSelectedCat('all'); setIsSidebarOpen(false); }} className={`w-full text-left px-3 py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-between cursor-pointer ${selectedCat === 'all' ? 'bg-indigo-50 text-indigo-600' : 'text-slate-700 hover:bg-slate-100'}`}>
-              <span>{t.allProducts}</span>
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-200"><span className="notranslate">{products.length}</span></span>
-            </button>
-            {categories.map(cat => {
-              const count = products.filter(p => p.category_id === cat.id).length;
-              return (
-                <button key={cat.id} onClick={() => { setSelectedCat(cat.id); setIsSidebarOpen(false); }} className={`w-full text-left px-3 py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-between cursor-pointer ${selectedCat === cat.id ? 'bg-indigo-50 text-indigo-600' : 'text-slate-700 hover:bg-slate-100'}`}>
-                  <span className="truncate"><span className="notranslate">{cat.name}</span></span>
-                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-200"><span className="notranslate">{count}</span></span>
-                </button>
-              );
-            })}
           </div>
         </div>
       </div>
@@ -462,7 +398,7 @@ export default function PublicMenu() {
         <div className="relative">
           <ShoppingBag size={24} />
           <span className="absolute -top-3 -right-3 bg-rose-500 text-white text-[11px] font-black w-6 h-6 flex items-center justify-center rounded-full shadow-sm">
-            <span className="notranslate">{cartItemCount}</span>
+            <span>{cartItemCount}</span>
           </span>
         </div>
       </button>
@@ -471,56 +407,90 @@ export default function PublicMenu() {
 
 
   // ============================================================================
-  // ŞABLON 1: DN ÖZEL TEMASI (custom_grid) -> FOTOĞRAFTAKİ KARELİ/AÇIK TEMA
+  // ŞABLON 1: DN ÖZEL TEMASI (custom_grid) - FOTOĞRAFLARINDAKİ KUSURSUZ TASARIM
   // ============================================================================
   if (template === 'custom_grid') {
     return (
       <div className="min-h-[100dvh] bg-slate-50 text-slate-900 font-sans pb-28 relative overflow-x-hidden">
         {renderCartDrawer()}
         {renderProductModal()}
-        {renderSidebar()}
-        {renderHeader()}
         {renderFloatingCartButton()}
 
-        {/* RESTORAN KAPAK & BİLGİ */}
-        {restaurant.cover_image && (
-          <div className="w-full h-40 bg-cover bg-center" style={{ backgroundImage: `url(${restaurant.cover_image})` }}></div>
-        )}
-        <div className="bg-white p-5 shadow-sm border-b">
-          <div className="flex items-center gap-4">
-            {restaurant.logo_url && (
-              <img src={restaurant.logo_url} alt="Logo" className="w-16 h-16 rounded-xl object-cover shadow-sm border border-slate-100" />
-            )}
-            <div>
-              <h1 className="text-xl font-extrabold text-slate-900"><span className="notranslate">{restaurant.name}</span></h1>
-              <p className="text-xs text-slate-500 font-medium mt-0.5"><span className="notranslate">{restaurant.subtitle}</span></p>
+        {/* ÜST BAR */}
+        <header className="p-3 px-4 flex justify-between items-center shadow-md relative z-40 text-white" style={{ backgroundColor: pColor }}>
+          <div id="google_translate_element" style={{ display: 'none' }}></div>
+          <div className="flex items-center gap-3">
+            <button className="p-1.5 bg-white/10 hover:bg-white/20 rounded-lg transition cursor-pointer">
+              <MenuIcon size={20} />
+            </button>
+            <span className="font-extrabold text-sm tracking-wide line-clamp-1"><span>{restaurant.name}</span></span>
+          </div>
+
+          <div className="flex items-center gap-2 relative">
+            <button onClick={() => alert(t.callWaiter)} className="bg-white/20 hover:bg-white/30 p-1.5 rounded-lg transition cursor-pointer flex-shrink-0">
+              <Bell size={16} />
+            </button>
+            <div className="relative">
+              <button onClick={() => setIsLangOpen(!isLangOpen)} className="px-2 sm:px-3 py-1.5 rounded-xl text-xs font-extrabold flex items-center gap-1.5 transition cursor-pointer bg-white text-slate-800 shadow-sm">
+                <Globe size={13} style={{ color: pColor }} /> <span className="notranslate">{currentLang}</span> <ChevronDown size={12} className="text-slate-400" />
+              </button>
+              {isLangOpen && (
+                <div className="absolute right-0 mt-2 w-48 rounded-2xl shadow-xl z-50 overflow-hidden py-1 notranslate bg-white border border-slate-200 text-slate-800">
+                  {[{ code: 'tr', display: 'TR', label: 'Türkçe', flag: '🇹🇷', rightTag: 'TR' }, { code: 'en', display: 'EN', label: 'English', flag: '🇬🇧', rightTag: 'GB' }, { code: 'ru', display: 'RU', label: 'Русский', flag: '🇷🇺', rightTag: 'RU' }, { code: 'de', display: 'DE', label: 'Deutsch', flag: '🇩🇪', rightTag: 'DE' }, { code: 'el', display: 'EL', label: 'Ελληνικά', flag: '🇬🇷', rightTag: 'GR' }].map(lang => (
+                    <button key={lang.code} onClick={() => changeGoogleLanguage(lang.code, lang.display)} className={`w-full text-left px-3.5 py-2.5 text-xs font-bold transition flex items-center justify-between cursor-pointer ${currentLang === lang.display ? 'text-indigo-600 bg-indigo-50 font-black' : 'hover:bg-slate-100'}`}>
+                      <div className="flex items-center gap-2.5">
+                        <span className="text-[10px] font-mono font-extrabold px-1.5 py-0.5 rounded border text-slate-500 bg-slate-100 border-slate-200">{lang.rightTag}</span>
+                        <span className="flex items-center gap-1.5"><span className="text-sm">{lang.flag}</span> <span>{lang.label}</span></span>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
-          <div className="flex flex-wrap gap-4 text-[11px] text-slate-500 pt-4 border-t mt-4 font-medium">
-            <p className="flex items-center gap-1.5"><Clock size={14} style={{ color: pColor }} /> <span className="notranslate">{restaurant.working_hours}</span></p>
-            {restaurant.address && <p className="flex items-center gap-1.5"><MapPin size={14} style={{ color: pColor }} /> <span className="notranslate">{restaurant.address}</span></p>}
+        </header>
+
+        {/* RESTORAN KAPAK & BEYAZ BİLGİ KARTI */}
+        {restaurant.cover_image && (
+          <div className="w-full h-40 md:h-48 bg-cover bg-center" style={{ backgroundImage: `url(${restaurant.cover_image})` }}></div>
+        )}
+        <div className="bg-white p-4 md:p-6 shadow-sm border-b">
+          <div className="max-w-4xl mx-auto">
+            <div className="flex items-center gap-4">
+              {restaurant.logo_url && (
+                <img src={restaurant.logo_url} alt="Logo" className="w-16 h-16 rounded-full object-cover border border-slate-200 shadow-sm" />
+              )}
+              <div>
+                <h1 className="text-xl font-extrabold text-slate-900"><span>{restaurant.name}</span></h1>
+                <p className="text-xs text-slate-500 font-medium mt-0.5"><span>{restaurant.subtitle || t.defaultSubtitle}</span></p>
+              </div>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-6 text-[11px] text-slate-500 pt-4 border-t mt-4 font-medium">
+              {restaurant.working_hours && <p className="flex items-center gap-1.5"><Clock size={14} style={{ color: pColor }} /> <span className="notranslate">{restaurant.working_hours}</span></p>}
+              {restaurant.address && <p className="flex items-center gap-1.5"><MapPin size={14} style={{ color: pColor }} /> <span>{restaurant.address}</span></p>}
+            </div>
           </div>
         </div>
 
-        {/* KATEGORİLER GRİDİ (BİRİNCİ FOTOĞRAF) */}
+        {/* GRİ ARKA PLAN & KATEGORİLER GRİDİ (Fotoğraftaki Yapı) */}
         {selectedCat === 'all' ? (
-          <div className="max-w-4xl mx-auto p-4 md:p-6 space-y-4">
+          <div className="max-w-4xl mx-auto p-4 md:p-8 space-y-4">
             <h2 className="text-xs uppercase font-extrabold text-slate-400 tracking-wider mb-2 text-center sm:text-left"><span>{t.categories}</span></h2>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
               {categories.map((cat) => (
                 <div 
                   key={cat.id} 
                   onClick={() => setSelectedCat(cat.id)} 
-                  className="h-32 sm:h-36 bg-slate-800 rounded-2xl relative overflow-hidden cursor-pointer shadow-md flex items-end p-4 border border-slate-200 bg-cover bg-center hover:shadow-lg transition-transform hover:-translate-y-1" 
-                  style={{ backgroundImage: cat.image_url ? `linear-gradient(to top, rgba(0,0,0,0.9), rgba(0,0,0,0.1)), url(${cat.image_url})` : 'none' }}
+                  className="h-28 sm:h-36 rounded-2xl relative overflow-hidden cursor-pointer shadow-md flex items-end p-4 border border-slate-200 bg-cover bg-center hover:shadow-lg transition-transform hover:-translate-y-1" 
+                  style={{ backgroundImage: cat.image_url ? `linear-gradient(to top, rgba(0,0,0,0.9), rgba(0,0,0,0.1)), url(${cat.image_url})` : 'none', backgroundColor: '#1e293b' }}
                 >
-                  <span className="font-black text-sm text-white relative z-20"><span className="notranslate">{cat.name}</span></span>
+                  <span className="font-black text-sm text-white relative z-20 uppercase"><span>{cat.name}</span></span>
                 </div>
               ))}
             </div>
           </div>
         ) : (
-          <div className="max-w-3xl mx-auto p-4 md:p-6 space-y-4">
+          <div className="max-w-4xl mx-auto p-4 md:p-8 space-y-4">
             <button 
               onClick={() => setSelectedCat('all')} 
               className="text-xs font-bold px-4 py-2 rounded-xl cursor-pointer inline-flex items-center gap-1 transition hover:opacity-80" 
@@ -534,18 +504,18 @@ export default function PublicMenu() {
               {filteredProducts.map((prod) => (
                 <div 
                   key={prod.id} 
-                  onClick={() => setSelectedProduct(prod)} // POPUP AÇAR!
-                  className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col sm:flex-row gap-4 cursor-pointer hover:border-slate-300 transition"
+                  onClick={() => setSelectedProduct(prod)} // TIKLAYINCA MODAL AÇAR!
+                  className="bg-white p-4 rounded-2xl shadow-sm flex flex-col sm:flex-row gap-4 cursor-pointer hover:shadow-md border border-slate-100 transition"
                 >
                   {prod.image_url && <img src={prod.image_url} alt={prod.name} className="w-full sm:w-36 h-48 sm:h-32 object-cover rounded-xl flex-shrink-0" />}
                   
                   <div className="flex-1 flex flex-col justify-between space-y-2">
                     <div>
                       <div className="flex justify-between items-start gap-2">
-                        <h3 className="font-extrabold text-base text-[#1e293b] leading-snug uppercase"><span className="notranslate">{prod.name}</span></h3>
-                        <span className="font-black text-base whitespace-nowrap" style={{ color: pColor }}>₺<span className="notranslate">{prod.price}</span></span>
+                        <h3 className="font-extrabold text-base leading-snug uppercase" style={{ color: pColor }}><span>{prod.name}</span></h3>
+                        <span className="font-black text-base whitespace-nowrap" style={{ color: pColor }}>₺<span>{prod.price}</span></span>
                       </div>
-                      <p className="text-xs text-slate-500 line-clamp-2 mt-1.5 leading-relaxed"><span className="notranslate">{prod.description}</span></p>
+                      <p className="text-xs text-slate-500 line-clamp-2 mt-1.5 leading-relaxed"><span>{prod.description}</span></p>
                     </div>
                     
                     {prod.allergens && prod.allergens.length > 0 && (
@@ -572,39 +542,107 @@ export default function PublicMenu() {
   }
 
   // ============================================================================
-  // ŞABLON 2: KLASİK TEMA
+  // ŞABLON 2: BİSTRO TEMA (AKORDEONLU YAPI)
+  // ============================================================================
+  if (template === 'bistro') {
+    return (
+      <div className="min-h-[100dvh] bg-slate-100 text-slate-900 font-sans pb-28 relative overflow-x-hidden">
+        {renderCartDrawer()}
+        {renderProductModal()}
+        {renderFloatingCartButton()}
+
+        <header className="p-3 px-4 flex justify-between items-center shadow-md relative z-40 sticky top-0 text-white" style={{ backgroundColor: pColor }}>
+          <div className="font-extrabold text-sm tracking-wide line-clamp-1"><span>{restaurant.name}</span></div>
+          <button onClick={() => setIsLangOpen(!isLangOpen)} className="px-2 sm:px-3 py-1.5 rounded-xl text-xs font-extrabold flex items-center gap-1.5 transition cursor-pointer bg-white text-slate-800 shadow-sm">
+            <Globe size={13} style={{ color: pColor }} /> <span className="notranslate">{currentLang}</span>
+          </button>
+        </header>
+
+        {restaurant.cover_image && (
+          <div className="w-full h-32 bg-cover bg-center" style={{ backgroundImage: `url(${restaurant.cover_image})` }}></div>
+        )}
+
+        <div className="bg-white p-4 shadow-sm border-b space-y-3">
+          <div className="flex gap-3 items-center">
+            {restaurant.logo_url ? (
+              <img src={restaurant.logo_url} alt="Logo" className="w-16 h-16 object-cover rounded-xl border border-slate-100 shadow-sm" />
+            ) : (
+              <div className="w-14 h-14 text-white font-extrabold text-xs rounded-xl flex items-center justify-center p-1 text-center" style={{ backgroundColor: pColor }}><span>{restaurant.name[0]}</span></div>
+            )}
+            <div>
+              <h1 className="font-extrabold text-lg text-slate-900"><span>{restaurant.name}</span></h1>
+              <p className="text-xs text-slate-400 font-semibold"><span>{restaurant.subtitle}</span></p>
+            </div>
+          </div>
+        </div>
+
+        <main className="max-w-md mx-auto p-3 space-y-3">
+          {categories.map((cat) => {
+            const catProducts = products.filter(p => p.category_id === cat.id);
+            if (catProducts.length === 0) return null;
+            return (
+              <div key={cat.id} className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div className="p-3.5 bg-slate-50 border-b border-slate-100 flex justify-between items-center font-bold text-sm text-slate-800">
+                  <span>{cat.name}</span>
+                  <ChevronDown size={16} className="text-slate-400" />
+                </div>
+                <div className="p-3 space-y-3 divide-y divide-slate-100">
+                  {catProducts.map((prod) => (
+                    <div key={prod.id} onClick={() => setSelectedProduct(prod)} className="pt-3 first:pt-0 flex gap-3 items-center cursor-pointer hover:bg-slate-50 transition -mx-3 px-3 rounded-lg">
+                      {prod.image_url && <img src={prod.image_url} alt={prod.name} className="w-20 h-20 object-cover rounded-xl flex-shrink-0" />}
+                      <div className="flex-1 min-w-0 space-y-1 py-1">
+                        <div className="flex justify-between items-start gap-1">
+                          <h3 className="font-bold text-xs text-slate-900 leading-snug"><span>{prod.name}</span></h3>
+                          <button onClick={(e) => addToCart(prod, e)} className="bg-slate-100 text-[10px] font-extrabold px-3 py-1.5 rounded-lg transition flex-shrink-0" style={{ color: pColor }}>
+                            <span>{t.addBtn}</span>
+                          </button>
+                        </div>
+                        <p className="font-extrabold text-sm" style={{ color: pColor }}>₺<span>{prod.price}</span></p>
+                        <p className="text-[10px] text-slate-400 line-clamp-2 pr-2"><span>{prod.description}</span></p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+        </main>
+      </div>
+    );
+  }
+
+  // ============================================================================
+  // ŞABLON 3: KLASİK TEMA
   // ============================================================================
   if (template === 'classic') {
     return (
       <div className="min-h-[100dvh] bg-slate-100 text-slate-900 font-sans pb-28 relative overflow-x-hidden">
         {renderCartDrawer()}
         {renderProductModal()}
-        {renderSidebar()}
-        {renderHeader()}
         {renderFloatingCartButton()}
 
         <div className="h-44 bg-slate-800 relative bg-cover bg-center" style={{ backgroundImage: restaurant.cover_image ? `url(${restaurant.cover_image})` : 'none' }}>
           <div className="absolute inset-0 bg-black/40" />
           <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 w-20 h-20 rounded-full bg-white border-4 border-white shadow-lg overflow-hidden flex items-center justify-center font-bold text-xl" style={{ color: pColor }}>
-            {restaurant.logo_url ? <img src={restaurant.logo_url} alt="Logo" className="w-full h-full object-cover" /> : <span className="notranslate">{restaurant.name[0]}</span>}
+            {restaurant.logo_url ? <img src={restaurant.logo_url} alt="Logo" className="w-full h-full object-cover" /> : <span>{restaurant.name[0]}</span>}
           </div>
         </div>
 
         <div className="pt-12 text-center px-4 space-y-1">
-          <h1 className="font-extrabold text-xl text-slate-900"><span className="notranslate">{restaurant.name}</span></h1>
-          <p className="text-xs text-slate-500 font-semibold"><span className="notranslate">{restaurant.subtitle}</span></p>
+          <h1 className="font-extrabold text-xl text-slate-900"><span>{restaurant.name}</span></h1>
+          <p className="text-xs text-slate-500 font-semibold"><span>{restaurant.subtitle}</span></p>
         </div>
 
         <main className="max-w-md mx-auto p-4 space-y-3 mt-4">
-          {filteredProducts.map((prod) => (
-            <div key={prod.id} onClick={() => setSelectedProduct(prod)} className="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-sm flex gap-3 items-center cursor-pointer hover:border-slate-300 transition">
+          {products.map((prod) => (
+            <div key={prod.id} onClick={() => setSelectedProduct(prod)} className="bg-white p-3.5 rounded-2xl shadow-sm flex gap-3 items-center cursor-pointer hover:border-slate-300 transition">
               {prod.image_url && <img src={prod.image_url} alt={prod.name} className="w-20 h-20 object-cover rounded-xl flex-shrink-0" />}
               <div className="flex-1 min-w-0 space-y-1">
                 <div className="flex justify-between items-start">
-                  <h3 className="font-bold text-sm text-slate-900 pr-2"><span className="notranslate">{prod.name}</span></h3>
-                  <span className="font-extrabold text-sm whitespace-nowrap" style={{ color: pColor }}>₺<span className="notranslate">{prod.price}</span></span>
+                  <h3 className="font-bold text-sm text-slate-900 pr-2"><span>{prod.name}</span></h3>
+                  <span className="font-extrabold text-sm whitespace-nowrap" style={{ color: pColor }}>₺<span>{prod.price}</span></span>
                 </div>
-                <p className="text-[11px] text-slate-500 line-clamp-2"><span className="notranslate">{prod.description}</span></p>
+                <p className="text-[11px] text-slate-500 line-clamp-2"><span>{prod.description}</span></p>
               </div>
             </div>
           ))}
@@ -614,90 +652,18 @@ export default function PublicMenu() {
   }
 
   // ============================================================================
-  // ŞABLON 3: PDF / BROŞÜR
-  // ============================================================================
-  if (template === 'pdf_image') {
-    return (
-      <div className="min-h-[100dvh] bg-slate-900 text-white font-sans flex flex-col items-center">
-        {renderSidebar()}
-        {renderHeader()}
-        <main className="max-w-md w-full p-2 space-y-3 mt-4">
-          {restaurant.custom_menu_image ? (
-            <img src={restaurant.custom_menu_image} alt="Menü" className="w-full rounded-xl shadow-2xl" />
-          ) : (
-            <div className="bg-slate-800 p-12 text-center rounded-2xl text-slate-400 text-xs">
-              <span>{t.noBrochure}</span>
-            </div>
-          )}
-        </main>
-      </div>
-    );
-  }
-
-  // ============================================================================
-  // ŞABLON 4: BİSTRO TEMA (AKORDEONLU YAPI - VARSAYILAN)
+  // ŞABLON 4: PDF BROŞÜR
   // ============================================================================
   return (
-    <div className="min-h-[100dvh] bg-slate-100 text-slate-900 font-sans pb-28 relative overflow-x-hidden">
-      {renderCartDrawer()}
-      {renderProductModal()}
-      {renderSidebar()}
-      {renderHeader()}
-      {renderFloatingCartButton()}
-
-      {restaurant.cover_image && (
-        <div className="w-full h-32 bg-cover bg-center" style={{ backgroundImage: `url(${restaurant.cover_image})` }}></div>
-      )}
-
-      <div className="bg-white p-4 shadow-sm border-b space-y-3">
-        <div className="flex gap-3 items-center">
-          {restaurant.logo_url ? (
-            <img src={restaurant.logo_url} alt="Logo" className="w-16 h-16 object-cover rounded-xl border border-slate-100 shadow-sm" />
-          ) : (
-            <div className="w-14 h-14 text-white font-extrabold text-xs rounded-xl flex items-center justify-center p-1 text-center" style={{ backgroundColor: pColor }}><span>{restaurant.name[0]}</span></div>
-          )}
-          <div>
-            <h1 className="font-extrabold text-lg text-slate-900"><span className="notranslate">{restaurant.name}</span></h1>
-            <p className="text-xs text-slate-400 font-semibold"><span className="notranslate">{restaurant.subtitle}</span></p>
+    <div className="min-h-[100dvh] bg-slate-900 text-white font-sans flex flex-col items-center">
+      <main className="max-w-md w-full p-2 space-y-3 mt-4">
+        {restaurant.custom_menu_image ? (
+          <img src={restaurant.custom_menu_image} alt="Menü Broşürü" className="w-full rounded-xl shadow-2xl" />
+        ) : (
+          <div className="bg-slate-800 p-12 text-center rounded-2xl text-slate-400 text-xs">
+            <span>{t.noBrochure}</span>
           </div>
-        </div>
-      </div>
-
-      <main className="max-w-md mx-auto p-3 space-y-3">
-        {categories.map((cat) => {
-          const catProducts = products.filter(p => p.category_id === cat.id);
-          if (catProducts.length === 0) return null;
-          
-          return (
-            <div key={cat.id} className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-              <div className="p-3.5 bg-slate-50 border-b border-slate-100 flex justify-between items-center font-bold text-sm text-slate-800">
-                <div className="flex items-center gap-2.5">
-                  {cat.image_url && <img src={cat.image_url} alt={cat.name} className="w-7 h-7 rounded-lg object-cover border border-slate-200" />}
-                  <span className="notranslate">{cat.name}</span>
-                </div>
-                <ChevronDown size={16} className="text-slate-400" />
-              </div>
-
-              <div className="p-3 space-y-3 divide-y divide-slate-100">
-                {catProducts.map((prod) => (
-                  <div key={prod.id} onClick={() => setSelectedProduct(prod)} className="pt-3 first:pt-0 flex gap-3 items-center cursor-pointer hover:bg-slate-50 transition -mx-3 px-3 rounded-lg">
-                    {prod.image_url && <img src={prod.image_url} alt={prod.name} className="w-20 h-20 object-cover rounded-xl border border-slate-100 flex-shrink-0" />}
-                    <div className="flex-1 min-w-0 space-y-1 py-1">
-                      <div className="flex justify-between items-start gap-1">
-                        <h3 className="font-bold text-xs text-slate-900 leading-snug"><span className="notranslate">{prod.name}</span></h3>
-                        <button onClick={(e) => addToCart(prod, e)} className="bg-slate-100 text-[10px] font-extrabold px-3 py-1.5 rounded-lg transition flex-shrink-0 hover:bg-slate-200" style={{ color: pColor }}>
-                          <span>{t.addBtn}</span>
-                        </button>
-                      </div>
-                      <p className="font-extrabold text-sm" style={{ color: pColor }}>₺<span className="notranslate">{prod.price}</span></p>
-                      <p className="text-[10px] text-slate-400 line-clamp-2 pr-2 leading-relaxed"><span className="notranslate">{prod.description}</span></p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          );
-        })}
+        )}
       </main>
     </div>
   );
