@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
-import { Phone, MapPin, Clock, Info, Bell, ChevronDown, Menu as MenuIcon, X, Globe, Layers, ShoppingBag } from 'lucide-react';
+import { Phone, MapPin, Clock, Info, Bell, ChevronDown, Menu as MenuIcon, X, Globe, Layers, ShoppingBag, Plus, Minus, Trash2 } from 'lucide-react';
 
-// --- ALERJEN LİSTESİ (Müşteri Tarafı İçin) ---
+// --- ALERJEN LİSTESİ ---
 const ALLERGEN_OPTIONS = [
   { id: 'gluten', label: 'Gluten', icon: '🌾' },
   { id: 'crustaceans', label: 'Kabuklular', icon: '🦐' },
@@ -43,7 +43,12 @@ const translations: any = {
     notFound: 'Restoran Bulunamadı',
     loading: 'Menü Yükleniyor...',
     workingHours: 'Çalışma Saatleri',
-    defaultSubtitle: 'Yemek Bizim İşimiz'
+    defaultSubtitle: 'Yemek Bizim İşimiz',
+    cartTitle: 'Sepetim',
+    emptyCart: 'Sepetiniz şu an boş.',
+    total: 'Toplam',
+    placeOrder: 'Siparişi Tamamla',
+    orderSuccess: 'Siparişiniz mutfağa iletildi! Afiyet olsun.'
   },
   EN: {
     callWaiter: 'Waiter call notification sent!',
@@ -60,7 +65,12 @@ const translations: any = {
     notFound: 'Restaurant Not Found',
     loading: 'Loading Menu...',
     workingHours: 'Working Hours',
-    defaultSubtitle: 'Food is Our Business'
+    defaultSubtitle: 'Food is Our Business',
+    cartTitle: 'My Cart',
+    emptyCart: 'Your cart is currently empty.',
+    total: 'Total',
+    placeOrder: 'Place Order',
+    orderSuccess: 'Your order has been sent to the kitchen! Enjoy.'
   },
   RU: {
     callWaiter: 'Уведомление официанту отправлено!',
@@ -77,7 +87,12 @@ const translations: any = {
     notFound: 'Ресторан не найден',
     loading: 'Загрузка меню...',
     workingHours: 'Часы работы',
-    defaultSubtitle: 'Еда - это наш бизнес'
+    defaultSubtitle: 'Еда - это наш бизнес',
+    cartTitle: 'Моя корзина',
+    emptyCart: 'Ваша корзина пуста.',
+    total: 'Итого',
+    placeOrder: 'Оформить заказ',
+    orderSuccess: 'Ваш заказ отправлен на кухню! Приятного аппетита.'
   },
   DE: {
     callWaiter: 'Kellner-Benachrichtigung gesendet!',
@@ -94,7 +109,12 @@ const translations: any = {
     notFound: 'Restaurant nicht gefunden',
     loading: 'Menü wird geladen...',
     workingHours: 'Öffnungszeiten',
-    defaultSubtitle: 'Essen ist unser Geschäft'
+    defaultSubtitle: 'Essen ist unser Geschäft',
+    cartTitle: 'Mein Warenkorb',
+    emptyCart: 'Ihr Warenkorb ist derzeit leer.',
+    total: 'Gesamt',
+    placeOrder: 'Bestellung aufgeben',
+    orderSuccess: 'Ihre Bestellung wurde an die Küche gesendet! Guten Appetit.'
   },
   EL: {
     callWaiter: 'Η ειδοποίηση κλήσης σερβιτόρου στάλθηκε!',
@@ -111,7 +131,12 @@ const translations: any = {
     notFound: 'Το Εστιατόριο Δεν Βρέθηκε',
     loading: 'Φόρτωση Μενού...',
     workingHours: 'Ώρες Λειτουργίας',
-    defaultSubtitle: 'Το Φαγητό Είναι η Δουλειά Μας'
+    defaultSubtitle: 'Το Φαγητό Είναι η Δουλειά Μας',
+    cartTitle: 'Το Καλάθι μου',
+    emptyCart: 'Το καλάθι σας είναι άδειο.',
+    total: 'Σύνολο',
+    placeOrder: 'Ολοκλήρωση Παραγγελίας',
+    orderSuccess: 'Η παραγγελία σας στάλθηκε στην κουζίνα! Καλή όρεξη.'
   }
 };
 
@@ -122,11 +147,15 @@ export default function PublicMenu() {
   const [selectedCat, setSelectedCat] = useState<string>('all');
   const [loading, setLoading] = useState(true);
 
-  // --- MOBİL MENÜ, DİL & POPUP STATELERİ ---
+  // --- MOBİL MENÜ, DİL, POPUP VE SEPET STATELERİ ---
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isLangOpen, setIsLangOpen] = useState(false);
   const [currentLang, setCurrentLang] = useState('TR');
-  const [selectedProduct, setSelectedProduct] = useState<any>(null); // Tıklanan ürünü tutar
+  const [selectedProduct, setSelectedProduct] = useState<any>(null);
+  
+  // SEPET STATELERİ
+  const [cart, setCart] = useState<any[]>([]);
+  const [isCartOpen, setIsCartOpen] = useState(false);
 
   const t = translations[currentLang] || translations.TR;
 
@@ -191,6 +220,35 @@ export default function PublicMenu() {
     setLoading(false);
   };
 
+  // --- SEPET FONKSİYONLARI ---
+  const addToCart = (product: any) => {
+    setCart(prev => {
+      const existing = prev.find(item => item.id === product.id);
+      if (existing) {
+        return prev.map(item => item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item);
+      }
+      return [...prev, { ...product, quantity: 1 }];
+    });
+  };
+
+  const updateCartQuantity = (id: string, delta: number) => {
+    setCart(prev => prev.map(item => {
+      if (item.id === id) {
+        return { ...item, quantity: Math.max(0, item.quantity + delta) };
+      }
+      return item;
+    }).filter(item => item.quantity > 0));
+  };
+
+  const cartTotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  const cartItemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+
+  const handlePlaceOrder = () => {
+    alert(t.orderSuccess);
+    setCart([]);
+    setIsCartOpen(false);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-white text-slate-800 flex items-center justify-center p-4 font-sans">
@@ -221,19 +279,88 @@ export default function PublicMenu() {
     return true;
   });
 
+  // --- SEPET ÇEKMECESİ (DRAWER) ---
+  const renderCartDrawer = () => {
+    if (!isCartOpen) return null;
+    return (
+      <div className="fixed inset-0 z-[120] flex justify-end">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs transition-opacity" onClick={() => setIsCartOpen(false)} />
+        <div className="relative w-full max-w-sm bg-white h-full shadow-2xl flex flex-col font-sans animate-in slide-in-from-right duration-300">
+          {/* Header */}
+          <div className="p-5 flex justify-between items-center border-b border-slate-100" style={{ backgroundColor: pColor }}>
+            <div className="flex items-center gap-2 text-white">
+              <ShoppingBag size={20} />
+              <h2 className="font-black text-lg">{t.cartTitle}</h2>
+            </div>
+            <button onClick={() => setIsCartOpen(false)} className="p-1 hover:bg-white/20 rounded-full text-white transition cursor-pointer">
+              <X size={20} />
+            </button>
+          </div>
+
+          {/* Body */}
+          <div className="flex-1 overflow-y-auto p-5 bg-slate-50">
+            {cart.length === 0 ? (
+              <div className="h-full flex flex-col items-center justify-center text-slate-400 gap-3">
+                <ShoppingBag size={48} className="opacity-20" />
+                <p className="text-sm font-bold">{t.emptyCart}</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {cart.map((item) => (
+                  <div key={item.id} className="bg-white p-3 rounded-2xl shadow-sm border border-slate-100 flex gap-3 items-center">
+                    {item.image_url ? (
+                      <img src={item.image_url} alt={item.name} className="w-16 h-16 object-cover rounded-xl flex-shrink-0" />
+                    ) : (
+                      <div className="w-16 h-16 bg-slate-100 rounded-xl flex-shrink-0"></div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-bold text-sm text-slate-900 truncate pr-2">{item.name}</h4>
+                      <p className="font-extrabold text-sm" style={{ color: pColor }}>₺{item.price * item.quantity}</p>
+                    </div>
+                    <div className="flex items-center gap-3 bg-slate-50 border border-slate-200 rounded-xl px-2 py-1">
+                      <button onClick={() => updateCartQuantity(item.id, -1)} className="text-slate-500 hover:text-slate-800 p-1">
+                        {item.quantity === 1 ? <Trash2 size={14} className="text-rose-500" /> : <Minus size={14} />}
+                      </button>
+                      <span className="font-black text-sm w-4 text-center">{item.quantity}</span>
+                      <button onClick={() => updateCartQuantity(item.id, 1)} className="text-slate-500 hover:text-slate-800 p-1">
+                        <Plus size={14} />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Footer */}
+          {cart.length > 0 && (
+            <div className="p-5 bg-white border-t border-slate-100 shadow-[0_-10px_20px_rgba(0,0,0,0.03)] space-y-4">
+              <div className="flex justify-between items-center text-lg">
+                <span className="font-bold text-slate-500">{t.total}:</span>
+                <span className="font-black text-slate-900 text-2xl">₺{cartTotal}</span>
+              </div>
+              <button 
+                onClick={handlePlaceOrder}
+                className="w-full py-4 rounded-2xl text-white font-black text-sm shadow-lg flex items-center justify-center gap-2 hover:opacity-90 transition active:scale-95 cursor-pointer" 
+                style={{ backgroundColor: pColor }}
+              >
+                {t.placeOrder}
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
   // --- ÜRÜN DETAY MODALI (POPUP) ---
   const renderProductModal = () => {
     if (!selectedProduct) return null;
 
     return (
       <div className="fixed inset-0 z-[100] flex items-end justify-center sm:items-center">
-        {/* Arka plan karartması */}
-        <div 
-          className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity" 
-          onClick={() => setSelectedProduct(null)} 
-        />
+        <div className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity" onClick={() => setSelectedProduct(null)} />
         
-        {/* Modal İçeriği */}
         <div className="relative w-full max-w-md bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl animate-in slide-in-from-bottom duration-300 max-h-[90vh] flex flex-col">
           <button 
             onClick={() => setSelectedProduct(null)} 
@@ -282,10 +409,10 @@ export default function PublicMenu() {
               
               <button 
                 onClick={() => {
-                  alert(`${selectedProduct.name} siparişe eklendi!`);
+                  addToCart(selectedProduct);
                   setSelectedProduct(null);
                 }}
-                className="w-full py-4 mt-6 rounded-2xl text-white font-black text-sm shadow-lg flex items-center justify-center gap-2 hover:opacity-90 transition active:scale-95" 
+                className="w-full py-4 mt-6 rounded-2xl text-white font-black text-sm shadow-lg flex items-center justify-center gap-2 hover:opacity-90 transition active:scale-95 cursor-pointer" 
                 style={{ backgroundColor: pColor }}
               >
                 <ShoppingBag size={18} /> {t.addToOrder}
@@ -415,6 +542,25 @@ export default function PublicMenu() {
     );
   };
 
+  // YÜZEN SEPET BUTONU (FAB)
+  const renderFloatingCartButton = () => {
+    if (cartItemCount === 0) return null;
+    return (
+      <button
+        onClick={() => setIsCartOpen(true)}
+        className="fixed bottom-6 right-6 p-4 rounded-full shadow-2xl text-white z-[90] flex items-center justify-center animate-bounce duration-1000 cursor-pointer"
+        style={{ backgroundColor: pColor }}
+      >
+        <div className="relative">
+          <ShoppingBag size={24} />
+          <span className="absolute -top-3 -right-3 bg-rose-500 text-white text-[11px] font-black w-6 h-6 flex items-center justify-center rounded-full border-2 border-white shadow-sm">
+            {cartItemCount}
+          </span>
+        </div>
+      </button>
+    );
+  };
+
   // 1. PDF / GÖRSEL ŞABLON
   if (template === 'pdf_image') {
     return (
@@ -437,10 +583,12 @@ export default function PublicMenu() {
   // 2. KARE GRID ŞABLON
   if (template === 'custom_grid') {
     return (
-      <div className="min-h-screen bg-slate-100 text-slate-900 font-sans pb-12">
+      <div className="min-h-screen bg-slate-100 text-slate-900 font-sans pb-24 relative overflow-x-hidden">
+        {renderCartDrawer()}
         {renderProductModal()}
         {renderSidebar()}
         {renderHeader()}
+        {renderFloatingCartButton()}
 
         {restaurant.cover_image && (
           <div className="w-full h-36 bg-cover bg-center" style={{ backgroundImage: `url(${restaurant.cover_image})` }}></div>
@@ -503,7 +651,6 @@ export default function PublicMenu() {
                     </div>
                     <p className="text-[11px] text-slate-500 line-clamp-2">{prod.description}</p>
                     
-                    {/* Alerjen İkonları */}
                     {prod.allergens && prod.allergens.length > 0 && (
                       <div className="flex items-center gap-1 pt-1">
                         <span className="text-[9px] font-bold text-slate-400">{t.allergens}</span>
@@ -526,10 +673,12 @@ export default function PublicMenu() {
   // 3. KLASİK TEMA
   if (template === 'classic') {
     return (
-      <div className="min-h-screen bg-slate-100 text-slate-900 font-sans pb-16">
+      <div className="min-h-screen bg-slate-100 text-slate-900 font-sans pb-24 relative overflow-x-hidden">
+        {renderCartDrawer()}
         {renderProductModal()}
         {renderSidebar()}
         {renderHeader()}
+        {renderFloatingCartButton()}
 
         <div className="h-44 bg-slate-800 relative bg-cover bg-center" style={{ backgroundImage: restaurant.cover_image ? `url(${restaurant.cover_image})` : 'none' }}>
           <div className="absolute inset-0 bg-black/40" />
@@ -562,7 +711,6 @@ export default function PublicMenu() {
                 </div>
                 <p className="text-[11px] text-slate-500 line-clamp-2">{prod.description}</p>
                 
-                {/* Alerjen İkonları */}
                 {prod.allergens && prod.allergens.length > 0 && (
                   <div className="flex items-center gap-1 pt-0.5">
                     <span className="text-[9px] font-bold text-slate-400">{t.allergens}</span>
@@ -582,10 +730,12 @@ export default function PublicMenu() {
 
   // 4. MODERN BİSTRO (VARSAYILAN)
   return (
-    <div className="min-h-screen bg-slate-100 text-slate-900 font-sans pb-16">
+    <div className="min-h-screen bg-slate-100 text-slate-900 font-sans pb-24 relative overflow-x-hidden">
+      {renderCartDrawer()}
       {renderProductModal()}
       {renderSidebar()}
       {renderHeader()}
+      {renderFloatingCartButton()}
 
       {restaurant.cover_image && (
         <div className="w-full h-32 bg-cover bg-center" style={{ backgroundImage: `url(${restaurant.cover_image})` }}></div>
@@ -640,7 +790,10 @@ export default function PublicMenu() {
                       <div className="flex justify-between items-start gap-1">
                         <h3 className="font-bold text-xs text-slate-900 leading-snug">{prod.name}</h3>
                         <button 
-                          onClick={(e) => { e.stopPropagation(); alert(`${prod.name} eklendi!`); }}
+                          onClick={(e) => { 
+                            e.stopPropagation(); 
+                            addToCart(prod); 
+                          }}
                           className="bg-slate-100 text-[10px] font-extrabold px-3 py-1.5 rounded-lg transition flex-shrink-0 hover:bg-slate-200" 
                           style={{ color: pColor }}
                         >
@@ -649,10 +802,8 @@ export default function PublicMenu() {
                       </div>
                       <p className="font-extrabold text-sm" style={{ color: pColor }}>₺{prod.price}</p>
                       
-                      {/* Açıklama kısmı üç nokta ile kısaltılmış */}
                       <p className="text-[10px] text-slate-400 line-clamp-2 pr-2 leading-relaxed">{prod.description}</p>
                       
-                      {/* Alerjen İkonları */}
                       {prod.allergens && prod.allergens.length > 0 && (
                         <div className="flex items-center gap-1.5 pt-1.5">
                           <span className="text-[9px] font-bold text-slate-400">{t.allergens}</span>
