@@ -153,7 +153,7 @@ export default function PublicMenu() {
 
   const t = translations[currentLang] || translations.TR;
 
-  // GOOGLE TRANSLATE ENTEGRASYONU (React uyumlu)
+  // GOOGLE TRANSLATE ENTEGRASYONU
   useEffect(() => {
     fetchData();
     if (!document.getElementById('google-translate-script')) {
@@ -326,7 +326,7 @@ export default function PublicMenu() {
     );
   };
 
-  // --- ÜRÜN DETAY MODALI (POPUP) ---
+  // --- ÜRÜN DETAY MODALI (POPUP - BÜYÜYEN EKRAN) ---
   const renderProductModal = (isDark: boolean = false) => {
     if (!selectedProduct) return null;
     return (
@@ -388,7 +388,7 @@ export default function PublicMenu() {
     );
   };
 
-  // --- ÜST BAR VE MENÜ (ORTAK) ---
+  // --- ÜST BAR VE YAN MENÜ (ORTAK) ---
   const renderHeader = (isDark: boolean = false) => (
     <header className={`p-3 px-4 flex justify-between items-center shadow-md relative z-40 sticky top-0 ${isDark ? 'bg-[#0A0F1C] border-b border-[#1E293B] text-white' : 'text-white'}`} style={isDark ? {} : { backgroundColor: pColor }}>
       <div id="google_translate_element" style={{ display: 'none' }}></div>
@@ -495,9 +495,10 @@ export default function PublicMenu() {
     );
   };
 
-  // --------------------------------------------------------
-  // ŞABLON 1: PDF / GÖRSEL (AÇIK/GENEL TEMA)
-  // --------------------------------------------------------
+
+  // ============================================================================
+  // ŞABLON 1: PDF / GÖRSEL MENÜ
+  // ============================================================================
   if (template === 'pdf_image') {
     return (
       <div className="min-h-[100dvh] bg-slate-900 text-white font-sans flex flex-col items-center">
@@ -505,7 +506,7 @@ export default function PublicMenu() {
         {renderHeader(true)}
         <main className="max-w-md w-full p-2 space-y-3 mt-4">
           {restaurant.custom_menu_image ? (
-            <img src={restaurant.custom_menu_image} alt="Menü" className="w-full rounded-xl shadow-2xl" />
+            <img src={restaurant.custom_menu_image} alt="Menü Broşürü" className="w-full rounded-xl shadow-2xl" />
           ) : (
             <div className="bg-slate-800 p-12 text-center rounded-2xl text-slate-400 text-xs">
               <span>{t.noBrochure}</span>
@@ -516,94 +517,17 @@ export default function PublicMenu() {
     );
   }
 
-  // --------------------------------------------------------
-  // ŞABLON 2: ÖZEL GRID TEMA (AÇIK TEMA)
-  // --------------------------------------------------------
-  if (template === 'custom_grid') {
-    return (
-      <div className="min-h-[100dvh] bg-slate-100 text-slate-900 font-sans pb-28 relative overflow-x-hidden">
-        {renderCartDrawer()}
-        {renderProductModal()}
-        {renderSidebar()}
-        {renderHeader()}
-        {renderFloatingCartButton()}
-
-        {restaurant.cover_image && (
-          <div className="w-full h-36 bg-cover bg-center" style={{ backgroundImage: `url(${restaurant.cover_image})` }}></div>
-        )}
-
-        <div className="bg-white p-5 shadow-sm space-y-2 border-b">
-          <div className="flex items-center gap-3">
-            {restaurant.logo_url && (
-              <img src={restaurant.logo_url} alt="Logo" className="w-14 h-14 rounded-xl object-cover shadow-sm border border-slate-100" />
-            )}
-            <div>
-              <h1 className="text-xl font-extrabold"><span>{restaurant.name}</span></h1>
-              <p className="text-xs text-slate-500 font-medium"><span>{restaurant.subtitle || t.defaultSubtitle}</span></p>
-            </div>
-          </div>
-          <div className="space-y-1 text-xs text-slate-600 pt-3 border-t mt-3">
-            <p className="flex items-center gap-1.5"><Clock size={14} style={{ color: pColor }} /> <span className="notranslate">{restaurant.working_hours || '08:00 - 24:00'}</span></p>
-            {restaurant.address && <p className="flex items-center gap-1.5"><MapPin size={14} style={{ color: pColor }} /> <span>{restaurant.address}</span></p>}
-          </div>
-        </div>
-
-        {selectedCat === 'all' ? (
-          <div className="max-w-md mx-auto p-4 space-y-3">
-            <h2 className="text-xs uppercase font-extrabold text-slate-400 tracking-wider"><span>{t.categoriesTitle}</span></h2>
-            <div className="grid grid-cols-2 gap-3">
-              {categories.map((cat) => (
-                <div key={cat.id} onClick={() => setSelectedCat(cat.id)} className="h-28 bg-slate-800 rounded-2xl relative overflow-hidden cursor-pointer shadow-md flex items-end p-3 border border-slate-700 bg-cover bg-center" style={{ backgroundImage: cat.image_url ? `linear-gradient(to top, rgba(0,0,0,0.8), rgba(0,0,0,0.2)), url(${cat.image_url})` : 'none' }}>
-                  <span className="font-extrabold text-sm text-white relative z-20 uppercase"><span>{cat.name}</span></span>
-                </div>
-              ))}
-            </div>
-          </div>
-        ) : (
-          <div className="max-w-md mx-auto p-4 space-y-3">
-            <button onClick={() => setSelectedCat('all')} className="text-xs font-bold px-3 py-1.5 rounded-xl cursor-pointer inline-block mb-2" style={{ color: pColor, backgroundColor: `${pColor}20` }}>
-              <span>{t.backToCategories}</span>
-            </button>
-            <div className="space-y-3">
-              {filteredProducts.map((prod) => (
-                <div key={prod.id} onClick={() => setSelectedProduct(prod)} className="bg-white p-3 rounded-2xl border shadow-sm flex gap-3 cursor-pointer hover:border-slate-300 transition">
-                  {prod.image_url && <img src={prod.image_url} alt={prod.name} className="w-24 h-24 object-cover rounded-xl flex-shrink-0" />}
-                  <div className="flex-1 space-y-1">
-                    <div className="flex justify-between items-start">
-                      <h3 className="font-bold text-sm text-slate-900 leading-snug pr-2"><span>{prod.name}</span></h3>
-                      <span className="font-extrabold text-sm whitespace-nowrap" style={{ color: pColor }}>₺<span>{prod.price}</span></span>
-                    </div>
-                    <p className="text-[11px] text-slate-500 line-clamp-2"><span>{prod.description}</span></p>
-                    {prod.allergens && prod.allergens.length > 0 && (
-                      <div className="flex items-center gap-1 pt-1">
-                        <span className="text-[9px] font-bold text-slate-400"><span>{t.allergens}</span></span>
-                        {prod.allergens.map((algId: string) => {
-                          const alg = ALLERGEN_OPTIONS.find(a => a.id === algId);
-                          return alg ? <span key={algId} className="text-[11px] notranslate" title={alg.label}>{alg.icon}</span> : null;
-                        })}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
-    );
-  }
-
-  // --------------------------------------------------------
-  // ŞABLON 3: KLASİK TEMA (AÇIK TEMA)
-  // --------------------------------------------------------
+  // ============================================================================
+  // ŞABLON 2: KLASİK TEMA (AÇIK RENK, YUVARLAK LOGO)
+  // ============================================================================
   if (template === 'classic') {
     return (
       <div className="min-h-[100dvh] bg-slate-100 text-slate-900 font-sans pb-28 relative overflow-x-hidden">
-        {renderCartDrawer()}
-        {renderProductModal()}
-        {renderSidebar()}
-        {renderHeader()}
-        {renderFloatingCartButton()}
+        {renderCartDrawer(false)}
+        {renderProductModal(false)}
+        {renderSidebar(false)}
+        {renderHeader(false)}
+        {renderFloatingCartButton(false)}
 
         <div className="h-44 bg-slate-800 relative bg-cover bg-center" style={{ backgroundImage: restaurant.cover_image ? `url(${restaurant.cover_image})` : 'none' }}>
           <div className="absolute inset-0 bg-black/40" />
@@ -644,94 +568,178 @@ export default function PublicMenu() {
     );
   }
 
-  // --------------------------------------------------------
-  // ŞABLON 4: BISTRO / MODERN TEMA (İSTEDİĞİN KARANLIK / DARK TEMA)
-  // --------------------------------------------------------
-  return (
-    <div className="min-h-[100dvh] bg-[#0A0F1C] text-white font-sans pb-28 relative overflow-x-hidden">
-      {renderCartDrawer(true)}
-      {renderProductModal(true)}
-      {renderSidebar(true)}
-      {renderHeader(true)}
-      {renderFloatingCartButton(true)}
+  // ============================================================================
+  // ŞABLON 3: DN ÖZEL TEMASI (GÖNDERDİĞİN KARANLIK / DARK TEMA)
+  // ============================================================================
+  if (template === 'custom_grid') {
+    return (
+      <div className="min-h-[100dvh] bg-[#0A0F1C] text-white font-sans pb-28 relative overflow-x-hidden">
+        {renderCartDrawer(true)}
+        {renderProductModal(true)}
+        {renderSidebar(true)}
+        {renderHeader(true)}
+        {renderFloatingCartButton(true)}
 
-      {/* RESTORAN BİLGİ ALANI */}
-      <div className="flex flex-col items-center justify-center py-6 px-4 space-y-2 text-center">
-        <p className="text-sm font-medium text-slate-300"><span>{restaurant.subtitle || t.defaultSubtitle}</span></p>
-        <div className="flex items-center gap-4 text-[11px] text-slate-400">
-          {restaurant.phone && <span className="flex items-center gap-1"><Phone size={12} /> <span className="notranslate">{restaurant.phone}</span></span>}
-          {restaurant.address && <span className="flex items-center gap-1"><MapPin size={12} /> <span>{restaurant.address}</span></span>}
+        {/* RESTORAN BİLGİ ALANI */}
+        <div className="flex flex-col items-center justify-center py-6 px-4 space-y-2 text-center">
+          <p className="text-sm font-medium text-slate-300"><span>{restaurant.subtitle || t.defaultSubtitle}</span></p>
+          <div className="flex items-center gap-4 text-[11px] text-slate-400">
+            {restaurant.phone && <span className="flex items-center gap-1"><Phone size={12} /> <span className="notranslate">{restaurant.phone}</span></span>}
+            {restaurant.address && <span className="flex items-center gap-1"><MapPin size={12} /> <span>{restaurant.address}</span></span>}
+          </div>
         </div>
-      </div>
 
-      {/* YATAY KAYDIRILABİLİR KATEGORİ SEKMELERİ */}
-      <div className="sticky top-[60px] z-30 bg-[#0A0F1C] border-b border-[#1E293B] shadow-md">
-        <div className="max-w-3xl mx-auto overflow-x-auto whitespace-nowrap flex gap-2 p-3 px-4 scrollbar-hide">
-          <button 
-            onClick={() => setSelectedCat('all')} 
-            className={`px-5 py-2.5 rounded-full text-xs font-bold transition cursor-pointer border border-[#1E293B] ${selectedCat === 'all' ? 'text-white' : 'bg-[#151D2C] text-slate-400 hover:bg-[#1E293B]'}`}
-            style={selectedCat === 'all' ? { backgroundColor: pColor } : {}}
-          >
-            <span>{t.allProducts}</span>
-          </button>
-
-          {categories.map((cat) => (
+        {/* YATAY KAYDIRILABİLİR KATEGORİ SEKMELERİ */}
+        <div className="sticky top-[60px] z-30 bg-[#0A0F1C] border-b border-[#1E293B] shadow-md">
+          <div className="max-w-3xl mx-auto overflow-x-auto whitespace-nowrap flex gap-2 p-3 px-4 scrollbar-hide">
             <button 
-              key={cat.id} 
-              onClick={() => setSelectedCat(cat.id)} 
-              className={`px-5 py-2.5 rounded-full text-xs font-bold transition cursor-pointer border border-[#1E293B] ${selectedCat === cat.id ? 'text-white' : 'bg-[#151D2C] text-slate-400 hover:bg-[#1E293B]'}`}
-              style={selectedCat === cat.id ? { backgroundColor: pColor } : {}}
+              onClick={() => setSelectedCat('all')} 
+              className={`px-5 py-2.5 rounded-full text-xs font-bold transition cursor-pointer border border-[#1E293B] ${selectedCat === 'all' ? 'text-white' : 'bg-[#151D2C] text-slate-400 hover:bg-[#1E293B]'}`}
+              style={selectedCat === 'all' ? { backgroundColor: pColor } : {}}
             >
-              <span>{cat.name}</span>
+              <span>{t.allProducts}</span>
             </button>
+
+            {categories.map((cat) => (
+              <button 
+                key={cat.id} 
+                onClick={() => setSelectedCat(cat.id)} 
+                className={`px-5 py-2.5 rounded-full text-xs font-bold transition cursor-pointer border border-[#1E293B] ${selectedCat === cat.id ? 'text-white' : 'bg-[#151D2C] text-slate-400 hover:bg-[#1E293B]'}`}
+                style={selectedCat === cat.id ? { backgroundColor: pColor } : {}}
+              >
+                <span>{cat.name}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* ÜRÜN LİSTESİ KARTLARI */}
+        <main className="max-w-3xl mx-auto p-4 space-y-4 mt-2">
+          {filteredProducts.map((prod) => (
+            <div 
+              key={prod.id} 
+              onClick={() => setSelectedProduct(prod)} // POPUP AÇAR
+              className="bg-[#151D2C] border border-[#1E293B] rounded-2xl p-4 flex gap-4 cursor-pointer hover:border-slate-600 transition"
+            >
+              {/* Fotoğraf */}
+              {prod.image_url ? (
+                <img src={prod.image_url} alt={prod.name} className="w-24 h-24 object-cover rounded-xl flex-shrink-0 bg-[#0B1120]" />
+              ) : (
+                <div className="w-24 h-24 bg-[#0B1120] rounded-xl flex-shrink-0 flex items-center justify-center border border-[#1E293B]"><span className="text-[10px] text-slate-600">Yok</span></div>
+              )}
+              
+              {/* Ürün Detayları */}
+              <div className="flex-1 min-w-0 flex flex-col justify-between">
+                <div>
+                  <div className="flex justify-between items-start gap-2">
+                    <h3 className="font-bold text-sm text-white leading-snug"><span>{prod.name}</span></h3>
+                    <span className="font-black text-xs px-2.5 py-1 rounded-lg bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 whitespace-nowrap">
+                      <span>{prod.price}</span> ₺
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-400 line-clamp-2 mt-1.5 leading-relaxed"><span>{prod.description}</span></p>
+                </div>
+
+                {/* Alerjen İkonları */}
+                {prod.allergens && prod.allergens.length > 0 && (
+                  <div className="flex items-center gap-1.5 pt-2">
+                    {prod.allergens.map((algId: string) => {
+                      const alg = ALLERGEN_OPTIONS.find(a => a.id === algId);
+                      return alg ? <span key={algId} className="bg-[#0B1120] p-1 rounded border border-[#1E293B] text-[10px] grayscale opacity-80 notranslate" title={alg.label}>{alg.icon}</span> : null;
+                    })}
+                  </div>
+                )}
+              </div>
+            </div>
           ))}
+          {filteredProducts.length === 0 && (
+            <div className="text-center py-10 text-slate-500 text-xs">
+              <span>Bu kategoride ürün bulunamadı.</span>
+            </div>
+          )}
+        </main>
+      </div>
+    );
+  }
+
+  // ============================================================================
+  // ŞABLON 4: BİSTRO TEMA (AÇIK RENK, AKORDEONLU YAPI - VARSAYILAN)
+  // ============================================================================
+  return (
+    <div className="min-h-[100dvh] bg-slate-100 text-slate-900 font-sans pb-28 relative overflow-x-hidden">
+      {renderCartDrawer(false)}
+      {renderProductModal(false)}
+      {renderSidebar(false)}
+      {renderHeader(false)}
+      {renderFloatingCartButton(false)}
+
+      {restaurant.cover_image && (
+        <div className="w-full h-32 bg-cover bg-center" style={{ backgroundImage: `url(${restaurant.cover_image})` }}></div>
+      )}
+
+      <div className="bg-white p-4 shadow-sm border-b space-y-3">
+        <div className="flex gap-3 items-center">
+          {restaurant.logo_url ? (
+            <img src={restaurant.logo_url} alt="Logo" className="w-16 h-16 object-cover rounded-xl border border-slate-100 shadow-sm" />
+          ) : (
+            <div className="w-14 h-14 text-white font-extrabold text-xs rounded-xl flex items-center justify-center p-1 text-center" style={{ backgroundColor: pColor }}><span>{restaurant.name[0]}</span></div>
+          )}
+          <div>
+            <h1 className="font-extrabold text-lg text-slate-900"><span>{restaurant.name}</span></h1>
+            <p className="text-xs text-slate-400 font-semibold"><span>{restaurant.subtitle || t.defaultSubtitle}</span></p>
+          </div>
+        </div>
+        <div className="flex flex-wrap gap-3 text-[11px] text-slate-600 pt-2 border-t mt-2">
+          <span className="flex items-center gap-1"><Clock size={12} style={{ color: pColor }} /> <span className="notranslate">{restaurant.working_hours || '08:00 - 24:00'}</span></span>
+          {restaurant.address && <span className="flex items-center gap-1"><MapPin size={12} style={{ color: pColor }} /> <span>{restaurant.address}</span></span>}
         </div>
       </div>
 
-      {/* ÜRÜN LİSTESİ KARTLARI */}
-      <main className="max-w-3xl mx-auto p-4 space-y-4 mt-2">
-        {filteredProducts.map((prod) => (
-          <div 
-            key={prod.id} 
-            onClick={() => setSelectedProduct(prod)} // POPUP AÇAR
-            className="bg-[#151D2C] border border-[#1E293B] rounded-2xl p-4 flex gap-4 cursor-pointer hover:border-slate-600 transition"
-          >
-            {/* Fotoğraf */}
-            {prod.image_url ? (
-              <img src={prod.image_url} alt={prod.name} className="w-24 h-24 object-cover rounded-xl flex-shrink-0 bg-[#0B1120]" />
-            ) : (
-              <div className="w-24 h-24 bg-[#0B1120] rounded-xl flex-shrink-0 flex items-center justify-center border border-[#1E293B]"><span className="text-[10px] text-slate-600">Yok</span></div>
-            )}
-            
-            {/* Ürün Detayları */}
-            <div className="flex-1 min-w-0 flex flex-col justify-between">
-              <div>
-                <div className="flex justify-between items-start gap-2">
-                  <h3 className="font-bold text-sm text-white leading-snug"><span>{prod.name}</span></h3>
-                  <span className="font-black text-xs px-2.5 py-1 rounded-lg bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 whitespace-nowrap">
-                    <span>{prod.price}</span> ₺
-                  </span>
+      <main className="max-w-md mx-auto p-3 space-y-3">
+        {categories.map((cat) => {
+          const catProducts = products.filter(p => p.category_id === cat.id);
+          if (catProducts.length === 0) return null;
+          
+          return (
+            <div key={cat.id} className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+              <div className="p-3.5 bg-slate-50 border-b border-slate-100 flex justify-between items-center font-bold text-sm text-slate-800">
+                <div className="flex items-center gap-2.5">
+                  {cat.image_url && <img src={cat.image_url} alt={cat.name} className="w-7 h-7 rounded-lg object-cover border border-slate-200" />}
+                  <span>{cat.name}</span>
                 </div>
-                <p className="text-[11px] text-slate-400 line-clamp-2 mt-1.5 leading-relaxed"><span>{prod.description}</span></p>
+                <ChevronDown size={16} className="text-slate-400" />
               </div>
 
-              {/* Alerjen İkonları */}
-              {prod.allergens && prod.allergens.length > 0 && (
-                <div className="flex items-center gap-1.5 pt-2">
-                  {prod.allergens.map((algId: string) => {
-                    const alg = ALLERGEN_OPTIONS.find(a => a.id === algId);
-                    return alg ? <span key={algId} className="bg-[#0B1120] p-1 rounded border border-[#1E293B] text-[10px] grayscale opacity-80 notranslate" title={alg.label}>{alg.icon}</span> : null;
-                  })}
-                </div>
-              )}
+              <div className="p-3 space-y-3 divide-y divide-slate-100">
+                {catProducts.map((prod) => (
+                  <div key={prod.id} onClick={() => setSelectedProduct(prod)} className="pt-3 first:pt-0 flex gap-3 items-center cursor-pointer hover:bg-slate-50 transition -mx-3 px-3 rounded-lg">
+                    {prod.image_url && <img src={prod.image_url} alt={prod.name} className="w-20 h-20 object-cover rounded-xl border border-slate-100 flex-shrink-0" />}
+                    <div className="flex-1 min-w-0 space-y-1 py-1">
+                      <div className="flex justify-between items-start gap-1">
+                        <h3 className="font-bold text-xs text-slate-900 leading-snug"><span>{prod.name}</span></h3>
+                        <button onClick={(e) => { e.stopPropagation(); addToCart(prod); }} className="bg-slate-100 text-[10px] font-extrabold px-3 py-1.5 rounded-lg transition flex-shrink-0 hover:bg-slate-200" style={{ color: pColor }}>
+                          <span>{t.addBtn}</span>
+                        </button>
+                      </div>
+                      <p className="font-extrabold text-sm" style={{ color: pColor }}>₺<span>{prod.price}</span></p>
+                      <p className="text-[10px] text-slate-400 line-clamp-2 pr-2 leading-relaxed"><span>{prod.description}</span></p>
+                      
+                      {prod.allergens && prod.allergens.length > 0 && (
+                        <div className="flex items-center gap-1.5 pt-1.5">
+                          <span className="text-[9px] font-bold text-slate-400"><span>{t.allergens}</span></span>
+                          {prod.allergens.map((algId: string) => {
+                            const alg = ALLERGEN_OPTIONS.find(a => a.id === algId);
+                            return alg ? <span key={algId} className="text-xs grayscale opacity-70 notranslate" title={alg.label}>{alg.icon}</span> : null;
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
-        ))}
-        {filteredProducts.length === 0 && (
-          <div className="text-center py-10 text-slate-500 text-xs">
-            <span>Bu kategoride ürün bulunamadı.</span>
-          </div>
-        )}
+          );
+        })}
       </main>
     </div>
   );
