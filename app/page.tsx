@@ -86,7 +86,7 @@ export default function Dashboard() {
 
   // --- DASHBOARD STATES ---
   const [activeTab, setActiveTab] = useState('menu');
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false); // YENİ: Mobil Menü State'i
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false); 
   
   const [restaurantsList, setRestaurantsList] = useState<any[]>([]);
   const [selectedRestaurantId, setSelectedRestaurantId] = useState<string>('');
@@ -410,6 +410,21 @@ export default function Dashboard() {
       setTimeout(() => setSaveStatus(''), 3000);
     } else {
       setSaveStatus('Hata oluştu: ' + (error?.message || 'Bilinmeyen hata'));
+    }
+  };
+
+  // YENİ EKLENEN: ŞABLONA TIKLANDIĞINDA ANINDA VERİTABANINA KAYDEDEN FONKSİYON
+  const handleTemplateSelect = async (templateName: string) => {
+    setRestaurant({ ...restaurant, template: templateName });
+    if (restaurant?.id) {
+      setSaveStatus('Şablon güncelleniyor...');
+      const { error } = await supabase.from('restaurants').update({ template: templateName }).eq('id', restaurant.id);
+      if (!error) {
+        setSaveStatus('Şablon başarıyla kaydedildi! ✓');
+      } else {
+        setSaveStatus('Şablon kaydedilemedi: ' + error.message);
+      }
+      setTimeout(() => setSaveStatus(''), 3000);
     }
   };
 
@@ -889,7 +904,7 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              {/* GÖRSEL ŞABLON SEÇİMİ */}
+              {/* GÖRSEL ŞABLON SEÇİMİ - TIKLADIĞIN AN VERİTABANINA KAYDEDEN SİSTEM EKLENDİ */}
               <div className="bg-white border border-slate-200 p-4 md:p-6 rounded-2xl space-y-4 shadow-xs">
                 <h2 className="font-extrabold text-slate-900 text-sm flex items-center gap-2">
                   <LayoutTemplate size={18} className="text-indigo-600" /> Menü Şablonu Seçin
@@ -898,7 +913,7 @@ export default function Dashboard() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-2">
                   {/* 1. Bistro & Cafe */}
                   <div 
-                    onClick={() => setRestaurant({...restaurant, template: 'bistro'})}
+                    onClick={() => handleTemplateSelect('bistro')}
                     className={`border-2 rounded-2xl p-3 cursor-pointer transition flex flex-col justify-between relative overflow-hidden bg-slate-50 ${
                       (restaurant?.template || 'bistro') === 'bistro'
                         ? 'border-indigo-600 ring-2 ring-indigo-600/20 bg-indigo-50/30'
@@ -933,7 +948,7 @@ export default function Dashboard() {
 
                   {/* 2. Özel Grid Tema */}
                   <div 
-                    onClick={() => setRestaurant({...restaurant, template: 'custom_grid'})}
+                    onClick={() => handleTemplateSelect('custom_grid')}
                     className={`border-2 rounded-2xl p-3 cursor-pointer transition flex flex-col justify-between relative overflow-hidden bg-slate-50 ${
                       restaurant?.template === 'custom_grid'
                         ? 'border-indigo-600 ring-2 ring-indigo-600/20 bg-indigo-50/30'
@@ -961,7 +976,7 @@ export default function Dashboard() {
 
                   {/* 3. PDF / Broşür Menü */}
                   <div 
-                    onClick={() => setRestaurant({...restaurant, template: 'pdf_image'})}
+                    onClick={() => handleTemplateSelect('pdf_image')}
                     className={`border-2 rounded-2xl p-3 cursor-pointer transition flex flex-col justify-between relative overflow-hidden bg-slate-50 ${
                       restaurant?.template === 'pdf_image'
                         ? 'border-indigo-600 ring-2 ring-indigo-600/20 bg-indigo-50/30'
@@ -986,7 +1001,7 @@ export default function Dashboard() {
 
                   {/* 4. Gourmet & Dining */}
                   <div 
-                    onClick={() => setRestaurant({...restaurant, template: 'classic'})}
+                    onClick={() => handleTemplateSelect('classic')}
                     className={`border-2 rounded-2xl p-3 cursor-pointer transition flex flex-col justify-between relative overflow-hidden bg-slate-50 ${
                       restaurant?.template === 'classic'
                         ? 'border-indigo-600 ring-2 ring-indigo-600/20 bg-indigo-50/30'
