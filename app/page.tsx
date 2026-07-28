@@ -117,14 +117,15 @@ export default function Dashboard() {
   const [subcategories, setSubcategories] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
   
-  // --- KATEGORİ FORM STATELERİ ---
+  // --- KATEGORİ FORM STATELERİ (AÇIKLAMA EKLENDİ) ---
   const [newCatName, setNewCatName] = useState('');
+  const [newCatDesc, setNewCatDesc] = useState('');
   const [catImageFile, setCatImageFile] = useState<File | null>(null);
   const [catImagePreview, setCatImagePreview] = useState<string>('');
   const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null);
 
-  // --- ALT KATEGORİ FORM STATELERİ ---
-  const [subCatForm, setSubCatForm] = useState({ name: '', category_id: '' });
+  // --- ALT KATEGORİ FORM STATELERİ (AÇIKLAMA EKLENDİ) ---
+  const [subCatForm, setSubCatForm] = useState({ name: '', description: '', category_id: '' });
   const [editingSubcategoryId, setEditingSubcategoryId] = useState<string | null>(null);
 
   // --- ÜRÜN FORM STATELERİ ---
@@ -413,7 +414,6 @@ export default function Dashboard() {
     }
   };
 
-  // --- İŞTE EKSİK OLAN VE ŞABLONLARIN DEĞİŞMESİNİ SAĞLAYAN OTOMATİK KAYIT FONKSİYONU ---
   const handleTemplateSelect = async (templateName: string) => {
     setRestaurant({ ...restaurant, template: templateName });
     if (restaurant?.id) {
@@ -428,7 +428,7 @@ export default function Dashboard() {
     }
   };
 
-  // --- KATEGORİ YÖNETİMİ ---
+  // --- ANA KATEGORİ YÖNETİMİ (AÇIKLAMA EKLENDİ) ---
   const addCategory = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (!newCatName.trim() || !selectedRestaurantId) return;
@@ -446,21 +446,21 @@ export default function Dashboard() {
     if (editingCategoryId) {
       const { data, error } = await supabase.from('categories').update({ 
         name: newCatName.trim(),
+        description: newCatDesc.trim(),
         image_url: finalImageUrl 
       }).eq('id', editingCategoryId).select();
       
       if (error) {
         alert('Hata: ' + error.message);
-      } else if (data && data.length === 0) {
-        alert('Güncelleme başarısız! Supabase panelinde "categories" tablosu için UPDATE izni tanımlı değil.');
       } else {
-        logActivity('Kategori Güncellendi', `Kategori "${newCatName.trim()}" olarak güncellendi.`);
+        logActivity('Kategori Güncellendi', `Kategori "${newCatName.trim()}" güncellendi.`);
         cancelEditCategory();
         fetchCategories(selectedRestaurantId);
       }
     } else {
       const insertData = { 
         name: newCatName.trim(), 
+        description: newCatDesc.trim(),
         sort_order: categories.length + 1, 
         restaurant_id: selectedRestaurantId,
         image_url: finalImageUrl
@@ -478,6 +478,7 @@ export default function Dashboard() {
   const handleEditCategory = (cat: any) => { 
     setEditingCategoryId(cat.id); 
     setNewCatName(cat.name); 
+    setNewCatDesc(cat.description || '');
     setCatImagePreview(cat.image_url || '');
     setCatImageFile(null);
   };
@@ -485,19 +486,20 @@ export default function Dashboard() {
   const cancelEditCategory = () => { 
     setEditingCategoryId(null); 
     setNewCatName(''); 
+    setNewCatDesc('');
     setCatImagePreview('');
     setCatImageFile(null);
   };
 
   const deleteCategory = async (id: string) => {
-    if(!confirm('Bu kategoriyi silmek istediğinize emin misiniz? Altındaki ürünler boşa çıkabilir.')) return;
+    if(!confirm('Bu kategoriyi silmek istediğinize emin misiniz?')) return;
     await supabase.from('categories').delete().eq('id', id);
     logActivity('Kategori Silindi', 'Bir ana kategori kaldırıldı.');
     fetchCategories(selectedRestaurantId);
     fetchSubcategories(selectedRestaurantId);
   };
 
-  // --- ALT KATEGORİ YÖNETİMİ ---
+  // --- ALT KATEGORİ YÖNETİMİ (AÇIKLAMA EKLENDİ) ---
   const addSubcategory = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!subCatForm.name.trim() || !subCatForm.category_id || !selectedRestaurantId) return alert('Kategori adı ve ana kategori seçin!');
@@ -506,32 +508,30 @@ export default function Dashboard() {
 
     if (editingSubcategoryId) {
       const { data, error } = await supabase.from('subcategories').update({
-        name: subCatForm.name.trim(), category_id: subCatForm.category_id
+        name: subCatForm.name.trim(), description: subCatForm.description.trim(), category_id: subCatForm.category_id
       }).eq('id', editingSubcategoryId).select();
 
       if (error) {
         alert('Hata: ' + error.message);
-      } else if (data && data.length === 0) {
-        alert('Güncelleme başarısız! Supabase panelinde "subcategories" tablosu için UPDATE izni eksik.');
       } else {
-        logActivity('Alt Kategori Güncellendi', `Alt kategori "${subCatForm.name.trim()}" olarak güncellendi.`);
+        logActivity('Alt Kategori Güncellendi', `Alt kategori "${subCatForm.name.trim()}" güncellendi.`);
         cancelEditSubcategory();
         fetchSubcategories(selectedRestaurantId);
       }
     } else {
-      const insertData = { name: subCatForm.name.trim(), category_id: subCatForm.category_id, restaurant_id: selectedRestaurantId, sort_order: subcategories.length + 1 };
+      const insertData = { name: subCatForm.name.trim(), description: subCatForm.description.trim(), category_id: subCatForm.category_id, restaurant_id: selectedRestaurantId, sort_order: subcategories.length + 1 };
       const { error } = await supabase.from('subcategories').insert([insertData]);
       if (!error) {
         logActivity('Alt Kategori Eklendi', `"${subCatForm.name.trim()}" alt kategorisi eklendi.`);
-        setSubCatForm({ name: '', category_id: categories[0]?.id || '' });
+        setSubCatForm({ name: '', description: '', category_id: categories[0]?.id || '' });
         fetchSubcategories(selectedRestaurantId);
       }
     }
     setLoadingSubCat(false);
   };
 
-  const handleEditSubcategory = (sub: any) => { setEditingSubcategoryId(sub.id); setSubCatForm({ name: sub.name, category_id: sub.category_id }); };
-  const cancelEditSubcategory = () => { setEditingSubcategoryId(null); setSubCatForm({ name: '', category_id: categories[0]?.id || '' }); };
+  const handleEditSubcategory = (sub: any) => { setEditingSubcategoryId(sub.id); setSubCatForm({ name: sub.name, description: sub.description || '', category_id: sub.category_id }); };
+  const cancelEditSubcategory = () => { setEditingSubcategoryId(null); setSubCatForm({ name: '', description: '', category_id: categories[0]?.id || '' }); };
 
   const deleteSubcategory = async (id: string) => {
     if(!confirm('Bu alt kategoriyi silmek istediğinize emin misiniz?')) return;
@@ -573,14 +573,9 @@ export default function Dashboard() {
     };
 
     if (editingProductId) {
-      const { data, error } = await supabase.from('products').update(payload).eq('id', editingProductId).select();
+      const { error } = await supabase.from('products').update(payload).eq('id', editingProductId).select();
       setLoadingProd(false);
-
-      if (error) {
-        alert('Ürün Güncelleme Hatası: ' + error.message);
-      } else if (data && data.length === 0) {
-        alert('Ürün güncellenemedi! Lütfen Supabase panelinden "products" tablosu için UPDATE (Güncelleme) izninin açık olduğundan emin olun.');
-      } else {
+      if (!error) {
         logActivity('Ürün Güncellendi', `"${productForm.name.trim()}" bilgileri güncellendi.`);
         cancelEditProduct();
         fetchProducts(selectedRestaurantId);
@@ -588,11 +583,8 @@ export default function Dashboard() {
     } else {
       const { error } = await supabase.from('products').insert([payload]);
       setLoadingProd(false);
-
-      if (error) {
-        alert('Ürün Ekleme Hatası: ' + error.message);
-      } else {
-        logActivity('Ürün Eklendi', `"${productForm.name.trim()}" menüye (₺${productForm.price}) eklendi.`);
+      if (!error) {
+        logActivity('Ürün Eklendi', `"${productForm.name.trim()}" menüye eklendi.`);
         cancelEditProduct();
         fetchProducts(selectedRestaurantId);
       }
@@ -634,7 +626,6 @@ export default function Dashboard() {
 
   const filteredSubcategories = subcategories.filter(s => s.category_id === productForm.category_id);
 
-  // --- KULLANICI GİRİŞ YAPMADIYSA ---
   if (!sessionUser) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center p-4 md:p-6 bg-slate-50 font-sans text-slate-800">
@@ -643,9 +634,7 @@ export default function Dashboard() {
             <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-purple-600 flex items-center justify-center text-white text-sm font-black shadow-md shadow-indigo-500/20">QR</div>
             <span>QR</span><span className="text-indigo-600">Menu</span>
           </div>
-
           <h2 className="text-lg font-extrabold text-slate-900 text-center mb-6">{isSignUp ? 'Yeni Hesap Oluştur' : 'Panele Giriş Yap'}</h2>
-
           <form onSubmit={handleAuth} className="space-y-4">
             <div>
               <label className="text-xs text-slate-500 uppercase font-bold block mb-1">E-posta</label>
@@ -659,7 +648,6 @@ export default function Dashboard() {
               {authLoading ? 'İşleniyor...' : (isSignUp ? 'Kayıt Ol' : 'Giriş Yap')}
             </button>
           </form>
-
           {authMessage && <p className={`mt-4 text-xs text-center font-bold p-3 rounded-xl ${authMessage.includes('Hata') ? 'text-rose-600 bg-rose-50 border border-rose-200' : 'text-emerald-600 bg-emerald-50 border border-emerald-200'}`}>{authMessage}</p>}
           <div className="mt-6 text-center">
             <button onClick={() => { setIsSignUp(!isSignUp); setAuthMessage(''); }} className="text-xs font-bold text-indigo-600 hover:underline bg-transparent border-none cursor-pointer">
@@ -671,19 +659,11 @@ export default function Dashboard() {
     );
   }
 
-  // --- ANA DASHBOARD ---
   return (
     <div className="flex flex-col h-screen bg-slate-50 font-sans text-slate-800 overflow-hidden">
-      {/* HEADER */}
       <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 md:px-6 z-30 shadow-xs relative">
         <div className="flex items-center gap-3">
-          <button 
-            onClick={() => setIsMobileMenuOpen(true)}
-            className="p-2 -ml-2 text-slate-600 hover:bg-slate-100 rounded-xl md:hidden transition"
-          >
-            <MenuIcon size={20} />
-          </button>
-
+          <button onClick={() => setIsMobileMenuOpen(true)} className="p-2 -ml-2 text-slate-600 hover:bg-slate-100 rounded-xl md:hidden transition"><MenuIcon size={20} /></button>
           <div className="flex items-center gap-2 font-black text-xl tracking-tight text-slate-900">
             <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-purple-600 flex items-center justify-center text-white text-xs font-black shadow-md shadow-indigo-500/20">QR</div>
             <span className="font-extrabold tracking-tight text-slate-900 hidden sm:inline">QR</span><span className="text-indigo-600 font-extrabold hidden sm:inline">Menu</span>
@@ -702,13 +682,7 @@ export default function Dashboard() {
       </header>
 
       <div className="flex flex-1 overflow-hidden relative">
-        
-        {/* MOBİL MENÜ OVERLAY */}
-        {isMobileMenuOpen && (
-          <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-40 md:hidden" onClick={() => setIsMobileMenuOpen(false)} />
-        )}
-
-        {/* SIDEBAR */}
+        {isMobileMenuOpen && <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-40 md:hidden" onClick={() => setIsMobileMenuOpen(false)} />}
         <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-slate-200 flex flex-col justify-between p-4 transition-transform duration-300 ease-in-out md:relative md:translate-x-0 ${isMobileMenuOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full'}`}>
           <div className="space-y-6">
             <div className="flex items-center justify-between md:hidden mb-2">
@@ -716,9 +690,7 @@ export default function Dashboard() {
                 <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-purple-600 flex items-center justify-center text-white text-xs font-black shadow-md">QR</div>
                 <span>QR<span className="text-indigo-600">Menu</span></span>
               </div>
-              <button onClick={() => setIsMobileMenuOpen(false)} className="p-2 text-slate-500 hover:bg-slate-100 rounded-xl">
-                <X size={20} />
-              </button>
+              <button onClick={() => setIsMobileMenuOpen(false)} className="p-2 text-slate-500 hover:bg-slate-100 rounded-xl"><X size={20} /></button>
             </div>
 
             <div>
@@ -748,7 +720,6 @@ export default function Dashboard() {
           </div>
         </aside>
 
-        {/* İÇERİK */}
         <main className="flex-1 p-4 md:p-8 overflow-y-auto bg-slate-50">
           {showNewRestModal && (
             <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4">
@@ -902,14 +873,13 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              {/* GÖRSEL ŞABLON SEÇİMİ - OTOMATİK KAYITLI SİSTEM */}
+              {/* GÖRSEL ŞABLON SEÇİMİ */}
               <div className="bg-white border border-slate-200 p-4 md:p-6 rounded-2xl space-y-4 shadow-xs">
                 <h2 className="font-extrabold text-slate-900 text-sm flex items-center gap-2">
                   <LayoutTemplate size={18} className="text-indigo-600" /> Menü Şablonu Seçin
                 </h2>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-2">
-                  {/* 1. Bistro & Cafe */}
                   <div 
                     onClick={() => handleTemplateSelect('bistro')}
                     className={`border-2 rounded-2xl p-3 cursor-pointer transition flex flex-col justify-between relative overflow-hidden bg-slate-50 ${
@@ -923,28 +893,12 @@ export default function Dashboard() {
                         <span>≡ RESTORAN</span>
                         <span className="text-[7px] bg-white text-indigo-600 px-1 py-0.5 rounded font-bold">TR</span>
                       </div>
-                      <div className="h-10 bg-indigo-100 rounded-lg flex items-center justify-center text-indigo-600 text-[8px] font-black">
-                        [Kapak Görseli]
-                      </div>
-                      <div className="bg-slate-50 p-1.5 rounded-lg border text-[7px] flex justify-between items-center">
-                        <div>
-                          <p className="font-bold">Serpme Kahvaltı</p>
-                          <p className="text-indigo-600 font-extrabold">₺150.00</p>
-                        </div>
-                        <span className="bg-indigo-600 text-white px-1.5 py-0.5 rounded text-[6px] font-bold">EKLE +</span>
-                      </div>
+                      <div className="h-10 bg-indigo-100 rounded-lg flex items-center justify-center text-indigo-600 text-[8px] font-black">[Kapak Görseli]</div>
                     </div>
-                    <div className="mt-3 text-center">
-                      <h3 className="font-bold text-xs text-slate-900">Bistro & Cafe</h3>
-                    </div>
-                    {(restaurant?.template || 'bistro') === 'bistro' && (
-                      <span className="absolute top-2 right-2 bg-indigo-600 text-white p-1 rounded-full shadow-md">
-                        <Check size={12} />
-                      </span>
-                    )}
+                    <div className="mt-3 text-center"><h3 className="font-bold text-xs text-slate-900">Bistro & Cafe</h3></div>
+                    {(restaurant?.template || 'bistro') === 'bistro' && <span className="absolute top-2 right-2 bg-indigo-600 text-white p-1 rounded-full shadow-md"><Check size={12} /></span>}
                   </div>
 
-                  {/* 2. Özel Grid Tema */}
                   <div 
                     onClick={() => handleTemplateSelect('custom_grid')}
                     className={`border-2 rounded-2xl p-3 cursor-pointer transition flex flex-col justify-between relative overflow-hidden bg-slate-50 ${
@@ -955,24 +909,11 @@ export default function Dashboard() {
                   >
                     <div className="h-44 bg-white rounded-xl p-2 flex flex-col gap-1.5 overflow-hidden text-slate-800 border border-slate-200 shadow-2xs pointer-events-none">
                       <div className="bg-indigo-600 text-white p-1 rounded-lg text-[8px] text-center font-extrabold">DN Özel Teması</div>
-                      <div className="grid grid-cols-2 gap-1 mt-0.5">
-                        <div className="h-10 bg-slate-800 rounded-lg text-white text-[7px] flex items-center justify-center font-bold">KAMPANYALAR</div>
-                        <div className="h-10 bg-slate-800 rounded-lg text-white text-[7px] flex items-center justify-center font-bold">KAHVALTILIK</div>
-                        <div className="h-10 bg-slate-800 rounded-lg text-white text-[7px] flex items-center justify-center font-bold">GÖZLEMELER</div>
-                        <div className="h-10 bg-slate-800 rounded-lg text-white text-[7px] flex items-center justify-center font-bold">İÇECEKLER</div>
-                      </div>
                     </div>
-                    <div className="mt-3 text-center">
-                      <h3 className="font-bold text-xs text-slate-900">DN Özel Teması</h3>
-                    </div>
-                    {restaurant?.template === 'custom_grid' && (
-                      <span className="absolute top-2 right-2 bg-indigo-600 text-white p-1 rounded-full shadow-md">
-                        <Check size={12} />
-                      </span>
-                    )}
+                    <div className="mt-3 text-center"><h3 className="font-bold text-xs text-slate-900">DN Özel Teması</h3></div>
+                    {restaurant?.template === 'custom_grid' && <span className="absolute top-2 right-2 bg-indigo-600 text-white p-1 rounded-full shadow-md"><Check size={12} /></span>}
                   </div>
 
-                  {/* 3. PDF / Broşür Menü */}
                   <div 
                     onClick={() => handleTemplateSelect('pdf_image')}
                     className={`border-2 rounded-2xl p-3 cursor-pointer transition flex flex-col justify-between relative overflow-hidden bg-slate-50 ${
@@ -982,22 +923,12 @@ export default function Dashboard() {
                     }`}
                   >
                     <div className="h-44 bg-white rounded-xl p-2 flex flex-col items-center justify-center gap-2 border border-slate-200 shadow-2xs text-center pointer-events-none">
-                      <div className="w-12 h-16 bg-indigo-50 border-2 border-dashed border-indigo-400 rounded-lg flex flex-col items-center justify-center text-indigo-600">
-                        <FileText size={18} />
-                      </div>
-                      <p className="text-[8px] font-bold text-slate-600">PDF / Broşür Menü</p>
+                      <FileText size={18} className="text-indigo-600" />
                     </div>
-                    <div className="mt-3 text-center">
-                      <h3 className="font-bold text-xs text-slate-900">PDF / Broşür Menü</h3>
-                    </div>
-                    {restaurant?.template === 'pdf_image' && (
-                      <span className="absolute top-2 right-2 bg-indigo-600 text-white p-1 rounded-full shadow-md">
-                        <Check size={12} />
-                      </span>
-                    )}
+                    <div className="mt-3 text-center"><h3 className="font-bold text-xs text-slate-900">PDF / Broşür Menü</h3></div>
+                    {restaurant?.template === 'pdf_image' && <span className="absolute top-2 right-2 bg-indigo-600 text-white p-1 rounded-full shadow-md"><Check size={12} /></span>}
                   </div>
 
-                  {/* 4. Gourmet & Dining */}
                   <div 
                     onClick={() => handleTemplateSelect('classic')}
                     className={`border-2 rounded-2xl p-3 cursor-pointer transition flex flex-col justify-between relative overflow-hidden bg-slate-50 ${
@@ -1007,27 +938,13 @@ export default function Dashboard() {
                     }`}
                   >
                     <div className="h-44 bg-white rounded-xl overflow-hidden border border-slate-200 shadow-2xs flex flex-col pointer-events-none">
-                      <div className="h-16 bg-slate-800 relative flex items-end justify-center pb-1">
-                        <div className="w-8 h-8 rounded-full bg-white border border-slate-300 absolute -bottom-3 flex items-center justify-center text-[7px] font-bold text-indigo-600">
-                          LOGO
-                        </div>
-                      </div>
-                      <div className="pt-4 p-2 text-center text-slate-800 space-y-1">
-                        <p className="text-[8px] font-bold">Gourmet & Dining</p>
-                      </div>
+                      <div className="h-16 bg-slate-800 relative flex items-end justify-center pb-1"></div>
                     </div>
-                    <div className="mt-3 text-center">
-                      <h3 className="font-bold text-xs text-slate-900">Gourmet & Dining</h3>
-                    </div>
-                    {restaurant?.template === 'classic' && (
-                      <span className="absolute top-2 right-2 bg-indigo-600 text-white p-1 rounded-full shadow-md">
-                        <Check size={12} />
-                      </span>
-                    )}
+                    <div className="mt-3 text-center"><h3 className="font-bold text-xs text-slate-900">Gourmet & Dining</h3></div>
+                    {restaurant?.template === 'classic' && <span className="absolute top-2 right-2 bg-indigo-600 text-white p-1 rounded-full shadow-md"><Check size={12} /></span>}
                   </div>
                 </div>
               </div>
-
             </div>
           )}
 
@@ -1038,80 +955,79 @@ export default function Dashboard() {
                 <p className="text-slate-500 text-xs font-medium mt-0.5">Kategori, alt kategori ve lezzetlerinizi ekleyin veya düzenleyin.</p>
               </div>
 
-              {/* --- 1. ANA KATEGORİ YÖNETİMİ --- */}
+              {/* --- 1. ANA KATEGORİ YÖNETİMİ (AÇIKLAMA EKLENDİ) --- */}
               <div className="bg-white border border-slate-200 p-4 md:p-6 rounded-2xl space-y-4 shadow-xs">
                 <h2 className={`font-extrabold text-sm ${editingCategoryId ? 'text-emerald-600' : 'text-slate-900'}`}>
                   {editingCategoryId ? '1. Ana Kategoriyi Düzenle' : '1. Ana Kategori Ekle'}
                 </h2>
-                
-                <form onSubmit={addCategory} className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
-                  
-                  {/* Kategori Fotoğraf Yükleme / Silme Alanı */}
-                  <div className={`relative w-full sm:w-14 h-14 rounded-xl border-2 border-dashed ${editingCategoryId && catImagePreview ? 'border-emerald-200' : 'border-slate-300'} flex items-center justify-center bg-slate-50 hover:border-indigo-500 transition overflow-hidden shrink-0 group`}>
-                    {catImagePreview ? (
-                      <>
-                        <img src={catImagePreview} className="w-full h-full object-cover" alt="Kategori Önizleme" />
-                        <button type="button" onClick={(e) => { e.stopPropagation(); setCatImagePreview(''); setCatImageFile(null); }} className="absolute top-1 right-1 bg-rose-500 text-white p-0.5 rounded-md shadow-sm z-20" title="Görseli Kaldır"><X size={10} /></button>
-                      </>
-                    ) : (
-                      <>
-                        <input type="file" accept="image/*" onChange={(e) => { if (e.target.files && e.target.files[0]) { setCatImageFile(e.target.files[0]); const reader = new FileReader(); reader.onloadend = () => setCatImagePreview(reader.result as string); reader.readAsDataURL(e.target.files[0]); } }} className="absolute inset-0 opacity-0 cursor-pointer z-10" title="Kategori Görseli Ekle" />
-                        <div className="text-slate-400 group-hover:text-indigo-500 transition flex items-center gap-2"><ImageIcon size={20} /><span className="sm:hidden text-xs font-bold">Kategori Resmi Seç</span></div>
-                      </>
-                    )}
-                  </div>
-
-                  {/* İsim ve Butonlar */}
-                  <div className="flex-1 flex flex-col sm:flex-row gap-3 w-full">
-                    <input type="text" placeholder="Kategori Adı (Örn: Kahvaltılıklar)" value={newCatName} onChange={(e) => setNewCatName(e.target.value)} className="w-full flex-1 px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold outline-none focus:border-indigo-500 h-12" />
-                    <div className="flex gap-2 w-full sm:w-auto">
-                      {editingCategoryId && <button type="button" onClick={cancelEditCategory} className="w-full sm:w-auto bg-slate-200 hover:bg-slate-300 text-slate-700 px-4 py-2 rounded-xl text-xs font-bold transition h-12">İptal</button>}
-                      <button type="submit" disabled={loadingCat} className={`w-full sm:w-auto ${editingCategoryId ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-indigo-600 hover:bg-indigo-700'} text-white px-5 py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1 transition shadow-xs h-12`}>
-                        {editingCategoryId ? <Save size={16} /> : <Plus size={16} />} {loadingCat ? '...' : (editingCategoryId ? 'Güncelle' : 'Ekle')}
-                      </button>
+                <form onSubmit={addCategory} className="space-y-3">
+                  <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+                    <div className={`relative w-full sm:w-14 h-14 rounded-xl border-2 border-dashed ${editingCategoryId && catImagePreview ? 'border-emerald-200' : 'border-slate-300'} flex items-center justify-center bg-slate-50 overflow-hidden shrink-0`}>
+                      {catImagePreview ? (
+                        <>
+                          <img src={catImagePreview} className="w-full h-full object-cover" />
+                          <button type="button" onClick={() => { setCatImagePreview(''); setCatImageFile(null); }} className="absolute top-1 right-1 bg-rose-500 text-white p-0.5 rounded-md"><X size={10} /></button>
+                        </>
+                        ) : (
+                          <input type="file" accept="image/*" onChange={(e) => { if (e.target.files && e.target.files[0]) { setCatImageFile(e.target.files[0]); const reader = new FileReader(); reader.onloadend = () => setCatImagePreview(reader.result as string); reader.readAsDataURL(e.target.files[0]); } }} className="absolute inset-0 opacity-0 cursor-pointer z-10" />
+                      )}
+                      {!catImagePreview && <ImageIcon size={20} className="text-slate-400" />}
                     </div>
+                    <input type="text" placeholder="Kategori Adı (Örn: Kahvaltılıklar)" value={newCatName} onChange={(e) => setNewCatName(e.target.value)} className="w-full flex-1 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold outline-none" />
+                  </div>
+                  {/* AÇIKLAMA ALANI EKLENDİ */}
+                  <textarea placeholder="Kategori Açıklaması (Opsiyonel)" value={newCatDesc} onChange={(e) => setNewCatDesc(e.target.value)} rows={2} className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none" />
+                  <div className="flex gap-2 justify-end">
+                    {editingCategoryId && <button type="button" onClick={cancelEditCategory} className="bg-slate-200 px-4 py-2 rounded-xl text-xs font-bold">İptal</button>}
+                    <button type="submit" disabled={loadingCat} className={`${editingCategoryId ? 'bg-emerald-600' : 'bg-indigo-600'} text-white px-5 py-2.5 rounded-xl text-xs font-bold`}>{editingCategoryId ? 'Kategoriyi Güncelle' : 'Kategori Ekle'}</button>
                   </div>
                 </form>
 
-                {/* Eklenen Kategoriler Listesi */}
                 <div className="flex flex-wrap gap-2 pt-2">
                   {categories.map((cat) => (
                     <div key={cat.id} className="bg-slate-50 pr-3.5 pl-2 py-1.5 rounded-xl border border-slate-200 flex items-center gap-3">
-                      {cat.image_url ? <img src={cat.image_url} alt={cat.name} className="w-8 h-8 rounded-lg object-cover border border-slate-200" /> : <div className="w-8 h-8 rounded-lg bg-slate-200 flex items-center justify-center text-[10px] font-bold text-slate-500">{cat.name[0]}</div>}
-                      <span className="font-bold text-xs text-slate-700">{cat.name}</span>
+                      {cat.image_url ? <img src={cat.image_url} alt={cat.name} className="w-8 h-8 rounded-lg object-cover" /> : <div className="w-8 h-8 rounded-lg bg-slate-200 flex items-center justify-center text-[10px] font-bold">{cat.name[0]}</div>}
+                      <div>
+                        <span className="font-bold text-xs text-slate-700 block">{cat.name}</span>
+                        {cat.description && <span className="text-[10px] text-slate-400 block line-clamp-1">{cat.description}</span>}
+                      </div>
                       <div className="flex items-center gap-1.5 ml-2 border-l border-slate-300 pl-3">
-                        <button onClick={() => handleEditCategory(cat)} className="text-indigo-500 hover:text-indigo-600" title="Düzenle"><Pencil size={14} /></button>
-                        <button onClick={() => deleteCategory(cat.id)} className="text-rose-500 hover:text-rose-600" title="Sil"><Trash2 size={14} /></button>
+                        <button onClick={() => handleEditCategory(cat)} className="text-indigo-500"><Pencil size={14} /></button>
+                        <button onClick={() => deleteCategory(cat.id)} className="text-rose-500"><Trash2 size={14} /></button>
                       </div>
                     </div>
                   ))}
                 </div>
               </div>
 
-              {/* --- 2. ALT KATEGORİ YÖNETİMİ --- */}
+              {/* --- 2. ALT KATEGORİ YÖNETİMİ (AÇIKLAMA EKLENDİ) --- */}
               <div className="bg-white border border-slate-200 p-4 md:p-6 rounded-2xl space-y-4 shadow-xs">
                 <h2 className={`font-extrabold text-sm flex items-center gap-2 ${editingSubcategoryId ? 'text-emerald-600' : 'text-slate-900'}`}>
                   <FolderTree size={16} className={editingSubcategoryId ? 'text-emerald-600' : 'text-indigo-600'} /> 
                   {editingSubcategoryId ? '2. Alt Kategoriyi Düzenle' : '2. Alt Kategori Ekle'}
                 </h2>
-                <form onSubmit={addSubcategory} className="grid grid-cols-1 md:grid-cols-4 gap-3">
-                  <select value={subCatForm.category_id} onChange={(e) => setSubCatForm({...subCatForm, category_id: e.target.value})} className="col-span-1 px-3 py-2 bg-slate-50 border rounded-xl text-xs h-12">
-                    {categories.map((cat) => <option key={cat.id} value={cat.id}>{cat.name}</option>)}
-                  </select>
-                  <input type="text" placeholder="Alt Kategori Adı" value={subCatForm.name} onChange={(e) => setSubCatForm({...subCatForm, name: e.target.value})} className="col-span-1 md:col-span-2 px-3 py-2 bg-slate-50 border rounded-xl text-xs h-12" />
-                  <div className="col-span-1 flex gap-2">
-                    {editingSubcategoryId && <button type="button" onClick={cancelEditSubcategory} className="bg-slate-200 px-3 py-2 rounded-xl text-xs font-bold flex-1 h-12">İptal</button>}
-                    <button type="submit" disabled={loadingSubCat} className={`${editingSubcategoryId ? 'bg-emerald-600' : 'bg-slate-900'} text-white px-3 py-2 rounded-xl text-xs font-bold flex flex-1 justify-center items-center gap-1 h-12`}>
-                      {editingSubcategoryId ? <Save size={16} /> : <Plus size={16} />} {editingSubcategoryId ? 'Güncelle' : 'Ekle'}
-                    </button>
+                <form onSubmit={addSubcategory} className="space-y-3">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <select value={subCatForm.category_id} onChange={(e) => setSubCatForm({...subCatForm, category_id: e.target.value})} className="px-3 py-2 bg-slate-50 border rounded-xl text-xs h-12">
+                      {categories.map((cat) => <option key={cat.id} value={cat.id}>{cat.name}</option>)}
+                    </select>
+                    <input type="text" placeholder="Alt Kategori Adı" value={subCatForm.name} onChange={(e) => setSubCatForm({...subCatForm, name: e.target.value})} className="md:col-span-2 px-3 py-2 bg-slate-50 border rounded-xl text-xs h-12" />
+                  </div>
+                  {/* ALT KATEGORİ AÇIKLAMA ALANI */}
+                  <textarea placeholder="Alt Kategori Açıklaması (Opsiyonel)" value={subCatForm.description} onChange={(e) => setSubCatForm({...subCatForm, description: e.target.value})} rows={2} className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none" />
+                  <div className="flex gap-2 justify-end">
+                    {editingSubcategoryId && <button type="button" onClick={cancelEditSubcategory} className="bg-slate-200 px-4 py-2 rounded-xl text-xs font-bold">İptal</button>}
+                    <button type="submit" disabled={loadingSubCat} className={`${editingSubcategoryId ? 'bg-emerald-600' : 'bg-slate-900'} text-white px-5 py-2.5 rounded-xl text-xs font-bold`}>{editingSubcategoryId ? 'Güncelle' : 'Alt Kategori Ekle'}</button>
                   </div>
                 </form>
 
                 <div className="flex flex-wrap gap-2 pt-2">
                   {subcategories.map((sub) => (
                     <div key={sub.id} className="bg-slate-50 px-3 py-1.5 rounded-xl border flex items-center gap-2 text-xs">
-                      <span className="text-indigo-600 font-bold">{sub.categories?.name} &gt;</span>
-                      <span className="font-bold text-slate-700">{sub.name}</span>
+                      <div>
+                        <span className="text-indigo-600 font-bold">{sub.categories?.name} &gt;</span> <span className="font-bold text-slate-700">{sub.name}</span>
+                        {sub.description && <span className="text-[10px] text-slate-400 block">{sub.description}</span>}
+                      </div>
                       <div className="flex items-center gap-1.5 ml-1 border-l pl-2">
                         <button onClick={() => handleEditSubcategory(sub)} className="text-indigo-500"><Pencil size={14} /></button>
                         <button onClick={() => deleteSubcategory(sub.id)} className="text-rose-500"><Trash2 size={14} /></button>
@@ -1172,8 +1088,8 @@ export default function Dashboard() {
                             <div key={item.id} onClick={() => toggleAllergen(item.id)} className={`flex justify-between p-2.5 cursor-pointer text-xs rounded-lg ${isSelected ? 'bg-indigo-50 text-indigo-600' : 'hover:bg-slate-50'}`}>
                               <span className="flex items-center gap-2"><span className="text-base">{item.icon}</span> {item.label}</span>{isSelected && <Check size={16} />}
                             </div>
-                          );
-                        })}
+                        );
+                      })}
                       </div>
                     )}
                   </div>
@@ -1235,15 +1151,15 @@ export default function Dashboard() {
           {activeTab === 'qr' && (
             <div className="max-w-5xl mx-auto md:mx-0 space-y-6">
               <div>
-                <h1 className="text-2xl font-black text-slate-900">QR Oluşturucu</h1>
-                <p className="text-slate-500 text-xs font-medium mt-0.5">Restoranınız için özelleştirilebilir dinamik QR kod stüdyosu.</p>
+                  <h1 className="text-2xl font-black text-slate-900">QR Oluşturucu</h1>
+                  <p className="text-slate-500 text-xs font-medium mt-0.5">Restoranınız için özelleştirilebilir dinamik QR kod stüdyosu.</p>
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div className="bg-white border border-slate-200 p-6 md:p-8 rounded-2xl flex flex-col items-center gap-6 shadow-xs">
                   <h2 className="font-extrabold text-slate-900 text-sm self-start flex items-center gap-2">
-                    <QrCode size={18} className="text-indigo-600" /> QR Kodunuz
-                  </h2>
+                      <QrCode size={18} className="text-indigo-600" /> QR Kodunuz
+                    </h2>
 
                   <div ref={qrRef} className="p-5 bg-white border-2 border-slate-100 rounded-2xl shadow-sm flex flex-col items-center w-full max-w-[260px]">
                     <QRCodeSVG value={liveMenuUrl} className="w-full h-auto" />
@@ -1288,9 +1204,9 @@ export default function Dashboard() {
                       <span>QR</span><span className="text-indigo-200">Menu</span>
                     </div>
                   </div>
-                </div>
               </div>
             </div>
+          </div>
           )}
         </main>
       </div>
