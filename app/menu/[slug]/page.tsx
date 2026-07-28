@@ -474,7 +474,8 @@ export default function PublicMenu({ params }: { params: { slug?: string } }) {
           </div>
 
           <div className="p-4 border-t text-[11px] text-slate-500 space-y-1 bg-slate-50 pb-safe">
-            {restaurant.working_hours && <p className="flex items-center gap-1.5"><Clock size={12} /> <span>{restaurant.working_hours}</span></p>}
+            {/* ÇALIŞMA SAATLERİ ARTIK ZORUNLU ÇEVİRİYE AÇIK */}
+            {restaurant.working_hours && <p className="flex items-center gap-1.5" translate="yes"><Clock size={12} /> <span>{restaurant.working_hours}</span></p>}
             {restaurant.phone && <p className="flex items-center gap-1.5"><Phone size={12} /> <span className="notranslate">{restaurant.phone}</span></p>}
           </div>
         </div>
@@ -515,7 +516,7 @@ export default function PublicMenu({ params }: { params: { slug?: string } }) {
     );
   }
 
-  // 2. KARE GRID ŞABLON (DN ÖZEL TEMA - ÇALIŞMA SAATLERİ ARTIK ÇEVRİLİYOR)
+  // 2. KARE GRID ŞABLON (DN ÖZEL TEMA - ÇALIŞMA SAATLERİ VE ADRES ZORUNLU ÇEVİRİDE)
   if (template === 'custom_grid') {
     return (
       <div className="min-h-[100dvh] bg-slate-100 text-slate-900 font-sans pb-28 relative overflow-x-hidden">
@@ -539,10 +540,10 @@ export default function PublicMenu({ params }: { params: { slug?: string } }) {
               <p className="text-xs text-slate-500 font-medium"><span>{restaurant.subtitle || t.defaultSubtitle}</span></p>
             </div>
           </div>
-          <div className="space-y-1 text-xs text-slate-600 pt-3 border-t mt-3">
-            {/* ÇALIŞMA SAATLERİ VE ADRES ÇEVİRİYE AÇILDI */}
-            <p className="flex items-center gap-1.5"><Clock size={14} style={{ color: pColor }} /> <span>{restaurant.working_hours || '08:00 - 24:00'}</span></p>
-            {restaurant.address && <p className="flex items-center gap-1.5"><MapPin size={14} style={{ color: pColor }} /> <span>{restaurant.address}</span></p>}
+          <div className="space-y-1 text-xs text-slate-600 pt-3 border-t mt-3" translate="yes">
+            {/* ÇALIŞMA SAATLERİ VE ADRES GOOGLE TRANSLATE TARAFINDAN KESİNLİKLE ÇEVRİLECEK */}
+            <p className="flex items-center gap-1.5" translate="yes"><Clock size={14} style={{ color: pColor }} /> <span translate="yes">{restaurant.working_hours || '08:00 - 24:00'}</span></p>
+            {restaurant.address && <p className="flex items-center gap-1.5" translate="yes"><MapPin size={14} style={{ color: pColor }} /> <span translate="yes">{restaurant.address}</span></p>}
           </div>
         </div>
 
@@ -665,9 +666,9 @@ export default function PublicMenu({ params }: { params: { slug?: string } }) {
             <p className="text-xs text-slate-400 font-semibold"><span>{restaurant.subtitle || t.defaultSubtitle}</span></p>
           </div>
         </div>
-        <div className="flex flex-wrap gap-3 text-[11px] text-slate-600 pt-2 border-t mt-2">
-          <span className="flex items-center gap-1"><Clock size={12} style={{ color: pColor }} /> <span>{restaurant.working_hours || '08:00 - 24:00'}</span></span>
-          {restaurant.address && <span className="flex items-center gap-1"><MapPin size={12} style={{ color: pColor }} /> <span>{restaurant.address}</span></span>}
+        <div className="flex flex-wrap gap-3 text-[11px] text-slate-600 pt-2 border-t mt-2" translate="yes">
+          <span className="flex items-center gap-1" translate="yes"><Clock size={12} style={{ color: pColor }} /> <span translate="yes">{restaurant.working_hours || '08:00 - 24:00'}</span></span>
+          {restaurant.address && <span className="flex items-center gap-1" translate="yes"><MapPin size={12} style={{ color: pColor }} /> <span translate="yes">{restaurant.address}</span></span>}
         </div>
       </div>
 
