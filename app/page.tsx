@@ -38,7 +38,8 @@ import {
   Activity,
   History,
   Pencil,
-  X
+  X,
+  Menu as MenuIcon
 } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 
@@ -85,6 +86,8 @@ export default function Dashboard() {
 
   // --- DASHBOARD STATES ---
   const [activeTab, setActiveTab] = useState('menu');
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false); // YENİ: Mobil Menü State'i
+  
   const [restaurantsList, setRestaurantsList] = useState<any[]>([]);
   const [selectedRestaurantId, setSelectedRestaurantId] = useState<string>('');
   const [restaurant, setRestaurant] = useState<any>({
@@ -153,7 +156,7 @@ export default function Dashboard() {
   const [loadingProd, setLoadingProd] = useState(false);
 
   const qrRef = useRef<HTMLDivElement>(null);
-  const liveMenuUrl = `${MAIN_DOMAIN}/menu`;
+  const liveMenuUrl = `${MAIN_DOMAIN}/menu/${restaurant?.slug || ''}`;
 
   const logActivity = (title: string, description: string) => {
     const newLog = {
@@ -383,14 +386,14 @@ export default function Dashboard() {
       const uploadedUrl = await uploadToStorage(logoFile, 'logos');
       if (uploadedUrl) updatedLogoUrl = uploadedUrl;
     } else if (logoPreview === '') {
-      updatedLogoUrl = ''; // Eğer kullanıcı logoyu sildiyse boşalt
+      updatedLogoUrl = '';
     }
 
     if (coverFile) {
       const uploadedUrl = await uploadToStorage(coverFile, 'covers');
       if (uploadedUrl) updatedCoverUrl = uploadedUrl;
     } else if (coverPreview === '') {
-      updatedCoverUrl = ''; // Eğer kullanıcı kapak resmini sildiyse boşalt
+      updatedCoverUrl = '';
     }
 
     const payload = { ...restaurant, logo_url: updatedLogoUrl, cover_image: updatedCoverUrl };
@@ -422,7 +425,7 @@ export default function Dashboard() {
       const uploadedUrl = await uploadToStorage(catImageFile, 'categories');
       if (uploadedUrl) finalImageUrl = uploadedUrl;
     } else if (catImagePreview === '') {
-      finalImageUrl = ''; // Görsel silindiyse boş gönder
+      finalImageUrl = '';
     }
     
     if (editingCategoryId) {
@@ -538,7 +541,7 @@ export default function Dashboard() {
       const uploadedUrl = await uploadToStorage(imageFile, 'products');
       if (uploadedUrl) finalImageUrl = uploadedUrl;
     } else if (imagePreview === '') {
-      finalImageUrl = ''; // Görsel silindiyse boşalt
+      finalImageUrl = '';
     }
     setUploadingImage(false);
 
@@ -619,8 +622,8 @@ export default function Dashboard() {
   // --- KULLANICI GİRİŞ YAPMADIYSA ---
   if (!sessionUser) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center p-6 bg-slate-50 font-sans text-slate-800">
-        <div className="bg-white border border-slate-200 p-8 rounded-2xl shadow-xl max-w-md w-full">
+      <div className="flex min-h-screen flex-col items-center justify-center p-4 md:p-6 bg-slate-50 font-sans text-slate-800">
+        <div className="bg-white border border-slate-200 p-6 md:p-8 rounded-2xl shadow-xl max-w-md w-full">
           <div className="flex items-center justify-center gap-2 font-black text-2xl tracking-tight text-slate-900 mb-6">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-purple-600 flex items-center justify-center text-white text-sm font-black shadow-md shadow-indigo-500/20">QR</div>
             <span>QR</span><span className="text-indigo-600">Menu</span>
@@ -657,18 +660,26 @@ export default function Dashboard() {
   return (
     <div className="flex flex-col h-screen bg-slate-50 font-sans text-slate-800 overflow-hidden">
       {/* HEADER */}
-      <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 z-20 shadow-xs">
+      <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 md:px-6 z-30 shadow-xs relative">
         <div className="flex items-center gap-3">
+          {/* MOBİL MENÜ BUTONU (Sadece Mobilde Görünür) */}
+          <button 
+            onClick={() => setIsMobileMenuOpen(true)}
+            className="p-2 -ml-2 text-slate-600 hover:bg-slate-100 rounded-xl md:hidden transition"
+          >
+            <MenuIcon size={20} />
+          </button>
+
           <div className="flex items-center gap-2 font-black text-xl tracking-tight text-slate-900">
             <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-purple-600 flex items-center justify-center text-white text-xs font-black shadow-md shadow-indigo-500/20">QR</div>
-            <span className="font-extrabold tracking-tight text-slate-900">QR</span><span className="text-indigo-600 font-extrabold">Menu</span>
+            <span className="font-extrabold tracking-tight text-slate-900 hidden sm:inline">QR</span><span className="text-indigo-600 font-extrabold hidden sm:inline">Menu</span>
           </div>
         </div>
-        <div className="flex items-center gap-4">
-          <a href={liveMenuUrl} target="_blank" rel="noreferrer" className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition shadow-sm shadow-indigo-600/20">
-            Canlı Önizleme <ExternalLink size={14} />
+        <div className="flex items-center gap-2 sm:gap-4">
+          <a href={liveMenuUrl} target="_blank" rel="noreferrer" className="bg-indigo-600 hover:bg-indigo-700 text-white px-3 sm:px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition shadow-sm shadow-indigo-600/20">
+            <span className="hidden sm:inline">Canlı Önizleme</span> <ExternalLink size={14} />
           </a>
-          <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-700">
+          <div className="hidden sm:flex items-center gap-2 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-700">
             <User size={16} className="text-indigo-600" />
             <span className="max-w-[150px] truncate">{sessionUser.email}</span>
           </div>
@@ -676,39 +687,56 @@ export default function Dashboard() {
         </div>
       </header>
 
-      <div className="flex flex-1 overflow-hidden">
-        {/* SIDEBAR */}
-        <aside className="w-60 bg-white border-r border-slate-200 flex flex-col justify-between p-4 overflow-y-auto">
+      <div className="flex flex-1 overflow-hidden relative">
+        
+        {/* MOBİL MENÜ OVERLAY (Karanlık Arkaplan) */}
+        {isMobileMenuOpen && (
+          <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-40 md:hidden" onClick={() => setIsMobileMenuOpen(false)} />
+        )}
+
+        {/* SIDEBAR (Mobilde Çekmece, PC'de Sabit Yan Menü) */}
+        <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-slate-200 flex flex-col justify-between p-4 transition-transform duration-300 ease-in-out md:relative md:translate-x-0 ${isMobileMenuOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full'}`}>
           <div className="space-y-6">
+            {/* Sadece Mobilde Görünecek Menü Kapatma Butonu */}
+            <div className="flex items-center justify-between md:hidden mb-2">
+              <div className="flex items-center gap-2 font-black text-xl tracking-tight text-slate-900">
+                <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-purple-600 flex items-center justify-center text-white text-xs font-black shadow-md">QR</div>
+                <span>QR<span className="text-indigo-600">Menu</span></span>
+              </div>
+              <button onClick={() => setIsMobileMenuOpen(false)} className="p-2 text-slate-500 hover:bg-slate-100 rounded-xl">
+                <X size={20} />
+              </button>
+            </div>
+
             <div>
               <label className="text-[10px] uppercase font-bold text-slate-400 mb-1.5 block tracking-wider">Aktif Restoran</label>
               <div className="flex gap-2">
                 <select value={selectedRestaurantId} onChange={(e) => setSelectedRestaurantId(e.target.value)} className="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl px-2.5 py-2 text-xs outline-none focus:border-indigo-500 font-bold">
                   {restaurantsList.map((r) => <option key={r.id} value={r.id}>{r.name}</option>)}
                 </select>
-                <button onClick={() => setShowNewRestModal(true)} className="bg-indigo-600 hover:bg-indigo-700 text-white p-2 rounded-xl transition flex-shrink-0 shadow-xs"><Plus size={16} /></button>
+                <button onClick={() => { setShowNewRestModal(true); setIsMobileMenuOpen(false); }} className="bg-indigo-600 hover:bg-indigo-700 text-white p-2 rounded-xl transition flex-shrink-0 shadow-xs"><Plus size={16} /></button>
               </div>
             </div>
 
             <div className="space-y-1">
               <p className="text-[10px] font-bold uppercase text-slate-400 px-3 tracking-wider">Yönetim</p>
-              <button onClick={() => setActiveTab('dashboard')} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold transition ${activeTab === 'dashboard' ? 'bg-indigo-50 text-indigo-600 font-extrabold border border-indigo-100' : 'text-slate-600 hover:bg-slate-50'}`}><Sparkles size={16} /> Gösterge Paneli</button>
-              <button onClick={() => setActiveTab('restaurant')} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold transition ${activeTab === 'restaurant' ? 'bg-indigo-50 text-indigo-600 font-extrabold border border-indigo-100' : 'text-slate-600 hover:bg-slate-50'}`}><ChefHat size={16} /> Restoran Bilgileri</button>
-              <button onClick={() => setActiveTab('menu')} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold transition ${activeTab === 'menu' ? 'bg-indigo-50 text-indigo-600 font-extrabold border border-indigo-100' : 'text-slate-600 hover:bg-slate-50'}`}><Layers size={16} /> Menü Ekle</button>
-              <button onClick={() => setActiveTab('qr')} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold transition ${activeTab === 'qr' ? 'bg-indigo-50 text-indigo-600 font-extrabold border border-indigo-100' : 'text-slate-600 hover:bg-slate-50'}`}><QrCode size={16} /> QR Oluşturucu</button>
+              <button onClick={() => { setActiveTab('dashboard'); setIsMobileMenuOpen(false); }} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold transition ${activeTab === 'dashboard' ? 'bg-indigo-50 text-indigo-600 font-extrabold border border-indigo-100' : 'text-slate-600 hover:bg-slate-50'}`}><Sparkles size={16} /> Gösterge Paneli</button>
+              <button onClick={() => { setActiveTab('restaurant'); setIsMobileMenuOpen(false); }} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold transition ${activeTab === 'restaurant' ? 'bg-indigo-50 text-indigo-600 font-extrabold border border-indigo-100' : 'text-slate-600 hover:bg-slate-50'}`}><ChefHat size={16} /> Restoran Bilgileri</button>
+              <button onClick={() => { setActiveTab('menu'); setIsMobileMenuOpen(false); }} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold transition ${activeTab === 'menu' ? 'bg-indigo-50 text-indigo-600 font-extrabold border border-indigo-100' : 'text-slate-600 hover:bg-slate-50'}`}><Layers size={16} /> Menü Ekle</button>
+              <button onClick={() => { setActiveTab('qr'); setIsMobileMenuOpen(false); }} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold transition ${activeTab === 'qr' ? 'bg-indigo-50 text-indigo-600 font-extrabold border border-indigo-100' : 'text-slate-600 hover:bg-slate-50'}`}><QrCode size={16} /> QR Oluşturucu</button>
             </div>
 
             <div className="space-y-1 border-t border-slate-100 pt-4">
               <p className="text-[10px] font-bold uppercase text-slate-400 px-3 tracking-wider">Hesap</p>
-              <button onClick={() => setActiveTab('logs')} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold transition ${activeTab === 'logs' ? 'bg-indigo-50 text-indigo-600 font-extrabold border border-indigo-100' : 'text-slate-600 hover:bg-slate-50'}`}><CreditCard size={16} /> İşlemler</button>
-              <button onClick={() => setActiveTab('settings')} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold transition ${activeTab === 'settings' ? 'bg-indigo-50 text-indigo-600 font-extrabold border border-indigo-100' : 'text-slate-600 hover:bg-slate-50'}`}><Settings size={16} /> Hesap Ayarları</button>
+              <button onClick={() => { setActiveTab('logs'); setIsMobileMenuOpen(false); }} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold transition ${activeTab === 'logs' ? 'bg-indigo-50 text-indigo-600 font-extrabold border border-indigo-100' : 'text-slate-600 hover:bg-slate-50'}`}><CreditCard size={16} /> İşlemler</button>
+              <button onClick={() => { setActiveTab('settings'); setIsMobileMenuOpen(false); }} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold transition ${activeTab === 'settings' ? 'bg-indigo-50 text-indigo-600 font-extrabold border border-indigo-100' : 'text-slate-600 hover:bg-slate-50'}`}><Settings size={16} /> Hesap Ayarları</button>
               <button onClick={handleLogout} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold text-rose-600 hover:bg-rose-50 transition"><LogOut size={16} /> Çıkış Yap</button>
             </div>
           </div>
         </aside>
 
         {/* İÇERİK */}
-        <main className="flex-1 p-8 overflow-y-auto bg-slate-50">
+        <main className="flex-1 p-4 md:p-8 overflow-y-auto bg-slate-50">
           {showNewRestModal && (
             <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4">
               <div className="bg-white border border-slate-200 p-6 rounded-2xl max-w-md w-full space-y-4 shadow-xl">
@@ -732,20 +760,20 @@ export default function Dashboard() {
           )}
 
           {activeTab === 'logs' && (
-            <div className="max-w-3xl space-y-6">
+            <div className="max-w-3xl mx-auto md:mx-0 space-y-6">
               <div><h1 className="text-2xl font-black text-slate-900 flex items-center gap-2"><History className="text-indigo-600" size={24} /> Geçmiş İşlemler & Aktiviteler</h1></div>
-              <div className="bg-white border border-slate-200 p-6 rounded-2xl shadow-xs space-y-4">
+              <div className="bg-white border border-slate-200 p-4 md:p-6 rounded-2xl shadow-xs space-y-4">
                 {activities.length === 0 ? (
                   <div className="text-center py-12 text-slate-400 text-xs font-semibold">Henüz kayıtlı bir işlem bulunmuyor.</div>
                 ) : (
                   <div className="space-y-3">
                     {activities.map((item) => (
-                      <div key={item.id} className="flex items-center justify-between p-4 bg-slate-50 border border-slate-100 rounded-xl">
+                      <div key={item.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-slate-50 border border-slate-100 rounded-xl gap-3">
                         <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold"><Activity size={18} /></div>
+                          <div className="w-9 h-9 flex-shrink-0 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold"><Activity size={18} /></div>
                           <div><h3 className="font-extrabold text-slate-900 text-xs">{item.title}</h3><p className="text-slate-500 text-[11px] font-medium mt-0.5">{item.description}</p></div>
                         </div>
-                        <div className="text-right"><span className="text-[10px] font-mono font-bold text-slate-400 block">{item.time}</span><span className="text-[10px] font-bold text-indigo-600">{item.date}</span></div>
+                        <div className="text-left sm:text-right"><span className="text-[10px] font-mono font-bold text-slate-400 block">{item.time}</span><span className="text-[10px] font-bold text-indigo-600">{item.date}</span></div>
                       </div>
                     ))}
                   </div>
@@ -755,9 +783,9 @@ export default function Dashboard() {
           )}
 
           {activeTab === 'settings' && (
-            <div className="max-w-xl space-y-6">
+            <div className="max-w-xl mx-auto md:mx-0 space-y-6">
               <div><h1 className="text-2xl font-black text-slate-900">Hesap Ayarları</h1></div>
-              <div className="bg-white border border-slate-200 p-6 rounded-2xl space-y-5 shadow-xs">
+              <div className="bg-white border border-slate-200 p-4 md:p-6 rounded-2xl space-y-5 shadow-xs">
                 <form onSubmit={handleUpdateSettings} className="space-y-4">
                   <div>
                     <label className="text-xs text-slate-500 uppercase font-bold block mb-1 flex items-center gap-1.5"><Mail size={14} className="text-indigo-600" /> E-posta Adresi</label>
@@ -775,9 +803,9 @@ export default function Dashboard() {
           )}
 
           {activeTab === 'dashboard' && (
-            <div className="max-w-5xl space-y-6">
+            <div className="max-w-5xl mx-auto md:mx-0 space-y-6">
               <div><h1 className="text-2xl font-black text-slate-900">{restaurant?.name} Gösterge Paneli</h1></div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-5">
                 <div className="bg-white border border-slate-200 p-6 rounded-2xl shadow-xs"><p className="text-xs text-slate-400 uppercase font-bold tracking-wider">Ana Kategoriler</p><h3 className="text-3xl font-black text-slate-900 mt-2">{categories.length}</h3></div>
                 <div className="bg-white border border-slate-200 p-6 rounded-2xl shadow-xs"><p className="text-xs text-slate-400 uppercase font-bold tracking-wider">Alt Kategoriler</p><h3 className="text-3xl font-black text-indigo-600 mt-2">{subcategories.length}</h3></div>
                 <div className="bg-white border border-slate-200 p-6 rounded-2xl shadow-xs"><p className="text-xs text-slate-400 uppercase font-bold tracking-wider">Toplam Ürün</p><h3 className="text-3xl font-black text-slate-900 mt-2">{products.length}</h3></div>
@@ -786,20 +814,20 @@ export default function Dashboard() {
           )}
 
           {activeTab === 'restaurant' && (
-            <div className="max-w-5xl space-y-6">
-              <div className="flex justify-between items-center">
+            <div className="max-w-5xl mx-auto md:mx-0 space-y-6">
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
                 <h1 className="text-2xl font-black text-slate-900">Restoran Bilgileri & Renk Paleti</h1>
-                <div className="flex gap-2">
-                  <button onClick={saveRestaurant} className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2"><Save size={16} /> Değişiklikleri Kaydet</button>
+                <div className="flex gap-2 w-full sm:w-auto">
+                  <button onClick={saveRestaurant} className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2"><Save size={16} /> Değişiklikleri Kaydet</button>
                 </div>
               </div>
               {saveStatus && <p className="text-xs text-emerald-600 bg-emerald-50 border border-emerald-200 p-3 rounded-xl font-bold">{saveStatus}</p>}
               
-              <div className="bg-white border border-slate-200 p-6 rounded-2xl space-y-4 shadow-xs">
+              <div className="bg-white border border-slate-200 p-4 md:p-6 rounded-2xl space-y-4 shadow-xs">
                 <h2 className="font-extrabold text-slate-900 text-sm">Firma Adı ve Teması</h2>
                 <div>
                   <div className="flex items-center gap-3">
-                    <div className="relative flex items-center justify-center w-11 h-11 rounded-xl border border-slate-300 overflow-hidden cursor-pointer" style={{ backgroundColor: restaurant?.primary_color || '#4f46e5' }}>
+                    <div className="relative flex items-center justify-center w-11 h-11 rounded-xl border border-slate-300 overflow-hidden cursor-pointer flex-shrink-0" style={{ backgroundColor: restaurant?.primary_color || '#4f46e5' }}>
                       <input type="color" value={restaurant?.primary_color || '#4f46e5'} onChange={(e) => setRestaurant({...restaurant, primary_color: e.target.value})} className="absolute inset-0 opacity-0 cursor-pointer w-full h-full" />
                     </div>
                     <input type="text" value={restaurant?.name || ''} onChange={(e) => setRestaurant({...restaurant, name: e.target.value})} className="flex-1 p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold outline-none" />
@@ -816,8 +844,7 @@ export default function Dashboard() {
                 <textarea rows={3} value={restaurant?.description || ''} onChange={(e) => setRestaurant({...restaurant, description: e.target.value})} className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none" placeholder="Açıklama" />
               </div>
 
-              {/* GÖRSEL YÖNETİMİ (LOGO VE KAPAK İÇİN SİLME BUTONLARI EKLENDİ) */}
-              <div className="bg-white border border-slate-200 p-6 rounded-2xl space-y-4 shadow-xs">
+              <div className="bg-white border border-slate-200 p-4 md:p-6 rounded-2xl space-y-4 shadow-xs">
                 <h2 className="font-extrabold text-slate-900 text-sm">Görsel Yönetimi</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   
@@ -828,19 +855,7 @@ export default function Dashboard() {
                       {logoPreview ? (
                         <div className="relative w-full h-28 flex items-center justify-center bg-white border border-slate-200 p-2 rounded-xl">
                           <img src={logoPreview} className="max-h-full max-w-full object-contain" />
-                          <button 
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setLogoPreview('');
-                              setLogoFile(null);
-                              setRestaurant({...restaurant, logo_url: ''});
-                            }}
-                            className="absolute top-2 right-2 bg-rose-500 hover:bg-rose-600 text-white p-1.5 rounded-lg shadow-md z-20 transition"
-                            title="Logoyu Kaldır"
-                          >
-                            <X size={14} />
-                          </button>
+                          <button type="button" onClick={(e) => { e.stopPropagation(); setLogoPreview(''); setLogoFile(null); setRestaurant({...restaurant, logo_url: ''}); }} className="absolute top-2 right-2 bg-rose-500 hover:bg-rose-600 text-white p-1.5 rounded-lg shadow-md z-20 transition" title="Logoyu Kaldır"><X size={14} /></button>
                         </div>
                       ) : (
                         <>
@@ -859,19 +874,7 @@ export default function Dashboard() {
                       {coverPreview ? (
                         <div className="relative w-full h-28 rounded-xl overflow-hidden border border-slate-200">
                           <img src={coverPreview} className="w-full h-full object-cover" />
-                          <button 
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setCoverPreview('');
-                              setCoverFile(null);
-                              setRestaurant({...restaurant, cover_image: ''});
-                            }}
-                            className="absolute top-2 right-2 bg-rose-500 hover:bg-rose-600 text-white p-1.5 rounded-lg shadow-md z-20 transition"
-                            title="Kapak Resmini Kaldır"
-                          >
-                            <X size={14} />
-                          </button>
+                          <button type="button" onClick={(e) => { e.stopPropagation(); setCoverPreview(''); setCoverFile(null); setRestaurant({...restaurant, cover_image: ''}); }} className="absolute top-2 right-2 bg-rose-500 hover:bg-rose-600 text-white p-1.5 rounded-lg shadow-md z-20 transition" title="Kapak Resmini Kaldır"><X size={14} /></button>
                         </div>
                       ) : (
                         <>
@@ -887,7 +890,7 @@ export default function Dashboard() {
               </div>
 
               {/* GÖRSEL ŞABLON SEÇİMİ */}
-              <div className="bg-white border border-slate-200 p-6 rounded-2xl space-y-4 shadow-xs">
+              <div className="bg-white border border-slate-200 p-4 md:p-6 rounded-2xl space-y-4 shadow-xs">
                 <h2 className="font-extrabold text-slate-900 text-sm flex items-center gap-2">
                   <LayoutTemplate size={18} className="text-indigo-600" /> Menü Şablonu Seçin
                 </h2>
@@ -1016,14 +1019,14 @@ export default function Dashboard() {
           )}
 
           {activeTab === 'menu' && (
-            <div className="max-w-4xl space-y-6">
+            <div className="max-w-4xl mx-auto md:mx-0 space-y-6">
               <div>
                 <h1 className="text-2xl font-black text-slate-900">Menü Yönetimi</h1>
                 <p className="text-slate-500 text-xs font-medium mt-0.5">Kategori, alt kategori ve lezzetlerinizi ekleyin veya düzenleyin.</p>
               </div>
 
-              {/* --- 1. ANA KATEGORİ YÖNETİMİ (RESİMLİ VE SİLME BUTONLU) --- */}
-              <div className="bg-white border border-slate-200 p-6 rounded-2xl space-y-4 shadow-xs">
+              {/* --- 1. ANA KATEGORİ YÖNETİMİ --- */}
+              <div className="bg-white border border-slate-200 p-4 md:p-6 rounded-2xl space-y-4 shadow-xs">
                 <h2 className={`font-extrabold text-sm ${editingCategoryId ? 'text-emerald-600' : 'text-slate-900'}`}>
                   {editingCategoryId ? '1. Ana Kategoriyi Düzenle' : '1. Ana Kategori Ekle'}
                 </h2>
@@ -1031,64 +1034,29 @@ export default function Dashboard() {
                 <form onSubmit={addCategory} className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
                   
                   {/* Kategori Fotoğraf Yükleme / Silme Alanı */}
-                  <div className={`relative w-14 h-14 rounded-xl border-2 border-dashed ${editingCategoryId && catImagePreview ? 'border-emerald-200' : 'border-slate-300'} flex items-center justify-center bg-slate-50 hover:border-indigo-500 transition overflow-hidden shrink-0 group`}>
+                  <div className={`relative w-full sm:w-14 h-14 rounded-xl border-2 border-dashed ${editingCategoryId && catImagePreview ? 'border-emerald-200' : 'border-slate-300'} flex items-center justify-center bg-slate-50 hover:border-indigo-500 transition overflow-hidden shrink-0 group`}>
                     {catImagePreview ? (
                       <>
                         <img src={catImagePreview} className="w-full h-full object-cover" alt="Kategori Önizleme" />
-                        <button 
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setCatImagePreview('');
-                            setCatImageFile(null);
-                          }}
-                          className="absolute top-1 right-1 bg-rose-500 text-white p-0.5 rounded-md shadow-sm z-20"
-                          title="Görseli Kaldır"
-                        >
-                          <X size={10} />
-                        </button>
+                        <button type="button" onClick={(e) => { e.stopPropagation(); setCatImagePreview(''); setCatImageFile(null); }} className="absolute top-1 right-1 bg-rose-500 text-white p-0.5 rounded-md shadow-sm z-20" title="Görseli Kaldır"><X size={10} /></button>
                       </>
                     ) : (
                       <>
-                        <input 
-                          type="file" 
-                          accept="image/*"
-                          onChange={(e) => {
-                            if (e.target.files && e.target.files[0]) {
-                              setCatImageFile(e.target.files[0]);
-                              const reader = new FileReader();
-                              reader.onloadend = () => setCatImagePreview(reader.result as string);
-                              reader.readAsDataURL(e.target.files[0]);
-                            }
-                          }}
-                          className="absolute inset-0 opacity-0 cursor-pointer z-10"
-                          title="Kategori Görseli Ekle"
-                        />
-                        <div className="text-slate-400 group-hover:text-indigo-500 transition flex flex-col items-center">
-                          <ImageIcon size={20} />
-                        </div>
+                        <input type="file" accept="image/*" onChange={(e) => { if (e.target.files && e.target.files[0]) { setCatImageFile(e.target.files[0]); const reader = new FileReader(); reader.onloadend = () => setCatImagePreview(reader.result as string); reader.readAsDataURL(e.target.files[0]); } }} className="absolute inset-0 opacity-0 cursor-pointer z-10" title="Kategori Görseli Ekle" />
+                        <div className="text-slate-400 group-hover:text-indigo-500 transition flex items-center gap-2"><ImageIcon size={20} /><span className="sm:hidden text-xs font-bold">Kategori Resmi Seç</span></div>
                       </>
                     )}
                   </div>
 
                   {/* İsim ve Butonlar */}
-                  <div className="flex-1 flex gap-3 w-full">
-                    <input 
-                      type="text" 
-                      placeholder="Ana Kategori Adı (Örn: Kahvaltılıklar)" 
-                      value={newCatName}
-                      onChange={(e) => setNewCatName(e.target.value)}
-                      className="flex-1 px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold outline-none focus:border-indigo-500 h-12"
-                    />
-                    {editingCategoryId && (
-                      <button type="button" onClick={cancelEditCategory} className="bg-slate-200 hover:bg-slate-300 text-slate-700 px-4 py-2 rounded-xl text-xs font-bold transition h-12">
-                        İptal
+                  <div className="flex-1 flex flex-col sm:flex-row gap-3 w-full">
+                    <input type="text" placeholder="Kategori Adı (Örn: Kahvaltılıklar)" value={newCatName} onChange={(e) => setNewCatName(e.target.value)} className="w-full flex-1 px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold outline-none focus:border-indigo-500 h-12" />
+                    <div className="flex gap-2 w-full sm:w-auto">
+                      {editingCategoryId && <button type="button" onClick={cancelEditCategory} className="w-full sm:w-auto bg-slate-200 hover:bg-slate-300 text-slate-700 px-4 py-2 rounded-xl text-xs font-bold transition h-12">İptal</button>}
+                      <button type="submit" disabled={loadingCat} className={`w-full sm:w-auto ${editingCategoryId ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-indigo-600 hover:bg-indigo-700'} text-white px-5 py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1 transition shadow-xs h-12`}>
+                        {editingCategoryId ? <Save size={16} /> : <Plus size={16} />} {loadingCat ? '...' : (editingCategoryId ? 'Güncelle' : 'Ekle')}
                       </button>
-                    )}
-                    <button type="submit" disabled={loadingCat} className={`${editingCategoryId ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-indigo-600 hover:bg-indigo-700'} text-white px-5 py-2 rounded-xl text-xs font-bold flex items-center gap-1 transition shadow-xs h-12`}>
-                      {editingCategoryId ? <Save size={16} /> : <Plus size={16} />} 
-                      {loadingCat ? '...' : (editingCategoryId ? 'Güncelle' : 'Ekle')}
-                    </button>
+                    </div>
                   </div>
                 </form>
 
@@ -1096,21 +1064,11 @@ export default function Dashboard() {
                 <div className="flex flex-wrap gap-2 pt-2">
                   {categories.map((cat) => (
                     <div key={cat.id} className="bg-slate-50 pr-3.5 pl-2 py-1.5 rounded-xl border border-slate-200 flex items-center gap-3">
-                      {cat.image_url ? (
-                        <img src={cat.image_url} alt={cat.name} className="w-8 h-8 rounded-lg object-cover border border-slate-200" />
-                      ) : (
-                        <div className="w-8 h-8 rounded-lg bg-slate-200 flex items-center justify-center text-[10px] font-bold text-slate-500">{cat.name[0]}</div>
-                      )}
-                      
+                      {cat.image_url ? <img src={cat.image_url} alt={cat.name} className="w-8 h-8 rounded-lg object-cover border border-slate-200" /> : <div className="w-8 h-8 rounded-lg bg-slate-200 flex items-center justify-center text-[10px] font-bold text-slate-500">{cat.name[0]}</div>}
                       <span className="font-bold text-xs text-slate-700">{cat.name}</span>
-                      
                       <div className="flex items-center gap-1.5 ml-2 border-l border-slate-300 pl-3">
-                        <button onClick={() => handleEditCategory(cat)} className="text-indigo-500 hover:text-indigo-600" title="Düzenle">
-                          <Pencil size={14} />
-                        </button>
-                        <button onClick={() => deleteCategory(cat.id)} className="text-rose-500 hover:text-rose-600" title="Sil">
-                          <Trash2 size={14} />
-                        </button>
+                        <button onClick={() => handleEditCategory(cat)} className="text-indigo-500 hover:text-indigo-600" title="Düzenle"><Pencil size={14} /></button>
+                        <button onClick={() => deleteCategory(cat.id)} className="text-rose-500 hover:text-rose-600" title="Sil"><Trash2 size={14} /></button>
                       </div>
                     </div>
                   ))}
@@ -1118,19 +1076,19 @@ export default function Dashboard() {
               </div>
 
               {/* --- 2. ALT KATEGORİ YÖNETİMİ --- */}
-              <div className="bg-white border border-slate-200 p-6 rounded-2xl space-y-4 shadow-xs">
+              <div className="bg-white border border-slate-200 p-4 md:p-6 rounded-2xl space-y-4 shadow-xs">
                 <h2 className={`font-extrabold text-sm flex items-center gap-2 ${editingSubcategoryId ? 'text-emerald-600' : 'text-slate-900'}`}>
                   <FolderTree size={16} className={editingSubcategoryId ? 'text-emerald-600' : 'text-indigo-600'} /> 
                   {editingSubcategoryId ? '2. Alt Kategoriyi Düzenle' : '2. Alt Kategori Ekle'}
                 </h2>
                 <form onSubmit={addSubcategory} className="grid grid-cols-1 md:grid-cols-4 gap-3">
-                  <select value={subCatForm.category_id} onChange={(e) => setSubCatForm({...subCatForm, category_id: e.target.value})} className="col-span-1 px-3 py-2 bg-slate-50 border rounded-xl text-xs">
+                  <select value={subCatForm.category_id} onChange={(e) => setSubCatForm({...subCatForm, category_id: e.target.value})} className="col-span-1 px-3 py-2 bg-slate-50 border rounded-xl text-xs h-12">
                     {categories.map((cat) => <option key={cat.id} value={cat.id}>{cat.name}</option>)}
                   </select>
-                  <input type="text" placeholder="Alt Kategori Adı" value={subCatForm.name} onChange={(e) => setSubCatForm({...subCatForm, name: e.target.value})} className="col-span-1 md:col-span-2 px-3 py-2 bg-slate-50 border rounded-xl text-xs" />
+                  <input type="text" placeholder="Alt Kategori Adı" value={subCatForm.name} onChange={(e) => setSubCatForm({...subCatForm, name: e.target.value})} className="col-span-1 md:col-span-2 px-3 py-2 bg-slate-50 border rounded-xl text-xs h-12" />
                   <div className="col-span-1 flex gap-2">
-                    {editingSubcategoryId && <button type="button" onClick={cancelEditSubcategory} className="bg-slate-200 px-3 py-2 rounded-xl text-xs font-bold flex-1">İptal</button>}
-                    <button type="submit" disabled={loadingSubCat} className={`${editingSubcategoryId ? 'bg-emerald-600' : 'bg-slate-900'} text-white px-3 py-2 rounded-xl text-xs font-bold flex flex-1 justify-center items-center gap-1`}>
+                    {editingSubcategoryId && <button type="button" onClick={cancelEditSubcategory} className="bg-slate-200 px-3 py-2 rounded-xl text-xs font-bold flex-1 h-12">İptal</button>}
+                    <button type="submit" disabled={loadingSubCat} className={`${editingSubcategoryId ? 'bg-emerald-600' : 'bg-slate-900'} text-white px-3 py-2 rounded-xl text-xs font-bold flex flex-1 justify-center items-center gap-1 h-12`}>
                       {editingSubcategoryId ? <Save size={16} /> : <Plus size={16} />} {editingSubcategoryId ? 'Güncelle' : 'Ekle'}
                     </button>
                   </div>
@@ -1151,7 +1109,7 @@ export default function Dashboard() {
               </div>
 
               {/* --- 3. ÜRÜN YÖNETİMİ --- */}
-              <div className="bg-white border border-slate-200 p-6 rounded-2xl space-y-4 shadow-xs">
+              <div className="bg-white border border-slate-200 p-4 md:p-6 rounded-2xl space-y-4 shadow-xs">
                 <h2 className={`font-extrabold text-sm flex items-center gap-2 ${editingProductId ? 'text-emerald-600' : 'text-slate-900'}`}>
                   <Utensils size={16} className={editingProductId ? 'text-emerald-600' : 'text-indigo-600'} /> {editingProductId ? '3. Ürünü Düzenle' : '3. Ürün Ekle'}
                 </h2>
@@ -1159,17 +1117,17 @@ export default function Dashboard() {
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
                       <label className="text-xs text-slate-500 uppercase font-bold block mb-1">Ürün Adı</label>
-                      <input type="text" placeholder="Ürün Adı" value={productForm.name} onChange={(e) => setProductForm({...productForm, name: e.target.value})} className="w-full px-3 py-2 bg-slate-50 border rounded-xl text-xs" />
+                      <input type="text" placeholder="Ürün Adı" value={productForm.name} onChange={(e) => setProductForm({...productForm, name: e.target.value})} className="w-full px-3 py-2 bg-slate-50 border rounded-xl text-xs h-12" />
                     </div>
                     <div>
                       <label className="text-xs text-slate-500 uppercase font-bold block mb-1">Ana Kategori</label>
-                      <select value={productForm.category_id} onChange={(e) => setProductForm({...productForm, category_id: e.target.value, subcategory_id: ''})} className="w-full px-3 py-2 bg-slate-50 border rounded-xl text-xs">
+                      <select value={productForm.category_id} onChange={(e) => setProductForm({...productForm, category_id: e.target.value, subcategory_id: ''})} className="w-full px-3 py-2 bg-slate-50 border rounded-xl text-xs h-12">
                         {categories.map((cat) => <option key={cat.id} value={cat.id}>{cat.name}</option>)}
                       </select>
                     </div>
                     <div>
                       <label className="text-xs text-slate-500 uppercase font-bold block mb-1">Alt Kategori (Opsiyonel)</label>
-                      <select value={productForm.subcategory_id} onChange={(e) => setProductForm({...productForm, subcategory_id: e.target.value})} className="w-full px-3 py-2 bg-slate-50 border rounded-xl text-xs">
+                      <select value={productForm.subcategory_id} onChange={(e) => setProductForm({...productForm, subcategory_id: e.target.value})} className="w-full px-3 py-2 bg-slate-50 border rounded-xl text-xs h-12">
                         <option value="">-- Alt Kategori Yok --</option>
                         {filteredSubcategories.map((sub) => <option key={sub.id} value={sub.id}>{sub.name}</option>)}
                       </select>
@@ -1179,27 +1137,27 @@ export default function Dashboard() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="text-xs text-slate-500 uppercase font-bold block mb-1">Fiyat (₺)</label>
-                      <input type="number" placeholder="150" value={productForm.price} onChange={(e) => setProductForm({...productForm, price: e.target.value})} className="w-full px-3 py-2 bg-slate-50 border rounded-xl text-xs" />
+                      <input type="number" placeholder="150" value={productForm.price} onChange={(e) => setProductForm({...productForm, price: e.target.value})} className="w-full px-3 py-2 bg-slate-50 border rounded-xl text-xs h-12" />
                     </div>
                     <div>
                       <label className="text-xs text-amber-600 uppercase font-bold block mb-1 flex items-center gap-1"><Flame size={14} /> Kalori (kcal)</label>
-                      <input type="number" placeholder="Örn: 450" value={productForm.calories} onChange={(e) => setProductForm({...productForm, calories: e.target.value})} className="w-full px-3 py-2 bg-slate-50 border rounded-xl text-xs" />
+                      <input type="number" placeholder="Örn: 450" value={productForm.calories} onChange={(e) => setProductForm({...productForm, calories: e.target.value})} className="w-full px-3 py-2 bg-slate-50 border rounded-xl text-xs h-12" />
                     </div>
                   </div>
 
                   <div className="relative">
                     <label className="text-xs text-slate-500 uppercase font-bold block mb-1">Alerjenler</label>
-                    <button type="button" onClick={() => setShowAllergenDropdown(!showAllergenDropdown)} className="w-full px-3 py-2 bg-slate-50 border rounded-xl text-xs flex justify-between">
-                      <div className="flex gap-1">{productForm.allergens.length === 0 ? <span className="text-slate-400">Seçilmedi...</span> : productForm.allergens.map(id => { const item = ALLERGEN_OPTIONS.find(a => a.id === id); return <span key={id} className="bg-white border px-1 rounded">{item?.icon} {item?.label}</span> })}</div>
-                      <ChevronDown size={16} className="text-slate-400" />
+                    <button type="button" onClick={() => setShowAllergenDropdown(!showAllergenDropdown)} className="w-full px-3 py-2 bg-slate-50 border rounded-xl text-xs flex justify-between min-h-12 items-center">
+                      <div className="flex gap-1 flex-wrap">{productForm.allergens.length === 0 ? <span className="text-slate-400">Seçilmedi...</span> : productForm.allergens.map(id => { const item = ALLERGEN_OPTIONS.find(a => a.id === id); return <span key={id} className="bg-white border px-1 rounded">{item?.icon} {item?.label}</span> })}</div>
+                      <ChevronDown size={16} className="text-slate-400 flex-shrink-0" />
                     </button>
                     {showAllergenDropdown && (
-                      <div className="absolute z-50 mt-1 w-full bg-white border shadow-xl max-h-56 overflow-y-auto p-2">
+                      <div className="absolute z-50 mt-1 w-full bg-white border shadow-xl max-h-56 overflow-y-auto p-2 rounded-xl">
                         {ALLERGEN_OPTIONS.map((item) => {
                           const isSelected = productForm.allergens.includes(item.id);
                           return (
-                            <div key={item.id} onClick={() => toggleAllergen(item.id)} className={`flex justify-between p-2 cursor-pointer text-xs ${isSelected ? 'bg-indigo-50 text-indigo-600' : 'hover:bg-slate-50'}`}>
-                              <span>{item.icon} {item.label}</span>{isSelected && <Check size={14} />}
+                            <div key={item.id} onClick={() => toggleAllergen(item.id)} className={`flex justify-between p-2.5 cursor-pointer text-xs rounded-lg ${isSelected ? 'bg-indigo-50 text-indigo-600' : 'hover:bg-slate-50'}`}>
+                              <span className="flex items-center gap-2"><span className="text-base">{item.icon}</span> {item.label}</span>{isSelected && <Check size={16} />}
                             </div>
                           );
                         })}
@@ -1213,18 +1171,7 @@ export default function Dashboard() {
                       {imagePreview ? (
                         <div className="relative">
                           <img src={imagePreview} className="w-28 h-28 object-cover rounded-xl" />
-                          <button 
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setImagePreview('');
-                              setImageFile(null);
-                            }}
-                            className="absolute -top-2 -right-2 bg-rose-500 text-white p-1 rounded-full shadow-md"
-                            title="Görseli Kaldır"
-                          >
-                            <X size={12} />
-                          </button>
+                          <button type="button" onClick={(e) => { e.stopPropagation(); setImagePreview(''); setImageFile(null); }} className="absolute -top-2 -right-2 bg-rose-500 text-white p-1 rounded-full shadow-md" title="Görseli Kaldır"><X size={12} /></button>
                         </div>
                       ) : (
                         <>
@@ -1237,12 +1184,12 @@ export default function Dashboard() {
 
                   <div>
                     <label className="text-xs text-slate-500 uppercase font-bold block mb-1">Açıklama</label>
-                    <textarea rows={2} placeholder="Açıklama" value={productForm.description} onChange={(e) => setProductForm({...productForm, description: e.target.value})} className="w-full p-2.5 bg-slate-50 border rounded-xl text-xs" />
+                    <textarea rows={3} placeholder="Ürün içerik açıklaması" value={productForm.description} onChange={(e) => setProductForm({...productForm, description: e.target.value})} className="w-full p-3 bg-slate-50 border rounded-xl text-xs" />
                   </div>
 
-                  <div className="flex gap-3">
+                  <div className="flex flex-col sm:flex-row gap-3">
                     {editingProductId && <button type="button" onClick={cancelEditProduct} className="bg-slate-200 px-6 py-3 rounded-xl text-xs font-bold">İptal</button>}
-                    <button type="submit" disabled={loadingProd || uploadingImage} className={`flex-1 ${editingProductId ? 'bg-emerald-600' : 'bg-indigo-600'} text-white py-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2`}>
+                    <button type="submit" disabled={loadingProd || uploadingImage} className={`w-full sm:flex-1 ${editingProductId ? 'bg-emerald-600' : 'bg-indigo-600'} text-white py-3.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2`}>
                       {editingProductId ? <Save size={16} /> : <Plus size={16} />} {loadingProd ? 'İşleniyor...' : (editingProductId ? 'Ürünü Güncelle' : 'Ürünü Menüye Ekle')}
                     </button>
                   </div>
@@ -1250,18 +1197,20 @@ export default function Dashboard() {
 
                 <div className="space-y-3 pt-4 border-t border-slate-100">
                   {products.map((prod) => (
-                    <div key={prod.id} className="bg-slate-50 border p-3 rounded-2xl flex gap-3 items-center">
-                      {prod.image_url ? <img src={prod.image_url} className="w-16 h-16 object-cover rounded-xl border" /> : <div className="w-16 h-16 bg-white border rounded-xl flex items-center justify-center text-[10px]">Yok</div>}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex justify-between items-start">
-                          <div><h3 className="font-bold text-slate-900 text-sm">{prod.name}</h3><p className="text-[10px] text-indigo-600 font-bold">{prod.categories?.name}</p></div>
-                          <span className="font-black text-sm">₺{prod.price}</span>
+                    <div key={prod.id} className="bg-slate-50 border p-3 rounded-2xl flex flex-col sm:flex-row gap-3 sm:items-center">
+                      <div className="flex items-center gap-3 w-full">
+                        {prod.image_url ? <img src={prod.image_url} className="w-16 h-16 object-cover rounded-xl border flex-shrink-0" /> : <div className="w-16 h-16 bg-white border rounded-xl flex items-center justify-center text-[10px] flex-shrink-0">Yok</div>}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex justify-between items-start">
+                            <div><h3 className="font-bold text-slate-900 text-sm line-clamp-1">{prod.name}</h3><p className="text-[10px] text-indigo-600 font-bold">{prod.categories?.name}</p></div>
+                            <span className="font-black text-sm">₺{prod.price}</span>
+                          </div>
+                          <p className="text-xs text-slate-500 line-clamp-1 mt-1">{prod.description}</p>
                         </div>
-                        <p className="text-xs text-slate-500 line-clamp-1">{prod.description}</p>
                       </div>
-                      <div className="flex flex-col gap-1 border-l pl-3 ml-1">
-                        <button onClick={() => handleEditProduct(prod)} className="p-2 text-indigo-500"><Pencil size={16} /></button>
-                        <button onClick={() => deleteProduct(prod.id)} className="p-2 text-rose-500"><Trash2 size={16} /></button>
+                      <div className="flex sm:flex-col gap-2 sm:gap-1 sm:border-l sm:pl-3 w-full sm:w-auto justify-end mt-2 sm:mt-0">
+                        <button onClick={() => handleEditProduct(prod)} className="p-2 text-indigo-500 bg-indigo-50 sm:bg-transparent rounded-lg flex-1 sm:flex-none flex justify-center"><Pencil size={16} /></button>
+                        <button onClick={() => deleteProduct(prod.id)} className="p-2 text-rose-500 bg-rose-50 sm:bg-transparent rounded-lg flex-1 sm:flex-none flex justify-center"><Trash2 size={16} /></button>
                       </div>
                     </div>
                   ))}
@@ -1271,15 +1220,61 @@ export default function Dashboard() {
           )}
 
           {activeTab === 'qr' && (
-            <div className="max-w-5xl space-y-6">
-              <h1 className="text-2xl font-black text-slate-900">QR Oluşturucu</h1>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="bg-white border border-slate-200 p-8 rounded-2xl flex flex-col items-center gap-6 shadow-xs">
-                  <div ref={qrRef} className="p-5 bg-white border-2 border-slate-100 rounded-2xl shadow-sm flex flex-col items-center">
-                    <QRCodeSVG value={liveMenuUrl} size={220} />
-                    <p className="mt-3 font-extrabold text-slate-800 text-sm tracking-tight">{restaurant?.name}</p>
+            <div className="max-w-5xl mx-auto md:mx-0 space-y-6">
+              <div>
+                <h1 className="text-2xl font-black text-slate-900">QR Oluşturucu</h1>
+                <p className="text-slate-500 text-xs font-medium mt-0.5">Restoranınız için özelleştirilebilir dinamik QR kod stüdyosu.</p>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="bg-white border border-slate-200 p-6 md:p-8 rounded-2xl flex flex-col items-center gap-6 shadow-xs">
+                  <h2 className="font-extrabold text-slate-900 text-sm self-start flex items-center gap-2">
+                    <QrCode size={18} className="text-indigo-600" /> QR Kodunuz
+                  </h2>
+
+                  <div ref={qrRef} className="p-5 bg-white border-2 border-slate-100 rounded-2xl shadow-sm flex flex-col items-center w-full max-w-[260px]">
+                    <QRCodeSVG value={liveMenuUrl} className="w-full h-auto" />
+                    <p className="mt-3 font-extrabold text-slate-800 text-sm tracking-tight text-center truncate w-full">{restaurant?.name}</p>
                   </div>
-                  <button onClick={downloadQR} className="w-full bg-indigo-600 text-white py-3 rounded-xl text-xs font-bold flex justify-center gap-2"><Download size={16} /> Resmi İndir (PNG)</button>
+
+                  <div className="w-full space-y-2">
+                    <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider text-center">HEDEF URL</p>
+                    <p className="text-[10px] md:text-xs font-mono text-center font-bold text-indigo-600 bg-slate-50 p-3 rounded-xl border border-slate-200 break-all select-all">{liveMenuUrl}</p>
+                  </div>
+
+                  <button
+                    onClick={downloadQR}
+                    className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition shadow-xs cursor-pointer"
+                  >
+                    <Download size={16} /> Resmi İndir (PNG)
+                  </button>
+                </div>
+
+                <div className="bg-white border border-slate-200 p-4 md:p-6 rounded-2xl space-y-4 shadow-xs">
+                  <h2 className="font-extrabold text-slate-900 text-sm flex items-center gap-2">
+                    <LayoutTemplate size={18} className="text-indigo-600" /> Masa QR Şablonu
+                  </h2>
+
+                  <div className="bg-gradient-to-b from-slate-950 to-slate-900 p-6 rounded-2xl text-white flex flex-col items-center text-center gap-4 relative overflow-hidden shadow-lg border border-slate-800 h-full justify-center">
+                    <div className="space-y-1">
+                      <span className="bg-indigo-600 text-white text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">MASA 1</span>
+                      <h3 className="font-black text-sm tracking-tight pt-1">QR KODU OKUTUN HEMEN SİPARİŞ VERİN</h3>
+                    </div>
+
+                    <div className="p-3 bg-white rounded-xl shadow-2xl">
+                      <QRCodeSVG value={liveMenuUrl} size={140} />
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-2 w-full pt-2 text-[9px] text-slate-300 font-bold border-t border-slate-800/80 mt-2">
+                      <div>1. Kamerayı Açın</div>
+                      <div>2. QR Kodunu Okutun</div>
+                      <div>3. Menünüz Açılsın</div>
+                    </div>
+
+                    <div className="w-full bg-indigo-600 py-2 rounded-lg text-white font-extrabold text-xs flex items-center justify-center gap-1 mt-2">
+                      <span>QR</span><span className="text-indigo-200">Menu</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
