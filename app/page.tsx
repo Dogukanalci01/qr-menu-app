@@ -413,7 +413,7 @@ export default function Dashboard() {
     }
   };
 
-  // YENİ EKLENEN: ŞABLONA TIKLANDIĞINDA ANINDA VERİTABANINA KAYDEDEN FONKSİYON
+  // --- İŞTE EKSİK OLAN VE ŞABLONLARIN DEĞİŞMESİNİ SAĞLAYAN OTOMATİK KAYIT FONKSİYONU ---
   const handleTemplateSelect = async (templateName: string) => {
     setRestaurant({ ...restaurant, template: templateName });
     if (restaurant?.id) {
@@ -677,7 +677,6 @@ export default function Dashboard() {
       {/* HEADER */}
       <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 md:px-6 z-30 shadow-xs relative">
         <div className="flex items-center gap-3">
-          {/* MOBİL MENÜ BUTONU (Sadece Mobilde Görünür) */}
           <button 
             onClick={() => setIsMobileMenuOpen(true)}
             className="p-2 -ml-2 text-slate-600 hover:bg-slate-100 rounded-xl md:hidden transition"
@@ -704,15 +703,14 @@ export default function Dashboard() {
 
       <div className="flex flex-1 overflow-hidden relative">
         
-        {/* MOBİL MENÜ OVERLAY (Karanlık Arkaplan) */}
+        {/* MOBİL MENÜ OVERLAY */}
         {isMobileMenuOpen && (
           <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-40 md:hidden" onClick={() => setIsMobileMenuOpen(false)} />
         )}
 
-        {/* SIDEBAR (Mobilde Çekmece, PC'de Sabit Yan Menü) */}
+        {/* SIDEBAR */}
         <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-slate-200 flex flex-col justify-between p-4 transition-transform duration-300 ease-in-out md:relative md:translate-x-0 ${isMobileMenuOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full'}`}>
           <div className="space-y-6">
-            {/* Sadece Mobilde Görünecek Menü Kapatma Butonu */}
             <div className="flex items-center justify-between md:hidden mb-2">
               <div className="flex items-center gap-2 font-black text-xl tracking-tight text-slate-900">
                 <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-purple-600 flex items-center justify-center text-white text-xs font-black shadow-md">QR</div>
@@ -904,7 +902,7 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              {/* GÖRSEL ŞABLON SEÇİMİ - TIKLADIĞIN AN VERİTABANINA KAYDEDEN SİSTEM EKLENDİ */}
+              {/* GÖRSEL ŞABLON SEÇİMİ - OTOMATİK KAYITLI SİSTEM */}
               <div className="bg-white border border-slate-200 p-4 md:p-6 rounded-2xl space-y-4 shadow-xs">
                 <h2 className="font-extrabold text-slate-900 text-sm flex items-center gap-2">
                   <LayoutTemplate size={18} className="text-indigo-600" /> Menü Şablonu Seçin
