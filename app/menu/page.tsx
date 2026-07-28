@@ -2,7 +2,118 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
-import { Phone, MapPin, Clock, Flame, Info, Bell, ChevronDown, Menu as MenuIcon, X, Globe, Layers } from 'lucide-react';
+import { Phone, MapPin, Clock, Info, Bell, ChevronDown, Menu as MenuIcon, X, Globe, Layers, ShoppingBag } from 'lucide-react';
+
+// --- ALERJEN LİSTESİ (Müşteri Tarafı İçin) ---
+const ALLERGEN_OPTIONS = [
+  { id: 'gluten', label: 'Gluten', icon: '🌾' },
+  { id: 'crustaceans', label: 'Kabuklular', icon: '🦐' },
+  { id: 'egg', label: 'Yumurta', icon: '🥚' },
+  { id: 'fish', label: 'Balık', icon: '🐟' },
+  { id: 'peanuts', label: 'Yer Fıstığı', icon: '🥜' },
+  { id: 'soy', label: 'Soya', icon: '🌱' },
+  { id: 'milk', label: 'Süt', icon: '🥛' },
+  { id: 'nuts', label: 'Kuruyemiş', icon: '🌰' },
+  { id: 'celery', label: 'Kereviz', icon: '🌿' },
+  { id: 'mustard', label: 'Hardal', icon: '🌭' },
+  { id: 'sesame', label: 'Susam', icon: '🌾' },
+  { id: 'sulfites', label: 'Sülfit', icon: '🧪' },
+  { id: 'lupin', label: 'Lupin', icon: '🌸' },
+  { id: 'molluscs', label: 'Yumuşakçalar', icon: '🐙' },
+  { id: 'corn', label: 'Mısır', icon: '🌽' },
+  { id: 'chocolate', label: 'Çikolata', icon: '🍫' },
+  { id: 'legumes', label: 'Baklagil', icon: '🫘' },
+  { id: 'caffeine', label: 'Kafein', icon: '☕' }
+];
+
+// --- ÇEVİRİ SÖZLÜĞÜ ---
+const translations: any = {
+  TR: {
+    callWaiter: 'Garson çağrı bildirimi gönderildi!',
+    waiterBtn: 'Garson Çağır',
+    menuContent: 'Menü İçeriği',
+    allProducts: 'Tüm Ürünler',
+    categories: 'Kategoriler',
+    categoriesTitle: 'Kategoriler',
+    backToCategories: '← Kategorilere Dön',
+    addBtn: 'Ekle',
+    addToOrder: 'Siparişe Ekle',
+    allergens: 'Alerjenler:',
+    noBrochure: 'Henüz menü broşür görseli yüklenmedi.',
+    notFound: 'Restoran Bulunamadı',
+    loading: 'Menü Yükleniyor...',
+    workingHours: 'Çalışma Saatleri',
+    defaultSubtitle: 'Yemek Bizim İşimiz'
+  },
+  EN: {
+    callWaiter: 'Waiter call notification sent!',
+    waiterBtn: 'Call Waiter',
+    menuContent: 'Menu Content',
+    allProducts: 'All Products',
+    categories: 'Categories',
+    categoriesTitle: 'Categories',
+    backToCategories: '← Back to Categories',
+    addBtn: 'Add',
+    addToOrder: 'Add to Order',
+    allergens: 'Allergens:',
+    noBrochure: 'Menu brochure image has not been uploaded yet.',
+    notFound: 'Restaurant Not Found',
+    loading: 'Loading Menu...',
+    workingHours: 'Working Hours',
+    defaultSubtitle: 'Food is Our Business'
+  },
+  RU: {
+    callWaiter: 'Уведомление официанту отправлено!',
+    waiterBtn: 'Вызвать официанта',
+    menuContent: 'Содержание меню',
+    allProducts: 'Все продукты',
+    categories: 'Категории',
+    categoriesTitle: 'Категории',
+    backToCategories: '← Назад к категориям',
+    addBtn: 'Добавить',
+    addToOrder: 'Добавить к заказу',
+    allergens: 'Аллергены:',
+    noBrochure: 'Изображение брошюры меню еще не загружено.',
+    notFound: 'Ресторан не найден',
+    loading: 'Загрузка меню...',
+    workingHours: 'Часы работы',
+    defaultSubtitle: 'Еда - это наш бизнес'
+  },
+  DE: {
+    callWaiter: 'Kellner-Benachrichtigung gesendet!',
+    waiterBtn: 'Kellner rufen',
+    menuContent: 'Menüinhalte',
+    allProducts: 'Alle Produkte',
+    categories: 'Kategorien',
+    categoriesTitle: 'Kategorien',
+    backToCategories: '← Zurück zu Kategorien',
+    addBtn: 'Hinzufügen',
+    addToOrder: 'Zur Bestellung hinzufügen',
+    allergens: 'Allergene:',
+    noBrochure: 'Menü-Broschürenbild wurde noch nicht hochgeladen.',
+    notFound: 'Restaurant nicht gefunden',
+    loading: 'Menü wird geladen...',
+    workingHours: 'Öffnungszeiten',
+    defaultSubtitle: 'Essen ist unser Geschäft'
+  },
+  EL: {
+    callWaiter: 'Η ειδοποίηση κλήσης σερβιτόρου στάλθηκε!',
+    waiterBtn: 'Καλέστε Σερβιτόρο',
+    menuContent: 'Περιεχόμενο Μενού',
+    allProducts: 'Όλα τα Προϊόντα',
+    categories: 'Κατηγορίες',
+    categoriesTitle: 'Κατηγορίες',
+    backToCategories: '← Πίσω στις Κατηγορίες',
+    addBtn: 'Προσθήκη',
+    addToOrder: 'Προσθήκη στην Παραγγελία',
+    allergens: 'Αλλεργιογόνα:',
+    noBrochure: 'Η εικόνα του φυλλαδίου μενού δεν έχει μεταφορτωθεί ακόμα.',
+    notFound: 'Το Εστιατόριο Δεν Βρέθηκε',
+    loading: 'Φόρτωση Μενού...',
+    workingHours: 'Ώρες Λειτουργίας',
+    defaultSubtitle: 'Το Φαγητό Είναι η Δουλειά Μας'
+  }
+};
 
 export default function PublicMenu() {
   const [restaurant, setRestaurant] = useState<any>(null);
@@ -11,10 +122,13 @@ export default function PublicMenu() {
   const [selectedCat, setSelectedCat] = useState<string>('all');
   const [loading, setLoading] = useState(true);
 
-  // --- MOBİL MENÜ & DİL STATELERİ ---
+  // --- MOBİL MENÜ, DİL & POPUP STATELERİ ---
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isLangOpen, setIsLangOpen] = useState(false);
   const [currentLang, setCurrentLang] = useState('TR');
+  const [selectedProduct, setSelectedProduct] = useState<any>(null); // Tıklanan ürünü tutar
+
+  const t = translations[currentLang] || translations.TR;
 
   useEffect(() => {
     fetchData();
@@ -82,7 +196,7 @@ export default function PublicMenu() {
       <div className="min-h-screen bg-white text-slate-800 flex items-center justify-center p-4 font-sans">
         <div className="flex flex-col items-center gap-3">
           <div className="w-10 h-10 border-4 border-slate-300 border-t-slate-800 rounded-full animate-spin"></div>
-          <p className="text-slate-500 text-xs font-semibold">Menü Yükleniyor...</p>
+          <p className="text-slate-500 text-xs font-semibold">{t.loading}</p>
         </div>
       </div>
     );
@@ -94,7 +208,7 @@ export default function PublicMenu() {
         <div className="w-16 h-16 bg-rose-500/10 text-rose-500 rounded-2xl flex items-center justify-center mb-4">
           <Info size={32} />
         </div>
-        <h1 className="text-xl font-bold">Restoran Bulunamadı</h1>
+        <h1 className="text-xl font-bold">{t.notFound}</h1>
       </div>
     );
   }
@@ -107,40 +221,114 @@ export default function PublicMenu() {
     return true;
   });
 
+  // --- ÜRÜN DETAY MODALI (POPUP) ---
+  const renderProductModal = () => {
+    if (!selectedProduct) return null;
+
+    return (
+      <div className="fixed inset-0 z-[100] flex items-end justify-center sm:items-center">
+        {/* Arka plan karartması */}
+        <div 
+          className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity" 
+          onClick={() => setSelectedProduct(null)} 
+        />
+        
+        {/* Modal İçeriği */}
+        <div className="relative w-full max-w-md bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl animate-in slide-in-from-bottom duration-300 max-h-[90vh] flex flex-col">
+          <button 
+            onClick={() => setSelectedProduct(null)} 
+            className="absolute top-4 right-4 bg-white/80 backdrop-blur text-slate-800 p-2 rounded-full shadow-md z-10 hover:bg-white transition"
+          >
+            <X size={20} />
+          </button>
+          
+          <div className="overflow-y-auto pb-6">
+            {selectedProduct.image_url ? (
+              <img src={selectedProduct.image_url} alt={selectedProduct.name} className="w-full h-64 sm:h-72 object-cover sm:rounded-t-3xl" />
+            ) : (
+              <div className="w-full h-24 bg-slate-100 sm:rounded-t-3xl"></div>
+            )}
+            
+            <div className="p-6 space-y-4">
+              <div className="flex justify-between items-start gap-4">
+                <h2 className="text-2xl font-black text-slate-900 leading-tight">{selectedProduct.name}</h2>
+                <p className="text-2xl font-extrabold whitespace-nowrap" style={{ color: pColor }}>₺{selectedProduct.price}</p>
+              </div>
+              
+              {selectedProduct.description && (
+                <p className="text-sm text-slate-600 leading-relaxed font-medium">
+                  {selectedProduct.description}
+                </p>
+              )}
+
+              {/* Popup İçi Detaylı Alerjenler */}
+              {selectedProduct.allergens && selectedProduct.allergens.length > 0 && (
+                <div className="pt-4 border-t border-slate-100">
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">{t.allergens}</p>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedProduct.allergens.map((algId: string) => {
+                      const alg = ALLERGEN_OPTIONS.find(a => a.id === algId);
+                      if(!alg) return null;
+                      return (
+                        <div key={algId} className="flex items-center gap-2 bg-slate-50 border border-slate-200 px-3 py-2 rounded-xl shadow-sm">
+                          <span className="text-lg">{alg.icon}</span>
+                          <span className="text-xs font-bold text-slate-700">{alg.label}</span>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
+              
+              <button 
+                onClick={() => {
+                  alert(`${selectedProduct.name} siparişe eklendi!`);
+                  setSelectedProduct(null);
+                }}
+                className="w-full py-4 mt-6 rounded-2xl text-white font-black text-sm shadow-lg flex items-center justify-center gap-2 hover:opacity-90 transition active:scale-95" 
+                style={{ backgroundColor: pColor }}
+              >
+                <ShoppingBag size={18} /> {t.addToOrder}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   // Ortak Üst Bar
   const renderHeader = () => (
-    <header className="text-white p-3 px-4 flex justify-between items-center shadow-md relative" style={{ backgroundColor: pColor }}>
-      {/* Google Translate Elementi */}
+    <header className="text-white p-3 px-4 flex justify-between items-center shadow-md relative z-40" style={{ backgroundColor: pColor }}>
       <div id="google_translate_element" style={{ display: 'none' }}></div>
 
       <div className="flex items-center gap-3">
         <button 
           onClick={() => setIsSidebarOpen(true)} 
           className="p-1.5 bg-white/10 hover:bg-white/20 rounded-lg transition cursor-pointer"
-          title="Kategoriler ve Bilgiler"
+          title={t.menuContent}
         >
           <MenuIcon size={20} />
         </button>
-        <span className="font-extrabold text-sm tracking-wide">{restaurant.name}</span>
+        <span className="font-extrabold text-sm tracking-wide line-clamp-1">{restaurant.name}</span>
       </div>
 
       <div className="flex items-center gap-2 relative">
         <button 
-          onClick={() => alert('Garson çağrı bildirimi gönderildi!')} 
-          className="bg-white/20 hover:bg-white/30 p-1.5 rounded-lg transition cursor-pointer"
-          title="Garson Çağır"
+          onClick={() => alert(t.callWaiter)} 
+          className="bg-white/20 hover:bg-white/30 p-1.5 rounded-lg transition cursor-pointer flex-shrink-0"
+          title={t.waiterBtn}
         >
           <Bell size={16} />
         </button>
 
-        {/* GÖRSELDEKİ STİLDE DİL SEÇİCİ MENÜSÜ */}
+        {/* DİL SEÇİCİ */}
         <div className="relative">
           <button 
             onClick={() => setIsLangOpen(!isLangOpen)} 
-            className="bg-white px-3 py-1.5 rounded-xl text-xs font-extrabold flex items-center gap-1.5 shadow-sm transition cursor-pointer"
-            style={{ color: pColor }}
+            className="bg-white px-2 sm:px-3 py-1.5 rounded-xl text-xs font-extrabold flex items-center gap-1.5 shadow-sm transition cursor-pointer text-slate-800"
           >
-            <Globe size={13} /> <span>{currentLang}</span> <ChevronDown size={12} />
+            <Globe size={13} style={{ color: pColor }} /> <span>{currentLang}</span> <ChevronDown size={12} className="text-slate-400" />
           </button>
 
           {isLangOpen && (
@@ -176,12 +364,12 @@ export default function PublicMenu() {
     if (!isSidebarOpen) return null;
     return (
       <div className="fixed inset-0 z-50 flex">
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs" onClick={() => setIsSidebarOpen(false)} />
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs transition-opacity" onClick={() => setIsSidebarOpen(false)} />
         <div className="relative w-72 bg-white h-full shadow-2xl z-10 flex flex-col font-sans animate-in slide-in-from-left duration-200">
           <div className="p-4 text-white flex justify-between items-center" style={{ backgroundColor: pColor }}>
             <div className="flex items-center gap-2">
               <Layers size={18} />
-              <h2 className="font-black text-sm">Menü İçeriği</h2>
+              <h2 className="font-black text-sm">{t.menuContent}</h2>
             </div>
             <button onClick={() => setIsSidebarOpen(false)} className="p-1 hover:bg-white/20 rounded-lg transition cursor-pointer">
               <X size={18} />
@@ -190,16 +378,16 @@ export default function PublicMenu() {
 
           <div className="p-4 border-b bg-slate-50 space-y-1">
             <h3 className="font-extrabold text-xs text-slate-900">{restaurant.name}</h3>
-            <p className="text-[11px] text-slate-500">{restaurant.subtitle || 'Lezzet Noktası'}</p>
+            <p className="text-[11px] text-slate-500">{restaurant.subtitle || t.defaultSubtitle}</p>
           </div>
 
           <div className="flex-1 overflow-y-auto p-3 space-y-1">
-            <p className="text-[10px] font-bold text-slate-400 uppercase px-2 mb-2 tracking-wider">Kategoriler</p>
+            <p className="text-[10px] font-bold text-slate-400 uppercase px-2 mb-2 tracking-wider">{t.categories}</p>
             <button 
               onClick={() => { setSelectedCat('all'); setIsSidebarOpen(false); }}
               className={`w-full text-left px-3 py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-between cursor-pointer ${selectedCat === 'all' ? 'bg-indigo-50 text-indigo-600' : 'text-slate-700 hover:bg-slate-100'}`}
             >
-              <span>Tüm Ürünler</span>
+              <span>{t.allProducts}</span>
               <span className="text-[10px] bg-slate-200 px-2 py-0.5 rounded-full">{products.length}</span>
             </button>
 
@@ -238,7 +426,7 @@ export default function PublicMenu() {
             <img src={restaurant.custom_menu_image} alt="Menü Broşürü" className="w-full rounded-xl shadow-2xl" />
           ) : (
             <div className="bg-slate-800 p-12 text-center rounded-2xl text-slate-400 text-xs">
-              Henüz menü broşür görseli yüklenmedi.
+              {t.noBrochure}
             </div>
           )}
         </main>
@@ -250,6 +438,7 @@ export default function PublicMenu() {
   if (template === 'custom_grid') {
     return (
       <div className="min-h-screen bg-slate-100 text-slate-900 font-sans pb-12">
+        {renderProductModal()}
         {renderSidebar()}
         {renderHeader()}
 
@@ -264,7 +453,7 @@ export default function PublicMenu() {
             )}
             <div>
               <h1 className="text-xl font-extrabold">{restaurant.name}</h1>
-              <p className="text-xs text-slate-500 font-medium">{restaurant.subtitle || 'Yemek Bizim İşimiz'}</p>
+              <p className="text-xs text-slate-500 font-medium">{restaurant.subtitle || t.defaultSubtitle}</p>
             </div>
           </div>
 
@@ -276,7 +465,7 @@ export default function PublicMenu() {
 
         {selectedCat === 'all' ? (
           <div className="max-w-md mx-auto p-4 space-y-3">
-            <h2 className="text-xs uppercase font-extrabold text-slate-400 tracking-wider">Kategoriler</h2>
+            <h2 className="text-xs uppercase font-extrabold text-slate-400 tracking-wider">{t.categoriesTitle}</h2>
             <div className="grid grid-cols-2 gap-3">
               {categories.map((cat) => (
                 <div
@@ -294,21 +483,36 @@ export default function PublicMenu() {
           <div className="max-w-md mx-auto p-4 space-y-3">
             <button 
               onClick={() => setSelectedCat('all')} 
-              className="text-xs font-bold px-3 py-1.5 rounded-xl cursor-pointer"
+              className="text-xs font-bold px-3 py-1.5 rounded-xl cursor-pointer inline-block mb-2"
               style={{ color: pColor, backgroundColor: `${pColor}20` }}
             >
-              ← Kategorilere Dön
+              {t.backToCategories}
             </button>
             <div className="space-y-3">
               {filteredProducts.map((prod) => (
-                <div key={prod.id} className="bg-white p-3 rounded-2xl border shadow-sm flex gap-3">
-                  {prod.image_url && <img src={prod.image_url} alt={prod.name} className="w-20 h-20 object-cover rounded-xl" />}
+                <div 
+                  key={prod.id} 
+                  onClick={() => setSelectedProduct(prod)}
+                  className="bg-white p-3 rounded-2xl border shadow-sm flex gap-3 cursor-pointer hover:border-slate-300 transition"
+                >
+                  {prod.image_url && <img src={prod.image_url} alt={prod.name} className="w-24 h-24 object-cover rounded-xl flex-shrink-0" />}
                   <div className="flex-1 space-y-1">
                     <div className="flex justify-between items-start">
-                      <h3 className="font-bold text-sm text-slate-900">{prod.name}</h3>
-                      <span className="font-extrabold text-sm" style={{ color: pColor }}>₺{prod.price}</span>
+                      <h3 className="font-bold text-sm text-slate-900 leading-snug pr-2">{prod.name}</h3>
+                      <span className="font-extrabold text-sm whitespace-nowrap" style={{ color: pColor }}>₺{prod.price}</span>
                     </div>
                     <p className="text-[11px] text-slate-500 line-clamp-2">{prod.description}</p>
+                    
+                    {/* Alerjen İkonları */}
+                    {prod.allergens && prod.allergens.length > 0 && (
+                      <div className="flex items-center gap-1 pt-1">
+                        <span className="text-[9px] font-bold text-slate-400">{t.allergens}</span>
+                        {prod.allergens.map((algId: string) => {
+                          const alg = ALLERGEN_OPTIONS.find(a => a.id === algId);
+                          return alg ? <span key={algId} className="text-[11px]" title={alg.label}>{alg.icon}</span> : null;
+                        })}
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}
@@ -323,6 +527,7 @@ export default function PublicMenu() {
   if (template === 'classic') {
     return (
       <div className="min-h-screen bg-slate-100 text-slate-900 font-sans pb-16">
+        {renderProductModal()}
         {renderSidebar()}
         {renderHeader()}
 
@@ -342,16 +547,31 @@ export default function PublicMenu() {
           <p className="text-xs text-slate-500 font-semibold">{restaurant.subtitle}</p>
         </div>
 
-        <main className="max-w-md mx-auto p-4 space-y-3">
+        <main className="max-w-md mx-auto p-4 space-y-3 mt-4">
           {filteredProducts.map((prod) => (
-            <div key={prod.id} className="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-sm flex gap-3 items-center">
+            <div 
+              key={prod.id} 
+              onClick={() => setSelectedProduct(prod)}
+              className="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-sm flex gap-3 items-center cursor-pointer hover:border-slate-300 transition"
+            >
               {prod.image_url && <img src={prod.image_url} alt={prod.name} className="w-20 h-20 object-cover rounded-xl flex-shrink-0" />}
               <div className="flex-1 min-w-0 space-y-1">
                 <div className="flex justify-between items-start">
-                  <h3 className="font-bold text-sm text-slate-900">{prod.name}</h3>
+                  <h3 className="font-bold text-sm text-slate-900 pr-2">{prod.name}</h3>
                   <span className="font-extrabold text-sm whitespace-nowrap" style={{ color: pColor }}>₺{prod.price}</span>
                 </div>
                 <p className="text-[11px] text-slate-500 line-clamp-2">{prod.description}</p>
+                
+                {/* Alerjen İkonları */}
+                {prod.allergens && prod.allergens.length > 0 && (
+                  <div className="flex items-center gap-1 pt-0.5">
+                    <span className="text-[9px] font-bold text-slate-400">{t.allergens}</span>
+                    {prod.allergens.map((algId: string) => {
+                      const alg = ALLERGEN_OPTIONS.find(a => a.id === algId);
+                      return alg ? <span key={algId} className="text-[11px]" title={alg.label}>{alg.icon}</span> : null;
+                    })}
+                  </div>
+                )}
               </div>
             </div>
           ))}
@@ -363,6 +583,7 @@ export default function PublicMenu() {
   // 4. MODERN BİSTRO (VARSAYILAN)
   return (
     <div className="min-h-screen bg-slate-100 text-slate-900 font-sans pb-16">
+      {renderProductModal()}
       {renderSidebar()}
       {renderHeader()}
 
@@ -382,7 +603,7 @@ export default function PublicMenu() {
           
           <div>
             <h1 className="font-extrabold text-lg text-slate-900">{restaurant.name}</h1>
-            <p className="text-xs text-slate-400 font-semibold">{restaurant.subtitle || 'Yemek Bizim İşimiz'}</p>
+            <p className="text-xs text-slate-400 font-semibold">{restaurant.subtitle || t.defaultSubtitle}</p>
           </div>
         </div>
 
@@ -398,10 +619,10 @@ export default function PublicMenu() {
           if (catProducts.length === 0) return null;
           
           return (
-            <div key={cat.id} className="bg-white rounded-2xl border shadow-sm overflow-hidden">
-              <div className="p-3.5 bg-slate-50 border-b flex justify-between items-center font-bold text-sm text-slate-800">
+            <div key={cat.id} className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+              <div className="p-3.5 bg-slate-50 border-b border-slate-100 flex justify-between items-center font-bold text-sm text-slate-800">
                 <div className="flex items-center gap-2.5">
-                  {cat.image_url && <img src={cat.image_url} alt={cat.name} className="w-7 h-7 rounded-lg object-cover border" />}
+                  {cat.image_url && <img src={cat.image_url} alt={cat.name} className="w-7 h-7 rounded-lg object-cover border border-slate-200" />}
                   <span>{cat.name}</span>
                 </div>
                 <ChevronDown size={16} className="text-slate-400" />
@@ -409,17 +630,38 @@ export default function PublicMenu() {
 
               <div className="p-3 space-y-3 divide-y divide-slate-100">
                 {catProducts.map((prod) => (
-                  <div key={prod.id} className="pt-3 first:pt-0 flex gap-3 items-center">
-                    {prod.image_url && <img src={prod.image_url} alt={prod.name} className="w-20 h-20 object-cover rounded-xl border flex-shrink-0" />}
-                    <div className="flex-1 min-w-0 space-y-1">
+                  <div 
+                    key={prod.id} 
+                    onClick={() => setSelectedProduct(prod)}
+                    className="pt-3 first:pt-0 flex gap-3 items-center cursor-pointer hover:bg-slate-50 transition -mx-3 px-3 rounded-lg"
+                  >
+                    {prod.image_url && <img src={prod.image_url} alt={prod.name} className="w-20 h-20 object-cover rounded-xl border border-slate-100 flex-shrink-0" />}
+                    <div className="flex-1 min-w-0 space-y-1 py-1">
                       <div className="flex justify-between items-start gap-1">
                         <h3 className="font-bold text-xs text-slate-900 leading-snug">{prod.name}</h3>
-                        <button className="bg-slate-100 text-[10px] font-bold px-2 py-1 rounded border transition flex-shrink-0 cursor-pointer" style={{ color: pColor }}>
-                          EKLE +
+                        <button 
+                          onClick={(e) => { e.stopPropagation(); alert(`${prod.name} eklendi!`); }}
+                          className="bg-slate-100 text-[10px] font-extrabold px-3 py-1.5 rounded-lg transition flex-shrink-0 hover:bg-slate-200" 
+                          style={{ color: pColor }}
+                        >
+                          {t.addBtn}
                         </button>
                       </div>
-                      <p className="font-extrabold text-xs" style={{ color: pColor }}>₺{prod.price}</p>
-                      <p className="text-[10px] text-slate-400 line-clamp-2">{prod.description}</p>
+                      <p className="font-extrabold text-sm" style={{ color: pColor }}>₺{prod.price}</p>
+                      
+                      {/* Açıklama kısmı üç nokta ile kısaltılmış */}
+                      <p className="text-[10px] text-slate-400 line-clamp-2 pr-2 leading-relaxed">{prod.description}</p>
+                      
+                      {/* Alerjen İkonları */}
+                      {prod.allergens && prod.allergens.length > 0 && (
+                        <div className="flex items-center gap-1.5 pt-1.5">
+                          <span className="text-[9px] font-bold text-slate-400">{t.allergens}</span>
+                          {prod.allergens.map((algId: string) => {
+                            const alg = ALLERGEN_OPTIONS.find(a => a.id === algId);
+                            return alg ? <span key={algId} className="text-xs grayscale opacity-70" title={alg.label}>{alg.icon}</span> : null;
+                          })}
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))}
