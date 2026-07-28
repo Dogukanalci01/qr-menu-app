@@ -125,7 +125,7 @@ const translations: any = {
     allergens: 'Αλλεργιογόνα:',
     noBrochure: 'Η εικόνα του φυλλαδίου μενού δεν έχει μεταφορτωθεί ακόμα.',
     notFound: 'Το Εστιατόριο Δεν Βρέθηκε',
-    loading: 'Φόρτωση...',
+    loading: 'Φόρtωση...',
     workingHours: 'Ώρες Λειτουργίας',
     defaultSubtitle: 'Το Φαγητό Είναι η Δουλειά Μας',
     cartTitle: 'Το Καλάθι μου',
@@ -138,6 +138,7 @@ const translations: any = {
 export default function PublicMenu({ params }: { params: { slug?: string } }) {
   const [restaurant, setRestaurant] = useState<any>(null);
   const [categories, setCategories] = useState<any[]>([]);
+  const [subcategories, setSubcategories] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
   const [selectedCat, setSelectedCat] = useState<string>('all');
   const [loading, setLoading] = useState(true);
@@ -173,6 +174,8 @@ export default function PublicMenu({ params }: { params: { slug?: string } }) {
       setRestaurant(restData);
       const { data: catData } = await supabase.from('categories').select('*').eq('restaurant_id', restData.id).order('sort_order', { ascending: true });
       if (catData) setCategories(catData);
+      const { data: subData } = await supabase.from('subcategories').select('*').eq('restaurant_id', restData.id).order('sort_order', { ascending: true });
+      if (subData) setSubcategories(subData);
       const { data: prodData } = await supabase.from('products').select('*').eq('restaurant_id', restData.id);
       if (prodData) setProducts(prodData);
     }
@@ -485,8 +488,11 @@ export default function PublicMenu({ params }: { params: { slug?: string } }) {
     );
   }
 
-  // 2. KARE GRID ŞABLON (DN ÖZEL TEMA - 2 AŞAMALI YAPI)
+  // 2. KARE GRID ŞABLON (DN ÖZEL TEMA - ANA VE ALT KATEGORİ AÇIKLAMALARI EKLENDİ)
   if (template === 'custom_grid') {
+    const activeCategory = categories.find(c => c.id === selectedCat);
+    const catSubcategories = subcategories.filter(s => s.category_id === selectedCat);
+
     return (
       <div className="min-h-[100dvh] bg-slate-100 text-slate-900 font-sans pb-28 relative overflow-x-hidden">
         {renderCartDrawer()}
@@ -511,22 +517,8 @@ export default function PublicMenu({ params }: { params: { slug?: string } }) {
                 </div>
               </div>
               <div className="space-y-1 text-xs text-slate-600 pt-3 border-t mt-3">
-                {/* ÇALIŞMA SAATLERİ VE ADRES ARTIK DİL SEÇİMİNE GÖRE ANINDA DEĞİŞECEK */}
-                <p className="flex items-center gap-1.5">
-                  <Clock size={14} style={{ color: pColor }} /> 
-                  <span>
-                    {currentLang === 'EN' && restaurant.working_hours ? restaurant.working_hours.replace(/Pazartesi/g, 'Monday').replace(/Salı/g, 'Tuesday').replace(/Çarşamba/g, 'Wednesday').replace(/Perşembe/g, 'Thursday').replace(/Cuma/g, 'Friday').replace(/Cumartesi/g, 'Saturday').replace(/Pazar/g, 'Sunday').replace(/Kapalı/g, 'Closed') :
-                     currentLang === 'RU' && restaurant.working_hours ? restaurant.working_hours.replace(/Pazartesi/g, 'Понедельник').replace(/Salı/g, 'Вторник').replace(/Çarşamba/g, 'Среда').replace(/Perşembe/g, 'Четверг').replace(/Cuma/g, 'Пятница').replace(/Cumartesi/g, 'Суббота').replace(/Pazar/g, 'Воскресенье').replace(/Kapalı/g, 'Закрыто') :
-                     currentLang === 'DE' && restaurant.working_hours ? restaurant.working_hours.replace(/Pazartesi/g, 'Montag').replace(/Salı/g, 'Dienstag').replace(/Çarşamba/g, 'Mittwoch').replace(/Perşembe/g, 'Donnerstag').replace(/Cuma/g, 'Freitag').replace(/Cumartesi/g, 'Samstag').replace(/Pazar/g, 'Sonntag').replace(/Kapalı/g, 'Geschlossen') :
-                     currentLang === 'EL' && restaurant.working_hours ? restaurant.working_hours.replace(/Pazartesi/g, 'Δευτέρα').replace(/Salı/g, 'Τρίτη').replace(/Çarşamba/g, 'Τετάρτη').replace(/Perşembe/g, 'Πέμπτη').replace(/Cuma/g, 'Παρασκευή').replace(/Cumartesi/g, 'Σάββατο').replace(/Pazar/g, 'Κυριακή').replace(/Kapalı/g, 'Κλειστά') :
-                     restaurant.working_hours || '08:00 - 24:00'}
-                  </span>
-                </p>
-                {restaurant.address && (
-                  <p className="flex items-center gap-1.5">
-                    <MapPin size={14} style={{ color: pColor }} /> <span>{restaurant.address}</span>
-                  </p>
-                )}
+                <p className="flex items-center gap-1.5"><Clock size={14} style={{ color: pColor }} /> <span>{restaurant.working_hours || '08:00 - 24:00'}</span></p>
+                {restaurant.address && <p className="flex items-center gap-1.5"><MapPin size={14} style={{ color: pColor }} /> <span>{restaurant.address}</span></p>}
               </div>
             </div>
 
@@ -534,8 +526,9 @@ export default function PublicMenu({ params }: { params: { slug?: string } }) {
               <h2 className="text-xs uppercase font-extrabold text-slate-400 tracking-wider text-center sm:text-left"><span>{t.categoriesTitle}</span></h2>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {categories.map((cat) => (
-                  <div key={cat.id} onClick={() => setSelectedCat(cat.id)} className="h-32 sm:h-36 rounded-2xl relative overflow-hidden cursor-pointer shadow-md flex items-end p-4 border border-slate-200 bg-cover bg-center hover:shadow-lg transition-transform hover:-translate-y-1" style={{ backgroundImage: cat.image_url ? `linear-gradient(to top, rgba(0,0,0,0.9), rgba(0,0,0,0.1)), url(${cat.image_url})` : 'none', backgroundColor: '#1e293b' }}>
+                  <div key={cat.id} onClick={() => setSelectedCat(cat.id)} className="h-32 sm:h-36 rounded-2xl relative overflow-hidden cursor-pointer shadow-md flex flex-col justify-end p-4 border border-slate-200 bg-cover bg-center hover:shadow-lg transition-transform hover:-translate-y-1" style={{ backgroundImage: cat.image_url ? `linear-gradient(to top, rgba(0,0,0,0.9), rgba(0,0,0,0.1)), url(${cat.image_url})` : 'none', backgroundColor: '#1e293b' }}>
                     <span className="font-black text-sm text-white relative z-20 uppercase"><span>{cat.name}</span></span>
+                    {cat.description && <span className="text-[10px] text-slate-300 relative z-20 line-clamp-1 mt-0.5"><span>{cat.description}</span></span>}
                   </div>
                 ))}
               </div>
@@ -556,7 +549,29 @@ export default function PublicMenu({ params }: { params: { slug?: string } }) {
               </div>
             </div>
 
+            {/* SEÇİLEN KATEGORİ AÇIKLAMASI BANNERI */}
+            {activeCategory?.description && (
+              <div className="max-w-3xl mx-auto px-4 pt-4">
+                <div className="bg-white border border-slate-200 p-4 rounded-2xl shadow-2xs">
+                  <h3 className="font-black text-sm uppercase" style={{ color: pColor }}><span>{activeCategory.name}</span></h3>
+                  <p className="text-xs text-slate-600 mt-1 font-medium leading-relaxed"><span>{activeCategory.description}</span></p>
+                </div>
+              </div>
+            )}
+
             <main className="max-w-3xl mx-auto p-4 space-y-4 mt-2">
+              {/* ALT KATEGORİLER VARSA GRUPLU VEYA LİSTE HALİNDE GÖSTERİM */}
+              {catSubcategories.length > 0 && (
+                <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                  {catSubcategories.map(sub => (
+                    <div key={sub.id} className="bg-white border border-slate-200 px-3 py-2 rounded-xl flex-shrink-0 text-xs shadow-2xs">
+                      <span className="font-bold text-slate-800">{sub.name}</span>
+                      {sub.description && <span className="text-[10px] text-slate-400 block">{sub.description}</span>}
+                    </div>
+                  ))}
+                </div>
+              )}
+
               {filteredProducts.map((prod) => (
                 <div key={prod.id} onClick={() => setSelectedProduct(prod)} className="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-col sm:flex-row gap-4 cursor-pointer hover:shadow-md transition">
                   {prod.image_url && <img src={prod.image_url} alt={prod.name} className="w-full sm:w-32 h-40 sm:h-32 object-cover rounded-xl flex-shrink-0" />}
@@ -681,7 +696,10 @@ export default function PublicMenu({ params }: { params: { slug?: string } }) {
               <div className="p-3.5 bg-slate-50 border-b border-slate-100 flex justify-between items-center font-bold text-sm text-slate-800">
                 <div className="flex items-center gap-2.5">
                   {cat.image_url && <img src={cat.image_url} alt={cat.name} className="w-7 h-7 rounded-lg object-cover border border-slate-200" />}
-                  <span>{cat.name}</span>
+                  <div>
+                    <span>{cat.name}</span>
+                    {cat.description && <p className="text-[10px] text-slate-400 font-normal">{cat.description}</p>}
+                  </div>
                 </div>
                 <ChevronDown size={16} className="text-slate-400" />
               </div>
