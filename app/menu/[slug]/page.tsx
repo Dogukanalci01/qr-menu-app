@@ -153,7 +153,7 @@ export default function PublicMenu({ params }: { params: { slug?: string } }) {
 
   const t = translations[currentLang] || translations.TR;
 
-  // GOOGLE TRANSLATE ZIRHI
+  // GOOGLE TRANSLATE SCRİPT YÜKLEME VE TETİKLEME
   useEffect(() => {
     fetchData();
     if (!document.getElementById('google-translate-script')) {
@@ -172,14 +172,20 @@ export default function PublicMenu({ params }: { params: { slug?: string } }) {
     }
   }, [params]);
 
+  // DİL DEĞİŞTİĞİNDE GOOGLE TRANSLATE COMBOBOX'INI TETİKLEYEN MOTOR
   const changeGoogleLanguage = (langCode: string, displayCode: string) => {
     setCurrentLang(displayCode);
     setIsLangOpen(false);
 
+    // Google Translate gizli select elemanını bul ve değerini değiştirip tetikle
     const selectEl = document.querySelector('.goog-te-combo') as HTMLSelectElement;
     if (selectEl) {
       selectEl.value = langCode.toLowerCase();
       selectEl.dispatchEvent(new Event('change'));
+    } else {
+      // Eğer script henüz tam yüklenmediyse cookie üzerinden tetikle
+      document.cookie = `googtrans=/auto/${langCode.toLowerCase()}`;
+      window.location.reload();
     }
   };
 
@@ -331,7 +337,7 @@ export default function PublicMenu({ params }: { params: { slug?: string } }) {
     );
   };
 
-  // --- ÜRÜN DETAY MODALI (BÜYÜYEN EKRAN) ---
+  // --- ÜRÜN DETAY MODALI ---
   const renderProductModal = () => {
     if (!selectedProduct) return null;
     return (
@@ -371,7 +377,7 @@ export default function PublicMenu({ params }: { params: { slug?: string } }) {
                       return (
                         <div key={algId} className="flex items-center gap-2 bg-slate-50 border border-slate-200 px-3 py-2 rounded-xl shadow-sm">
                           <span className="text-lg notranslate">{alg.icon}</span>
-                          <span className="text-xs font-bold text-slate-700"><span>{alg.label}</span></span>
+                          <span className="text-xs font-bold text-slate-700"><span className="notranslate">{alg.label}</span></span>
                         </div>
                       )
                     })}
@@ -395,6 +401,7 @@ export default function PublicMenu({ params }: { params: { slug?: string } }) {
 
   const renderHeader = () => (
     <header className="text-white p-3 px-4 flex justify-between items-center shadow-md relative z-40 sticky top-0" style={{ backgroundColor: pColor }}>
+      {/* Google Translate elementinin görünmez olarak yüklenmesi zorunludur */}
       <div id="google_translate_element" style={{ display: 'none' }}></div>
 
       <div className="flex items-center gap-3">
@@ -519,7 +526,7 @@ export default function PublicMenu({ params }: { params: { slug?: string } }) {
     );
   }
 
-  // 2. KARE GRID ŞABLON (DN ÖZEL TEMA - ÇALIŞMA SAATLERİ VE ADRES ÇEVRİLEBİLİR HALE GETİRİLDİ)
+  // 2. KARE GRID ŞABLON (DN ÖZEL TEMA)
   if (template === 'custom_grid') {
     return (
       <div className="min-h-[100dvh] bg-slate-100 text-slate-900 font-sans pb-28 relative overflow-x-hidden">
@@ -544,9 +551,8 @@ export default function PublicMenu({ params }: { params: { slug?: string } }) {
             </div>
           </div>
           <div className="space-y-1 text-xs text-slate-600 pt-3 border-t mt-3">
-            {/* ÇALIŞMA SAATLERİ VE ADRES ARTIK ÇEVİRİYE AÇIK */}
-            <p className="flex items-center gap-1.5"><Clock size={14} style={{ color: pColor }} /> <span>{restaurant.working_hours || '08:00 - 24:00'}</span></p>
-            {restaurant.address && <p className="flex items-center gap-1.5"><MapPin size={14} style={{ color: pColor }} /> <span>{restaurant.address}</span></p>}
+            <p className="flex items-center gap-1.5"><Clock size={14} style={{ color: pColor }} /> <span className="notranslate">{restaurant.working_hours || '08:00 - 24:00'}</span></p>
+            {restaurant.address && <p className="flex items-center gap-1.5"><MapPin size={14} style={{ color: pColor }} /> <span className="notranslate">{restaurant.address}</span></p>}
           </div>
         </div>
 
@@ -670,8 +676,8 @@ export default function PublicMenu({ params }: { params: { slug?: string } }) {
           </div>
         </div>
         <div className="flex flex-wrap gap-3 text-[11px] text-slate-600 pt-2 border-t mt-2">
-          <span className="flex items-center gap-1"><Clock size={12} style={{ color: pColor }} /> <span>{restaurant.working_hours || '08:00 - 24:00'}</span></span>
-          {restaurant.address && <span className="flex items-center gap-1"><MapPin size={12} style={{ color: pColor }} /> <span>{restaurant.address}</span></span>}
+          <span className="flex items-center gap-1"><Clock size={12} style={{ color: pColor }} /> <span className="notranslate">{restaurant.working_hours || '08:00 - 24:00'}</span></span>
+          {restaurant.address && <span className="flex items-center gap-1"><MapPin size={12} style={{ color: pColor }} /> <span className="notranslate">{restaurant.address}</span></span>}
         </div>
       </div>
 
