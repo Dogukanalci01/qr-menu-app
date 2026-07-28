@@ -26,7 +26,7 @@ const ALLERGEN_OPTIONS = [
   { id: 'caffeine', label: 'Kafein', icon: '☕' }
 ];
 
-// --- ÇEVİRİ SÖZLÜĞÜ ---
+// --- ÇEVİRİ SÖZLÜĞÜ (TÜM DİLLER TAM) ---
 const translations: any = {
   TR: {
     callWaiter: 'Garson çağrı bildirimi gönderildi!',
@@ -125,13 +125,13 @@ const translations: any = {
     allergens: 'Αλλεργιογόνα:',
     noBrochure: 'Η εικόνα του φυλλαδίου μενού δεν έχει μεταφορτωθεί ακόμα.',
     notFound: 'Το Εστιατόριο Δεν Βρέθηκε',
-    loading: 'Φόρτωση Μενού...',
+    loading: 'Φόρtωση...',
     workingHours: 'Ώρες Λειτουργίας',
     defaultSubtitle: 'Το Φαγητό Είναι η Δουλειά Μας',
     cartTitle: 'Το Καλάθι μου',
     emptyCart: 'Το καλάθι σας είναι άδειο.',
     total: 'Σύνολο',
-    placeOrder: 'Ολοκλήρωση Παραγγελίας',
+    placeOrder: 'Παραγγελία',
   }
 };
 
@@ -142,7 +142,6 @@ export default function PublicMenu({ params }: { params: { slug?: string } }) {
   const [selectedCat, setSelectedCat] = useState<string>('all');
   const [loading, setLoading] = useState(true);
 
-  // --- STATELER ---
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isLangOpen, setIsLangOpen] = useState(false);
   const [currentLang, setCurrentLang] = useState('TR');
@@ -153,34 +152,13 @@ export default function PublicMenu({ params }: { params: { slug?: string } }) {
 
   const t = translations[currentLang] || translations.TR;
 
-  // GOOGLE TRANSLATE ZIRHI
   useEffect(() => {
     fetchData();
-    if (!document.getElementById('google-translate-script')) {
-      const script = document.createElement('script');
-      script.id = 'google-translate-script';
-      script.src = 'https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
-      script.async = true;
-      document.body.appendChild(script);
-
-      (window as any).googleTranslateElementInit = () => {
-        new (window as any).google.translate.TranslateElement(
-          { pageLanguage: 'tr', includedLanguages: 'tr,en,ru,de,el', autoDisplay: false },
-          'google_translate_element'
-        );
-      };
-    }
   }, [params]);
 
-  const changeGoogleLanguage = (langCode: string, displayCode: string) => {
+  const changeLanguage = (displayCode: string) => {
     setCurrentLang(displayCode);
     setIsLangOpen(false);
-
-    const selectEl = document.querySelector('.goog-te-combo') as HTMLSelectElement;
-    if (selectEl) {
-      selectEl.value = langCode.toLowerCase();
-      selectEl.dispatchEvent(new Event('change'));
-    }
   };
 
   const fetchData = async () => {
@@ -228,8 +206,7 @@ export default function PublicMenu({ params }: { params: { slug?: string } }) {
     cart.forEach((item) => { message += `▪️ ${item.quantity}x ${item.name} - ₺${item.price * item.quantity}\n`; });
     message += `\n💰 *TOPLAM: ₺${cartTotal}*\n\nNot: Masa numaramı veya adresimi hemen iletiyorum.`;
     const waNumber = restaurant?.whatsapp || "905338665278"; 
-    const waUrl = `https://wa.me/${waNumber}?text=${encodeURIComponent(message)}`;
-    window.open(waUrl, '_blank');
+    window.open(`https://wa.me/${waNumber}?text=${encodeURIComponent(message)}`, '_blank');
     setCart([]);
     setIsCartOpen(false);
   };
@@ -256,15 +233,14 @@ export default function PublicMenu({ params }: { params: { slug?: string } }) {
     );
   }
 
-  const template = restaurant.template || 'modern';
-  const pColor = restaurant.primary_color || '#f97316';
+  const template = restaurant.template || 'custom_grid';
+  const pColor = restaurant.primary_color || '#1e3a8a';
 
   const filteredProducts = products.filter(p => {
     if (selectedCat !== 'all' && p.category_id !== selectedCat) return false;
     return true;
   });
 
-  // --- SEPET ÇEKMECESİ ---
   const renderCartDrawer = () => {
     if (!isCartOpen) return null;
     return (
@@ -331,14 +307,13 @@ export default function PublicMenu({ params }: { params: { slug?: string } }) {
     );
   };
 
-  // --- ÜRÜN DETAY MODALI (BÜYÜYEN EKRAN) ---
   const renderProductModal = () => {
     if (!selectedProduct) return null;
     return (
       <div className="fixed inset-0 z-[9999] flex items-end justify-center sm:items-center p-0 sm:p-4">
         <div className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity cursor-pointer" onClick={() => setSelectedProduct(null)} />
         <div className="relative w-full max-w-md bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl animate-in slide-in-from-bottom duration-300 max-h-[90dvh] flex flex-col">
-          <button onClick={() => setSelectedProduct(null)} className="absolute top-4 right-4 bg-white/80 backdrop-blur text-slate-800 p-2 rounded-full shadow-md z-10 hover:bg-white transition cursor-pointer">
+          <button onClick={() => setSelectedProduct(null)} className="absolute top-4 right-4 bg-white/90 text-slate-800 p-2 rounded-full shadow-md z-20 hover:bg-white transition cursor-pointer">
             <X size={20} />
           </button>
           
@@ -356,24 +331,18 @@ export default function PublicMenu({ params }: { params: { slug?: string } }) {
               </div>
               
               {selectedProduct.description && (
-                <p className="text-sm text-slate-600 leading-relaxed font-medium">
+                <p className="text-sm text-slate-600 leading-relaxed font-medium bg-slate-50 p-3 rounded-xl">
                   <span>{selectedProduct.description}</span>
                 </p>
               )}
 
               {selectedProduct.allergens && selectedProduct.allergens.length > 0 && (
-                <div className="pt-4 border-t border-slate-100">
-                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3"><span className="notranslate">{t.allergens}</span></p>
+                <div className="pt-2">
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2"><span>{t.allergens}</span></p>
                   <div className="flex flex-wrap gap-2">
                     {selectedProduct.allergens.map((algId: string) => {
                       const alg = ALLERGEN_OPTIONS.find(a => a.id === algId);
-                      if(!alg) return null;
-                      return (
-                        <div key={algId} className="flex items-center gap-2 bg-slate-50 border border-slate-200 px-3 py-2 rounded-xl shadow-sm">
-                          <span className="text-lg notranslate">{alg.icon}</span>
-                          <span className="text-xs font-bold text-slate-700"><span className="notranslate">{alg.label}</span></span>
-                        </div>
-                      )
+                      return alg ? <span key={algId} className="flex items-center gap-2 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-xl text-xs font-bold"><span className="text-base">{alg.icon}</span> <span>{alg.label}</span></span> : null;
                     })}
                   </div>
                 </div>
@@ -381,7 +350,7 @@ export default function PublicMenu({ params }: { params: { slug?: string } }) {
               
               <button 
                 onClick={() => { addToCart(selectedProduct); setSelectedProduct(null); }}
-                className="w-full py-4 mt-6 rounded-2xl text-white font-black text-sm shadow-lg flex items-center justify-center gap-2 hover:opacity-90 transition active:scale-95 cursor-pointer" 
+                className="w-full py-4 rounded-2xl text-white font-black text-sm shadow-lg flex items-center justify-center gap-2 cursor-pointer" 
                 style={{ backgroundColor: pColor }}
               >
                 <ShoppingBag size={18} /> <span>{t.addToOrder}</span>
@@ -395,8 +364,6 @@ export default function PublicMenu({ params }: { params: { slug?: string } }) {
 
   const renderHeader = () => (
     <header className="text-white p-3 px-4 flex justify-between items-center shadow-md relative z-40 sticky top-0" style={{ backgroundColor: pColor }}>
-      <div id="google_translate_element" style={{ display: 'none' }}></div>
-
       <div className="flex items-center gap-3">
         <button onClick={() => setIsSidebarOpen(true)} className="p-1.5 bg-white/10 hover:bg-white/20 rounded-lg transition cursor-pointer" title={t.menuContent}>
           <MenuIcon size={20} />
@@ -410,25 +377,24 @@ export default function PublicMenu({ params }: { params: { slug?: string } }) {
         </button>
 
         <div className="relative">
-          <button onClick={() => setIsLangOpen(!isLangOpen)} className="bg-white px-2 sm:px-3 py-1.5 rounded-xl text-xs font-extrabold flex items-center gap-1.5 shadow-sm transition cursor-pointer text-slate-800">
-            <Globe size={13} style={{ color: pColor }} /> <span className="notranslate">{currentLang}</span> <ChevronDown size={12} className="text-slate-400" />
+          <button onClick={() => setIsLangOpen(!isLangOpen)} className="bg-white px-3 py-1.5 rounded-xl text-xs font-extrabold flex items-center gap-1.5 shadow-sm transition cursor-pointer text-slate-800">
+            <Globe size={13} style={{ color: pColor }} /> <span>{currentLang}</span> <ChevronDown size={12} className="text-slate-400" />
           </button>
 
           {isLangOpen && (
-            <div className="absolute right-0 mt-2 w-48 bg-white border border-slate-200 rounded-2xl shadow-xl z-50 overflow-hidden text-slate-800 py-1 notranslate">
+            <div className="absolute right-0 mt-2 w-48 bg-white border border-slate-200 rounded-2xl shadow-xl z-50 overflow-hidden text-slate-800 py-1">
               {[
-                { code: 'tr', display: 'TR', label: 'Türkçe', flag: '🇹🇷', rightTag: 'TR' },
-                { code: 'en', display: 'EN', label: 'English', flag: '🇬🇧', rightTag: 'GB' },
-                { code: 'ru', display: 'RU', label: 'Русский', flag: '🇷🇺', rightTag: 'RU' },
-                { code: 'de', display: 'DE', label: 'Deutsch', flag: '🇩🇪', rightTag: 'DE' },
-                { code: 'el', display: 'EL', label: 'Ελληνικά', flag: '🇬🇷', rightTag: 'GR' }
+                { display: 'TR', label: 'Türkçe', flag: '🇹🇷', rightTag: 'TR' },
+                { display: 'EN', label: 'English', flag: '🇬🇧', rightTag: 'GB' },
+                { display: 'RU', label: 'Русский', flag: '🇷🇺', rightTag: 'RU' },
+                { display: 'DE', label: 'Deutsch', flag: '🇩🇪', rightTag: 'DE' },
+                { display: 'EL', label: 'Ελληνικά', flag: '🇬🇷', rightTag: 'GR' }
               ].map(lang => (
-                <button key={lang.code} onClick={() => changeGoogleLanguage(lang.code, lang.display)} className={`w-full text-left px-3.5 py-2.5 text-xs font-bold hover:bg-slate-100 transition flex items-center justify-between cursor-pointer ${currentLang === lang.display ? 'text-indigo-600 bg-indigo-50 font-black' : ''}`}>
+                <button key={lang.display} onClick={() => changeLanguage(lang.display)} className={`w-full text-left px-3.5 py-2.5 text-xs font-bold hover:bg-slate-100 transition flex items-center justify-between cursor-pointer ${currentLang === lang.display ? 'text-indigo-600 bg-indigo-50 font-black' : ''}`}>
                   <div className="flex items-center gap-2.5">
                     <span className="text-[10px] font-mono font-extrabold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">{lang.rightTag}</span>
                     <span className="flex items-center gap-1.5"><span className="text-sm">{lang.flag}</span> <span>{lang.label}</span></span>
                   </div>
-                  <span className="text-[10px] font-mono font-bold text-slate-400">{lang.rightTag}</span>
                 </button>
               ))}
             </div>
@@ -477,9 +443,9 @@ export default function PublicMenu({ params }: { params: { slug?: string } }) {
             })}
           </div>
 
-          <div className="p-4 border-t text-[11px] text-slate-500 space-y-1 bg-slate-50 pb-safe" translate="yes">
-            {restaurant.working_hours && <p className="flex items-center gap-1.5" translate="yes"><Clock size={12} /> <span translate="yes">{restaurant.working_hours}</span></p>}
-            {restaurant.phone && <p className="flex items-center gap-1.5"><Phone size={12} /> <span className="notranslate">{restaurant.phone}</span></p>}
+          <div className="p-4 border-t text-[11px] text-slate-500 space-y-1 bg-slate-50 pb-safe">
+            {restaurant.working_hours && <p className="flex items-center gap-1.5"><Clock size={12} /> <span>{restaurant.working_hours}</span></p>}
+            {restaurant.phone && <p className="flex items-center gap-1.5"><Phone size={12} /> <span>{restaurant.phone}</span></p>}
           </div>
         </div>
       </div>
@@ -544,18 +510,18 @@ export default function PublicMenu({ params }: { params: { slug?: string } }) {
                   <p className="text-xs text-slate-500 font-medium"><span>{restaurant.subtitle || t.defaultSubtitle}</span></p>
                 </div>
               </div>
-              <div className="space-y-1 text-xs text-slate-600 pt-3 border-t mt-3" translate="yes">
-                <p className="flex items-center gap-1.5" translate="yes"><Clock size={14} style={{ color: pColor }} /> <span translate="yes">{restaurant.working_hours || '08:00 - 24:00'}</span></p>
-                {restaurant.address && <p className="flex items-center gap-1.5" translate="yes"><MapPin size={14} style={{ color: pColor }} /> <span translate="yes">{restaurant.address}</span></p>}
+              <div className="space-y-1 text-xs text-slate-600 pt-3 border-t mt-3">
+                <p className="flex items-center gap-1.5"><Clock size={14} style={{ color: pColor }} /> <span>{restaurant.working_hours || '08:00 - 24:00'}</span></p>
+                {restaurant.address && <p className="flex items-center gap-1.5"><MapPin size={14} style={{ color: pColor }} /> <span>{restaurant.address}</span></p>}
               </div>
             </div>
 
             <div className="max-w-4xl mx-auto p-4 md:p-8 space-y-4">
-              <h2 className="text-xs uppercase font-extrabold text-slate-400 tracking-wider text-center sm:text-left"><span className="notranslate">{t.categoriesTitle}</span></h2>
+              <h2 className="text-xs uppercase font-extrabold text-slate-400 tracking-wider text-center sm:text-left"><span>{t.categoriesTitle}</span></h2>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {categories.map((cat) => (
                   <div key={cat.id} onClick={() => setSelectedCat(cat.id)} className="h-32 sm:h-36 rounded-2xl relative overflow-hidden cursor-pointer shadow-md flex items-end p-4 border border-slate-200 bg-cover bg-center hover:shadow-lg transition-transform hover:-translate-y-1" style={{ backgroundImage: cat.image_url ? `linear-gradient(to top, rgba(0,0,0,0.9), rgba(0,0,0,0.1)), url(${cat.image_url})` : 'none', backgroundColor: '#1e293b' }}>
-                    <span className="font-black text-sm text-white relative z-20 uppercase"><span className="notranslate">{cat.name}</span></span>
+                    <span className="font-black text-sm text-white relative z-20 uppercase"><span>{cat.name}</span></span>
                   </div>
                 ))}
               </div>
@@ -592,7 +558,7 @@ export default function PublicMenu({ params }: { params: { slug?: string } }) {
                       <div className="flex items-center gap-2 pt-2 border-t border-slate-50">
                         {prod.allergens.map((algId: string) => {
                           const alg = ALLERGEN_OPTIONS.find(a => a.id === algId);
-                          return alg ? <span key={algId} className="text-sm notranslate grayscale opacity-70" title={alg.label}>{alg.icon}</span> : null;
+                          return alg ? <span key={algId} className="text-sm grayscale opacity-70" title={alg.label}>{alg.icon}</span> : null;
                         })}
                       </div>
                     )}
@@ -648,7 +614,7 @@ export default function PublicMenu({ params }: { params: { slug?: string } }) {
                     <span className="text-[9px] font-bold text-slate-400"><span>{t.allergens}</span></span>
                     {prod.allergens.map((algId: string) => {
                       const alg = ALLERGEN_OPTIONS.find(a => a.id === algId);
-                      return alg ? <span key={algId} className="text-[11px] notranslate" title={alg.label}>{alg.icon}</span> : null;
+                      return alg ? <span key={algId} className="text-[11px]" title={alg.label}>{alg.icon}</span> : null;
                     })}
                   </div>
                 )}
@@ -660,7 +626,7 @@ export default function PublicMenu({ params }: { params: { slug?: string } }) {
     );
   }
 
-  // 4. MODERN BİSTRO (VARSAYILAN)
+  // 4. BİSTRO TEMA
   return (
     <div className="min-h-[100dvh] bg-slate-100 text-slate-900 font-sans pb-28 relative overflow-x-hidden">
       {renderCartDrawer()}
@@ -685,9 +651,9 @@ export default function PublicMenu({ params }: { params: { slug?: string } }) {
             <p className="text-xs text-slate-400 font-semibold"><span>{restaurant.subtitle || t.defaultSubtitle}</span></p>
           </div>
         </div>
-        <div className="flex flex-wrap gap-3 text-[11px] text-slate-600 pt-2 border-t mt-2" translate="yes">
-          <span className="flex items-center gap-1" translate="yes"><Clock size={12} style={{ color: pColor }} /> <span translate="yes">{restaurant.working_hours || '08:00 - 24:00'}</span></span>
-          {restaurant.address && <span className="flex items-center gap-1" translate="yes"><MapPin size={12} style={{ color: pColor }} /> <span translate="yes">{restaurant.address}</span></span>}
+        <div className="flex flex-wrap gap-3 text-[11px] text-slate-600 pt-2 border-t mt-2">
+          <span className="flex items-center gap-1"><Clock size={12} style={{ color: pColor }} /> <span>{restaurant.working_hours || '08:00 - 24:00'}</span></span>
+          {restaurant.address && <span className="flex items-center gap-1"><MapPin size={12} style={{ color: pColor }} /> <span>{restaurant.address}</span></span>}
         </div>
       </div>
 
@@ -725,7 +691,7 @@ export default function PublicMenu({ params }: { params: { slug?: string } }) {
                           <span className="text-[9px] font-bold text-slate-400"><span>{t.allergens}</span></span>
                           {prod.allergens.map((algId: string) => {
                             const alg = ALLERGEN_OPTIONS.find(a => a.id === algId);
-                            return alg ? <span key={algId} className="text-xs grayscale opacity-70 notranslate" title={alg.label}>{alg.icon}</span> : null;
+                            return alg ? <span key={algId} className="text-xs grayscale opacity-70" title={alg.label}>{alg.icon}</span> : null;
                           })}
                         </div>
                       )}
