@@ -158,7 +158,7 @@ export default function PublicMenu({ params }: { params: { slug?: string } }) {
 
   const t = translations[currentLang] || translations.TR;
 
-  // GOOGLE TRANSLATE MOTORUNU ÇALIŞTIRAN SİSTEM
+  // GOOGLE TRANSLATE MOTORUNU BAŞLATAN SİSTEM
   useEffect(() => {
     fetchData();
     if (!document.getElementById('google-translate-script')) {
@@ -177,7 +177,7 @@ export default function PublicMenu({ params }: { params: { slug?: string } }) {
     }
   }, [params]);
 
-  // ARKA PLANDA GİZLİCE GOOGLE TRANSLATE'İ TETİKLEYEN KOD
+  // ARKA PLANDA GİZLİCE GOOGLE TRANSLATE'İ TETİKLEYEN KUSURSUZ KOD
   const changeLanguage = (langCode: string, displayCode: string) => {
     setCurrentLang(displayCode);
     setIsLangOpen(false);
@@ -185,7 +185,7 @@ export default function PublicMenu({ params }: { params: { slug?: string } }) {
     const selectEl = document.querySelector('.goog-te-combo') as HTMLSelectElement;
     if (selectEl) {
       selectEl.value = langCode;
-      selectEl.dispatchEvent(new Event('change'));
+      selectEl.dispatchEvent(new Event('change', { bubbles: true }));
     }
   };
 
@@ -514,11 +514,10 @@ export default function PublicMenu({ params }: { params: { slug?: string } }) {
 
   return (
     <>
-      {/* GOOGLE TRANSLATE BANNER VE BUBBLE GİZLEME CSS'İ - ASLA KENDİ KENDİNE AÇILMAYACAK */}
+      {/* GOOGLE TRANSLATE ÇUBUĞUNU VE TOOLTIPLERİ KÖKÜNDEN GİZLEYEN ZIRH */}
       <style dangerouslySetInnerHTML={{__html: `
-        .goog-te-banner-frame { display: none !important; }
-        .skiptranslate { display: none !important; }
-        body { top: 0px !important; }
+        .goog-te-banner-frame { display: none !important; visibility: hidden !important; }
+        body { top: 0px !important; position: static !important; }
         #goog-gt-tt { display: none !important; }
         .goog-tooltip { display: none !important; }
         .goog-tooltip:hover { display: none !important; }
