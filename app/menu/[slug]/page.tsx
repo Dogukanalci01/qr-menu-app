@@ -48,6 +48,7 @@ const translations: any = {
     emptyCart: 'Sepetiniz şu an boş.',
     total: 'Toplam',
     placeOrder: 'Siparişi Tamamla',
+    noPrice: 'Fiyat Belirtilmemiş',
   },
   EN: {
     callWaiter: 'Waiter call notification sent!',
@@ -69,6 +70,7 @@ const translations: any = {
     emptyCart: 'Your cart is currently empty.',
     total: 'Total',
     placeOrder: 'Place Order',
+    noPrice: 'Price Not Specified',
   },
   RU: {
     callWaiter: 'Уведомление официанту отправлено!',
@@ -90,6 +92,7 @@ const translations: any = {
     emptyCart: 'Ваша корзина пуста.',
     total: 'Итого',
     placeOrder: 'Оформить заказ',
+    noPrice: 'Цена не указана',
   },
   DE: {
     callWaiter: 'Kellner-Benachrichtigung gesendet!',
@@ -111,6 +114,7 @@ const translations: any = {
     emptyCart: 'Ihr Warenkorb ist derzeit leer.',
     total: 'Gesamt',
     placeOrder: 'Bestellung aufgeben',
+    noPrice: 'Preis nicht angegeben',
   },
   EL: {
     callWaiter: 'Η ειδοποίηση κλήσης σερβιτόρου στάλθηκε!',
@@ -132,6 +136,7 @@ const translations: any = {
     emptyCart: 'Το καλάθι σας είναι άδειο.',
     total: 'Σύνολο',
     placeOrder: 'Παραγγελία',
+    noPrice: 'Δεν καθορίζεται τιμή',
   }
 };
 
@@ -184,6 +189,9 @@ export default function PublicMenu({ params }: { params: { slug?: string } }) {
 
   const addToCart = (product: any, e?: any) => {
     if(e) e.stopPropagation();
+    const priceNum = parseFloat(product.price);
+    if (isNaN(priceNum) || priceNum <= 0) return; // Fiyatsız ürün sepete eklenemez
+
     setCart(prev => {
       const existing = prev.find(item => item.id === product.id);
       if (existing) {
@@ -200,13 +208,13 @@ export default function PublicMenu({ params }: { params: { slug?: string } }) {
     }).filter(item => item.quantity > 0));
   };
 
-  const cartTotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  const cartTotal = cart.reduce((sum, item) => sum + ((parseFloat(item.price) || 0) * item.quantity), 0);
   const cartItemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
   const handlePlaceOrder = () => {
     if (cart.length === 0) return;
     let message = `🔔 *YENİ SİPARİŞ*\n\n`;
-    cart.forEach((item) => { message += `▪️ ${item.quantity}x ${item.name} - ₺${item.price * item.quantity}\n`; });
+    cart.forEach((item) => { message += `▪️ ${item.quantity}x ${item.name} - ₺${(parseFloat(item.price) || 0) * item.quantity}\n`; });
     message += `\n💰 *TOPLAM: ₺${cartTotal}*\n\nNot: Masa numaramı veya adresimi hemen iletiyorum.`;
     const waNumber = restaurant?.whatsapp || "905338665278"; 
     window.open(`https://wa.me/${waNumber}?text=${encodeURIComponent(message)}`, '_blank');
@@ -268,28 +276,31 @@ export default function PublicMenu({ params }: { params: { slug?: string } }) {
               </div>
             ) : (
               <div className="space-y-4">
-                {cart.map((item) => (
-                  <div key={item.id} className="bg-white p-3 rounded-2xl shadow-sm border border-slate-100 flex gap-3 items-center">
-                    {item.image_url ? (
-                      <img src={item.image_url} alt={item.name} className="w-16 h-16 object-cover rounded-xl flex-shrink-0" />
-                    ) : (
-                      <div className="w-16 h-16 bg-slate-100 rounded-xl flex-shrink-0"></div>
-                    )}
-                    <div className="flex-1 min-w-0">
-                      <h4 className="font-bold text-sm text-slate-900 truncate pr-2"><span>{item.name}</span></h4>
-                      <p className="font-extrabold text-sm" style={{ color: pColor }}>₺<span>{item.price * item.quantity}</span></p>
+                {cart.map((item) => {
+                  const itemPrice = parseFloat(item.price) || 0;
+                  return (
+                    <div key={item.id} className="bg-white p-3 rounded-2xl shadow-sm border border-slate-100 flex gap-3 items-center">
+                      {item.image_url ? (
+                        <img src={item.image_url} alt={item.name} className="w-16 h-16 object-cover rounded-xl flex-shrink-0" />
+                      ) : (
+                        <div className="w-16 h-16 bg-slate-100 rounded-xl flex-shrink-0"></div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-bold text-sm text-slate-900 truncate pr-2"><span>{item.name}</span></h4>
+                        <p className="font-extrabold text-sm" style={{ color: pColor }}>₺<span>{itemPrice * item.quantity}</span></p>
+                      </div>
+                      <div className="flex items-center gap-3 bg-slate-50 border border-slate-200 rounded-xl px-2 py-1">
+                        <button onClick={() => updateCartQuantity(item.id, -1)} className="text-slate-500 hover:text-slate-800 p-1">
+                          {item.quantity === 1 ? <Trash2 size={14} className="text-rose-500" /> : <Minus size={14} />}
+                        </button>
+                        <span className="font-black text-sm w-4 text-center"><span>{item.quantity}</span></span>
+                        <button onClick={() => updateCartQuantity(item.id, 1)} className="text-slate-500 hover:text-slate-800 p-1">
+                          <Plus size={14} />
+                        </button>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-3 bg-slate-50 border border-slate-200 rounded-xl px-2 py-1">
-                      <button onClick={() => updateCartQuantity(item.id, -1)} className="text-slate-500 hover:text-slate-800 p-1">
-                        {item.quantity === 1 ? <Trash2 size={14} className="text-rose-500" /> : <Minus size={14} />}
-                      </button>
-                      <span className="font-black text-sm w-4 text-center"><span>{item.quantity}</span></span>
-                      <button onClick={() => updateCartQuantity(item.id, 1)} className="text-slate-500 hover:text-slate-800 p-1">
-                        <Plus size={14} />
-                      </button>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
@@ -312,6 +323,9 @@ export default function PublicMenu({ params }: { params: { slug?: string } }) {
 
   const renderProductModal = () => {
     if (!selectedProduct) return null;
+    const priceNum = parseFloat(selectedProduct.price);
+    const hasValidPrice = !isNaN(priceNum) && priceNum > 0;
+
     return (
       <div className="fixed inset-0 z-[9999] flex items-end justify-center sm:items-center p-0 sm:p-4">
         <div className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity cursor-pointer" onClick={() => setSelectedProduct(null)} />
@@ -330,7 +344,9 @@ export default function PublicMenu({ params }: { params: { slug?: string } }) {
             <div className="p-6 space-y-4">
               <div className="flex justify-between items-start gap-4">
                 <h2 className="text-2xl font-black text-slate-900 leading-tight"><span>{selectedProduct.name}</span></h2>
-                <p className="text-2xl font-extrabold whitespace-nowrap" style={{ color: pColor }}>₺<span>{selectedProduct.price}</span></p>
+                <p className="text-2xl font-extrabold whitespace-nowrap" style={{ color: pColor }}>
+                  {hasValidPrice ? <>₺<span>{selectedProduct.price}</span></> : <span className="text-xs bg-slate-100 text-slate-500 px-2.5 py-1.5 rounded-lg">{t.noPrice}</span>}
+                </p>
               </div>
               
               {selectedProduct.description && (
@@ -351,13 +367,15 @@ export default function PublicMenu({ params }: { params: { slug?: string } }) {
                 </div>
               )}
               
-              <button 
-                onClick={() => { addToCart(selectedProduct); setSelectedProduct(null); }}
-                className="w-full py-4 rounded-2xl text-white font-black text-sm shadow-lg flex items-center justify-center gap-2 cursor-pointer" 
-                style={{ backgroundColor: pColor }}
-              >
-                <ShoppingBag size={18} /> <span>{t.addToOrder}</span>
-              </button>
+              {hasValidPrice && (
+                <button 
+                  onClick={() => { addToCart(selectedProduct); setSelectedProduct(null); }}
+                  className="w-full py-4 rounded-2xl text-white font-black text-sm shadow-lg flex items-center justify-center gap-2 cursor-pointer" 
+                  style={{ backgroundColor: pColor }}
+                >
+                  <ShoppingBag size={18} /> <span>{t.addToOrder}</span>
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -488,7 +506,7 @@ export default function PublicMenu({ params }: { params: { slug?: string } }) {
     );
   }
 
-  // 2. KARE GRID ŞABLON (DN ÖZEL TEMA - ANA VE ALT KATEGORİ AÇIKLAMALARI EKLENDİ)
+  // 2. KARE GRID ŞABLON (DN ÖZEL TEMA - 2 AŞAMALI YAPI)
   if (template === 'custom_grid') {
     const activeCategory = categories.find(c => c.id === selectedCat);
     const catSubcategories = subcategories.filter(s => s.category_id === selectedCat);
@@ -549,7 +567,6 @@ export default function PublicMenu({ params }: { params: { slug?: string } }) {
               </div>
             </div>
 
-            {/* SEÇİLEN KATEGORİ AÇIKLAMASI BANNERI */}
             {activeCategory?.description && (
               <div className="max-w-3xl mx-auto px-4 pt-4">
                 <div className="bg-white border border-slate-200 p-4 rounded-2xl shadow-2xs">
@@ -560,7 +577,6 @@ export default function PublicMenu({ params }: { params: { slug?: string } }) {
             )}
 
             <main className="max-w-3xl mx-auto p-4 space-y-4 mt-2">
-              {/* ALT KATEGORİLER VARSA GRUPLU VEYA LİSTE HALİNDE GÖSTERİM */}
               {catSubcategories.length > 0 && (
                 <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
                   {catSubcategories.map(sub => (
@@ -572,28 +588,35 @@ export default function PublicMenu({ params }: { params: { slug?: string } }) {
                 </div>
               )}
 
-              {filteredProducts.map((prod) => (
-                <div key={prod.id} onClick={() => setSelectedProduct(prod)} className="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-col sm:flex-row gap-4 cursor-pointer hover:shadow-md transition">
-                  {prod.image_url && <img src={prod.image_url} alt={prod.name} className="w-full sm:w-32 h-40 sm:h-32 object-cover rounded-xl flex-shrink-0" />}
-                  <div className="flex-1 flex flex-col justify-between space-y-2">
-                    <div>
-                      <div className="flex justify-between items-start gap-2">
-                        <h3 className="font-extrabold text-base text-slate-900 leading-snug uppercase"><span>{prod.name}</span></h3>
-                        <span className="font-black text-sm px-3 py-1 rounded-lg text-white whitespace-nowrap" style={{ backgroundColor: pColor }}>₺<span>{prod.price}</span></span>
+              {filteredProducts.map((prod) => {
+                const priceNum = parseFloat(prod.price);
+                const hasValidPrice = !isNaN(priceNum) && priceNum > 0;
+
+                return (
+                  <div key={prod.id} onClick={() => setSelectedProduct(prod)} className="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-col sm:flex-row gap-4 cursor-pointer hover:shadow-md transition">
+                    {prod.image_url && <img src={prod.image_url} alt={prod.name} className="w-full sm:w-32 h-40 sm:h-32 object-cover rounded-xl flex-shrink-0" />}
+                    <div className="flex-1 flex flex-col justify-between space-y-2">
+                      <div>
+                        <div className="flex justify-between items-start gap-2">
+                          <h3 className="font-extrabold text-base text-slate-900 leading-snug uppercase"><span>{prod.name}</span></h3>
+                          <span className="font-black text-sm px-3 py-1 rounded-lg text-white whitespace-nowrap" style={{ backgroundColor: hasValidPrice ? pColor : '#94a3b8' }}>
+                            {hasValidPrice ? <>₺<span>{prod.price}</span></> : <span>{t.noPrice}</span>}
+                          </span>
+                        </div>
+                        <p className="text-xs text-slate-500 line-clamp-2 mt-1.5 leading-relaxed"><span>{prod.description}</span></p>
                       </div>
-                      <p className="text-xs text-slate-500 line-clamp-2 mt-1.5 leading-relaxed"><span>{prod.description}</span></p>
+                      {prod.allergens && prod.allergens.length > 0 && (
+                        <div className="flex items-center gap-2 pt-2 border-t border-slate-50">
+                          {prod.allergens.map((algId: string) => {
+                            const alg = ALLERGEN_OPTIONS.find(a => a.id === algId);
+                            return alg ? <span key={algId} className="text-sm grayscale opacity-70" title={alg.label}>{alg.icon}</span> : null;
+                          })}
+                        </div>
+                      )}
                     </div>
-                    {prod.allergens && prod.allergens.length > 0 && (
-                      <div className="flex items-center gap-2 pt-2 border-t border-slate-50">
-                        {prod.allergens.map((algId: string) => {
-                          const alg = ALLERGEN_OPTIONS.find(a => a.id === algId);
-                          return alg ? <span key={algId} className="text-sm grayscale opacity-70" title={alg.label}>{alg.icon}</span> : null;
-                        })}
-                      </div>
-                    )}
                   </div>
-                </div>
-              ))}
+                );
+              })}
               {filteredProducts.length === 0 && (
                 <div className="text-center py-10 text-slate-500 text-xs font-semibold">
                   <span>Bu kategoride ürün bulunamadı.</span>
@@ -629,27 +652,25 @@ export default function PublicMenu({ params }: { params: { slug?: string } }) {
         </div>
 
         <main className="max-w-md mx-auto p-4 space-y-3 mt-4">
-          {filteredProducts.map((prod) => (
-            <div key={prod.id} onClick={() => setSelectedProduct(prod)} className="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-sm flex gap-3 items-center cursor-pointer hover:border-slate-300 transition">
-              {prod.image_url && <img src={prod.image_url} alt={prod.name} className="w-20 h-20 object-cover rounded-xl flex-shrink-0" />}
-              <div className="flex-1 min-w-0 space-y-1">
-                <div className="flex justify-between items-start">
-                  <h3 className="font-bold text-sm text-slate-900 pr-2"><span>{prod.name}</span></h3>
-                  <span className="font-extrabold text-sm whitespace-nowrap" style={{ color: pColor }}>₺<span>{prod.price}</span></span>
-                </div>
-                <p className="text-[11px] text-slate-500 line-clamp-2"><span>{prod.description}</span></p>
-                {prod.allergens && prod.allergens.length > 0 && (
-                  <div className="flex items-center gap-1 pt-0.5">
-                    <span className="text-[9px] font-bold text-slate-400"><span>{t.allergens}</span></span>
-                    {prod.allergens.map((algId: string) => {
-                      const alg = ALLERGEN_OPTIONS.find(a => a.id === algId);
-                      return alg ? <span key={algId} className="text-[11px]" title={alg.label}>{alg.icon}</span> : null;
-                    })}
+          {filteredProducts.map((prod) => {
+            const priceNum = parseFloat(prod.price);
+            const hasValidPrice = !isNaN(priceNum) && priceNum > 0;
+
+            return (
+              <div key={prod.id} onClick={() => setSelectedProduct(prod)} className="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-sm flex gap-3 items-center cursor-pointer hover:border-slate-300 transition">
+                {prod.image_url && <img src={prod.image_url} alt={prod.name} className="w-20 h-20 object-cover rounded-xl flex-shrink-0" />}
+                <div className="flex-1 min-w-0 space-y-1">
+                  <div className="flex justify-between items-start">
+                    <h3 className="font-bold text-sm text-slate-900 pr-2"><span>{prod.name}</span></h3>
+                    <span className="font-extrabold text-sm whitespace-nowrap" style={{ color: hasValidPrice ? pColor : '#94a3b8' }}>
+                      {hasValidPrice ? <>₺<span>{prod.price}</span></> : <span className="text-[10px] text-slate-400">{t.noPrice}</span>}
+                    </span>
                   </div>
-                )}
+                  <p className="text-[11px] text-slate-500 line-clamp-2"><span>{prod.description}</span></p>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </main>
       </div>
     );
@@ -705,31 +726,30 @@ export default function PublicMenu({ params }: { params: { slug?: string } }) {
               </div>
 
               <div className="p-3 space-y-3 divide-y divide-slate-100">
-                {catProducts.map((prod) => (
-                  <div key={prod.id} onClick={() => setSelectedProduct(prod)} className="pt-3 first:pt-0 flex gap-3 items-center cursor-pointer hover:bg-slate-50 transition -mx-3 px-3 rounded-lg">
-                    {prod.image_url && <img src={prod.image_url} alt={prod.name} className="w-20 h-20 object-cover rounded-xl border border-slate-100 flex-shrink-0" />}
-                    <div className="flex-1 min-w-0 space-y-1 py-1">
-                      <div className="flex justify-between items-start gap-1">
-                        <h3 className="font-bold text-xs text-slate-900 leading-snug"><span>{prod.name}</span></h3>
-                        <button onClick={(e) => { e.stopPropagation(); addToCart(prod); }} className="bg-slate-100 text-[10px] font-extrabold px-3 py-1.5 rounded-lg transition flex-shrink-0 hover:bg-slate-200" style={{ color: pColor }}>
-                          <span>{t.addBtn}</span>
-                        </button>
-                      </div>
-                      <p className="font-extrabold text-sm" style={{ color: pColor }}>₺<span>{prod.price}</span></p>
-                      <p className="text-[10px] text-slate-400 line-clamp-2 pr-2 leading-relaxed"><span>{prod.description}</span></p>
-                      
-                      {prod.allergens && prod.allergens.length > 0 && (
-                        <div className="flex items-center gap-1.5 pt-1.5">
-                          <span className="text-[9px] font-bold text-slate-400"><span>{t.allergens}</span></span>
-                          {prod.allergens.map((algId: string) => {
-                            const alg = ALLERGEN_OPTIONS.find(a => a.id === algId);
-                            return alg ? <span key={algId} className="text-xs grayscale opacity-70" title={alg.label}>{alg.icon}</span> : null;
-                          })}
+                {catProducts.map((prod) => {
+                  const priceNum = parseFloat(prod.price);
+                  const hasValidPrice = !isNaN(priceNum) && priceNum > 0;
+
+                  return (
+                    <div key={prod.id} onClick={() => setSelectedProduct(prod)} className="pt-3 first:pt-0 flex gap-3 items-center cursor-pointer hover:bg-slate-50 transition -mx-3 px-3 rounded-lg">
+                      {prod.image_url && <img src={prod.image_url} alt={prod.name} className="w-20 h-20 object-cover rounded-xl border border-slate-100 flex-shrink-0" />}
+                      <div className="flex-1 min-w-0 space-y-1 py-1">
+                        <div className="flex justify-between items-start gap-1">
+                          <h3 className="font-bold text-xs text-slate-900 leading-snug"><span>{prod.name}</span></h3>
+                          {hasValidPrice && (
+                            <button onClick={(e) => { e.stopPropagation(); addToCart(prod); }} className="bg-slate-100 text-[10px] font-extrabold px-3 py-1.5 rounded-lg transition flex-shrink-0 hover:bg-slate-200" style={{ color: pColor }}>
+                              <span>{t.addBtn}</span>
+                            </button>
+                          )}
                         </div>
-                      )}
+                        <p className="font-extrabold text-sm" style={{ color: hasValidPrice ? pColor : '#94a3b8' }}>
+                          {hasValidPrice ? <>₺<span>{prod.price}</span></> : <span className="text-[10px] text-slate-400">{t.noPrice}</span>}
+                        </p>
+                        <p className="text-[10px] text-slate-400 line-clamp-2 pr-2 leading-relaxed"><span>{prod.description}</span></p>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           );
