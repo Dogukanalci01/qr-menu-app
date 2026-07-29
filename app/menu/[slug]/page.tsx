@@ -28,116 +28,11 @@ const ALLERGEN_OPTIONS = [
 
 // --- ÇEVİRİ SÖZLÜĞÜ ---
 const translations: any = {
-  TR: {
-    callWaiter: 'Garson çağrı bildirimi gönderildi!',
-    waiterBtn: 'Garson Çağır',
-    menuContent: 'Menü İçeriği',
-    allProducts: 'Tüm Ürünler',
-    categories: 'Kategoriler',
-    categoriesTitle: 'KATEGORİLER',
-    backToCategories: '← Kategorilere Dön',
-    addBtn: 'Ekle',
-    addToOrder: 'Siparişe Ekle',
-    allergens: 'Alerjenler:',
-    noBrochure: 'Henüz menü broşür görseli yüklenmedi.',
-    notFound: 'Restoran Bulunamadı',
-    loading: 'Menü Yükleniyor...',
-    workingHours: 'Çalışma Saatleri',
-    defaultSubtitle: 'Yemek Bizim İşimiz',
-    cartTitle: 'Sepetim',
-    emptyCart: 'Sepetiniz şu an boş.',
-    total: 'Toplam',
-    placeOrder: 'Siparişi Tamamla',
-    noPrice: 'Fiyat Belirtilmemiş',
-  },
-  EN: {
-    callWaiter: 'Waiter call notification sent!',
-    waiterBtn: 'Call Waiter',
-    menuContent: 'Menu Content',
-    allProducts: 'All Products',
-    categories: 'Categories',
-    categoriesTitle: 'CATEGORIES',
-    backToCategories: '← Back to Categories',
-    addBtn: 'Add',
-    addToOrder: 'Add to Order',
-    allergens: 'Allergens:',
-    noBrochure: 'Menu brochure image has not been uploaded yet.',
-    notFound: 'Restaurant Not Found',
-    loading: 'Loading Menu...',
-    workingHours: 'Working Hours',
-    defaultSubtitle: 'Food is Our Business',
-    cartTitle: 'My Cart',
-    emptyCart: 'Your cart is currently empty.',
-    total: 'Total',
-    placeOrder: 'Place Order',
-    noPrice: 'Price Not Specified',
-  },
-  RU: {
-    callWaiter: 'Уведомление официанту отправлено!',
-    waiterBtn: 'Вызвать официанта',
-    menuContent: 'Содержание меню',
-    allProducts: 'Все продукты',
-    categories: 'Категории',
-    categoriesTitle: 'КАТЕГОРИИ',
-    backToCategories: '← Назад к категориям',
-    addBtn: 'Добавить',
-    addToOrder: 'Добавить к заказу',
-    allergens: 'Аллергены:',
-    noBrochure: 'Изображение брошюры меню еще не загружено.',
-    notFound: 'Ресторан не найден',
-    loading: 'Загрузка меню...',
-    workingHours: 'Часы работы',
-    defaultSubtitle: 'Еда - это наш бизнес',
-    cartTitle: 'Моя корзина',
-    emptyCart: 'Ваша корзина пуста.',
-    total: 'Итого',
-    placeOrder: 'Оформить заказ',
-    noPrice: 'Цена не указана',
-  },
-  DE: {
-    callWaiter: 'Kellner-Benachrichtigung gesendet!',
-    waiterBtn: 'Kellner rufen',
-    menuContent: 'Menüinhalte',
-    allProducts: 'Alle Produkte',
-    categories: 'Kategorien',
-    categoriesTitle: 'KATEGORIEN',
-    backToCategories: '← Zurück zu Kategorien',
-    addBtn: 'Hinzufügen',
-    addToOrder: 'Zur Bestellung hinzufügen',
-    allergens: 'Allergene:',
-    noBrochure: 'Menü-Broschürenbild wurde noch nicht hochgeladen.',
-    notFound: 'Restaurant nicht gefunden',
-    loading: 'Menü wird geladen...',
-    workingHours: 'Öffnungszeiten',
-    defaultSubtitle: 'Essen ist unser Geschäft',
-    cartTitle: 'Mein Warenkorb',
-    emptyCart: 'Ihr Warenkorb ist derzeit leer.',
-    total: 'Gesamt',
-    placeOrder: 'Bestellung aufgeben',
-    noPrice: 'Preis nicht angegeben',
-  },
-  EL: {
-    callWaiter: 'Η ειδοποίηση κλήσης σερβιτόρου στάλθηκε!',
-    waiterBtn: 'Καλέστε Σερβιτόρο',
-    menuContent: 'Περιεχόμενο Μενού',
-    allProducts: 'Όλα τα Προϊόντα',
-    categories: 'Κατηγορίες',
-    categoriesTitle: 'ΚΑΤΗΓΟΡΙΕΣ',
-    backToCategories: '← Πίσω στις Κατηγορίες',
-    addBtn: 'Προσθήκη',
-    addToOrder: 'Προσθήκη στην Παραγγελία',
-    allergens: 'Αλλεργιογόνα:',
-    noBrochure: 'Η εικόνα του φυλλαδίου μενού δεν έχει μεταφορτωθεί ακόμα.',
-    notFound: 'Το Εστιατόριο Δεν Βρέθηκε',
-    loading: 'Φόρtωση...',
-    workingHours: 'Ώρες Λειτουργίας',
-    defaultSubtitle: 'Το Φαγητό Είναι η Δουλειά Μας',
-    cartTitle: 'Το Καλάθι μου',
-    emptyCart: 'Το καλάθι σας είναι άδειο.',
-    total: 'Σύνολο',
-    placeOrder: 'Παραγγελία',
-    noPrice: 'Δεν καθορίζεται τιμή',
-  }
+  TR: { callWaiter: 'Garson çağrı bildirimi gönderildi!', waiterBtn: 'Garson Çağır', menuContent: 'Menü İçeriği', allProducts: 'Tüm Ürünler', categories: 'Kategoriler', categoriesTitle: 'KATEGORİLER', backToCategories: '← Kategorilere Dön', addBtn: 'Ekle', addToOrder: 'Siparişe Ekle', allergens: 'Alerjenler:', noBrochure: 'Henüz menü broşür görseli yüklenmedi.', notFound: 'Restoran Bulunamadı', loading: 'Menü Yükleniyor...', workingHours: 'Çalışma Saatleri', defaultSubtitle: 'Yemek Bizim İşimiz', cartTitle: 'Sepetim', emptyCart: 'Sepetiniz şu an boş.', total: 'Toplam', placeOrder: 'Siparişi Tamamla', noPrice: 'Fiyat Belirtilmemiş', },
+  EN: { callWaiter: 'Waiter call notification sent!', waiterBtn: 'Call Waiter', menuContent: 'Menu Content', allProducts: 'All Products', categories: 'Categories', categoriesTitle: 'CATEGORIES', backToCategories: '← Back to Categories', addBtn: 'Add', addToOrder: 'Add to Order', allergens: 'Allergens:', noBrochure: 'Menu brochure image has not been uploaded yet.', notFound: 'Restaurant Not Found', loading: 'Loading Menu...', workingHours: 'Working Hours', defaultSubtitle: 'Food is Our Business', cartTitle: 'My Cart', emptyCart: 'Your cart is currently empty.', total: 'Total', placeOrder: 'Place Order', noPrice: 'Price Not Specified', },
+  RU: { callWaiter: 'Уведомление официанту отправлено!', waiterBtn: 'Вызвать официанта', menuContent: 'Содержание меню', allProducts: 'Все продукты', categories: 'Категории', categoriesTitle: 'КАТЕГОРИИ', backToCategories: '← Назад к категориям', addBtn: 'Добавить', addToOrder: 'Добавить к заказу', allergens: 'Аллергены:', noBrochure: 'Изображение брошюры меню еще не загружено.', notFound: 'Ресторан не найден', loading: 'Загрузка меню...', workingHours: 'Часы работы', defaultSubtitle: 'Еда - это наш бизнес', cartTitle: 'Моя корзина', emptyCart: 'Ваша корзина пуста.', total: 'Итого', placeOrder: 'Оформить заказ', noPrice: 'Цена не указана', },
+  DE: { callWaiter: 'Kellner-Benachrichtigung gesendet!', waiterBtn: 'Kellner rufen', menuContent: 'Menüinhalte', allProducts: 'Alle Produkte', categories: 'Kategorien', categoriesTitle: 'KATEGORIEN', backToCategories: '← Zurück zu Kategorien', addBtn: 'Hinzufügen', addToOrder: 'Zur Bestellung hinzufügen', allergens: 'Allergene:', noBrochure: 'Menü-Broschürenbild wurde noch nicht hochgeladen.', notFound: 'Restaurant nicht gefunden', loading: 'Menü wird geladen...', workingHours: 'Öffnungszeiten', defaultSubtitle: 'Essen ist unser Geschäft', cartTitle: 'Mein Warenkorb', emptyCart: 'Ihr Warenkorb ist derzeit leer.', total: 'Gesamt', placeOrder: 'Bestellung aufgeben', noPrice: 'Preis nicht angegeben', },
+  EL: { callWaiter: 'Η ειδοποίηση κλήσης σερβιτόρου στάλθηκε!', waiterBtn: 'Καλέστε Σερβιτόρο', menuContent: 'Περιεχόμενο Μενού', allProducts: 'Όλα τα Προϊόντα', categories: 'Κατηγορίες', categoriesTitle: 'ΚΑΤΗΓΟΡΙΕΣ', backToCategories: '← Πίσω στις Κατηγορίες', addBtn: 'Προσθήκη', addToOrder: 'Προσθήκη στην Παραγγελία', allergens: 'Αλλεργιογόνα:', noBrochure: 'Η εικόνα του φυλλαδίου μενού δεν έχει μεταφορτωθεί ακόμα.', notFound: 'Το Εστιατόριο Δεν Βρέθηκε', loading: 'Φόρtωση...', workingHours: 'Ώρες Λειτουργίας', defaultSubtitle: 'Το Φαγητό Είναι η Δουλειά Μας', cartTitle: 'Το Καλάθι μου', emptyCart: 'Το καλάθι σας είναι άδειο.', total: 'Σύνολο', placeOrder: 'Παραγγελία', noPrice: 'Δεν καθορίζεται τιμή', }
 };
 
 export default function PublicMenu({ params }: { params: { slug?: string } }) {
@@ -158,9 +53,25 @@ export default function PublicMenu({ params }: { params: { slug?: string } }) {
 
   const t = translations[currentLang] || translations.TR;
 
-  // GOOGLE TRANSLATE MOTORUNU BAŞLATAN SİSTEM
+  // GOOGLE TRANSLATE ÇEREZ (COOKIE) KONTROLÜ - SAYFA YÜKLENDİĞİNDE DİLİ HATIRLAR
   useEffect(() => {
+    const getCookie = (name: string) => {
+      const value = `; ${document.cookie}`;
+      const parts = value.split(`; ${name}=`);
+      if (parts.length === 2) return parts.pop()?.split(';').shift();
+      return null;
+    };
+
+    const googtrans = getCookie('googtrans');
+    if (googtrans) {
+      const lang = googtrans.split('/').pop()?.toUpperCase();
+      if (lang && ['EN', 'RU', 'DE', 'EL', 'TR'].includes(lang)) {
+        setCurrentLang(lang);
+      }
+    }
+
     fetchData();
+
     if (!document.getElementById('google-translate-script')) {
       const script = document.createElement('script');
       script.id = 'google-translate-script';
@@ -177,16 +88,16 @@ export default function PublicMenu({ params }: { params: { slug?: string } }) {
     }
   }, [params]);
 
-  // ARKA PLANDA GİZLİCE GOOGLE TRANSLATE'İ TETİKLEYEN KUSURSUZ KOD
+  // %100 ÇALIŞAN ÇEVİRİ TETİKLEYİCİSİ (ÇEREZ + YENİLEME)
   const changeLanguage = (langCode: string, displayCode: string) => {
-    setCurrentLang(displayCode);
     setIsLangOpen(false);
-
-    const selectEl = document.querySelector('.goog-te-combo') as HTMLSelectElement;
-    if (selectEl) {
-      selectEl.value = langCode;
-      selectEl.dispatchEvent(new Event('change', { bubbles: true }));
-    }
+    
+    // Cookie'yi her türlü path için zorla yazıyoruz
+    document.cookie = `googtrans=/tr/${langCode}; path=/;`;
+    document.cookie = `googtrans=/tr/${langCode}; domain=.${window.location.hostname}; path=/;`;
+    
+    // Sayfayı yeniliyoruz ki Google Translate her şeyi baştan kusursuz okuyup çevirsin
+    window.location.reload();
   };
 
   const fetchData = async () => {
@@ -514,7 +425,7 @@ export default function PublicMenu({ params }: { params: { slug?: string } }) {
 
   return (
     <>
-      {/* GOOGLE TRANSLATE ÇUBUĞUNU VE TOOLTIPLERİ KÖKÜNDEN GİZLEYEN ZIRH */}
+      {/* GOOGLE TRANSLATE BANNER VE BUBBLE GİZLEME CSS'İ - ASLA KENDİ KENDİNE AÇILMAYACAK */}
       <style dangerouslySetInnerHTML={{__html: `
         .goog-te-banner-frame { display: none !important; visibility: hidden !important; }
         body { top: 0px !important; position: static !important; }
