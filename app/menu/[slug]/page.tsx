@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '../../../lib/supabase';
-import { Phone, MapPin, Clock, Info, Bell, ChevronDown, Menu as MenuIcon, X, Globe, Layers, ShoppingBag, Plus, Minus, Trash2 } from 'lucide-react';
+import { Phone, MapPin, Clock, Info, Bell, ChevronDown, Menu as MenuIcon, X, Globe, Layers, ShoppingBag, Plus, Minus, Trash2, Check } from 'lucide-react';
 
 // --- ALERJEN LİSTESİ ---
 const ALLERGEN_OPTIONS = [
@@ -28,11 +28,11 @@ const ALLERGEN_OPTIONS = [
 
 // --- ÇEVİRİ SÖZLÜĞÜ ---
 const translations: any = {
-  TR: { callWaiter: 'Garson çağrı bildirimi gönderildi!', waiterBtn: 'Garson Çağır', menuContent: 'Menü İçeriği', allProducts: 'Tüm Ürünler', categories: 'Kategoriler', categoriesTitle: 'KATEGORİLER', backToCategories: '← Kategorilere Dön', addBtn: 'Ekle', addToOrder: 'Siparişe Ekle', allergens: 'Alerjenler:', noBrochure: 'Henüz menü broşür görseli yüklenmedi.', notFound: 'Restoran Bulunamadı', loading: 'Menü Yükleniyor...', workingHours: 'Çalışma Saatleri', defaultSubtitle: 'Yemek Bizim İşimiz', cartTitle: 'Sepetim', emptyCart: 'Sepetiniz şu an boş.', total: 'Toplam', placeOrder: 'Siparişi Tamamla', noPrice: 'Fiyat Belirtilmemiş', },
-  EN: { callWaiter: 'Waiter call notification sent!', waiterBtn: 'Call Waiter', menuContent: 'Menu Content', allProducts: 'All Products', categories: 'Categories', categoriesTitle: 'CATEGORIES', backToCategories: '← Back to Categories', addBtn: 'Add', addToOrder: 'Add to Order', allergens: 'Allergens:', noBrochure: 'Menu brochure image has not been uploaded yet.', notFound: 'Restaurant Not Found', loading: 'Loading Menu...', workingHours: 'Working Hours', defaultSubtitle: 'Food is Our Business', cartTitle: 'My Cart', emptyCart: 'Your cart is currently empty.', total: 'Total', placeOrder: 'Place Order', noPrice: 'Price Not Specified', },
-  RU: { callWaiter: 'Уведомление официанту отправлено!', waiterBtn: 'Вызвать официанта', menuContent: 'Содержание меню', allProducts: 'Все продукты', categories: 'Категории', categoriesTitle: 'КАТЕГОРИИ', backToCategories: '← Назад к категориям', addBtn: 'Добавить', addToOrder: 'Добавить к заказу', allergens: 'Аллергены:', noBrochure: 'Изображение брошюры меню еще не загружено.', notFound: 'Ресторан не найден', loading: 'Загрузка меню...', workingHours: 'Часы работы', defaultSubtitle: 'Еда - это наш бизнес', cartTitle: 'Моя корзина', emptyCart: 'Ваша корзина пуста.', total: 'Итого', placeOrder: 'Оформить заказ', noPrice: 'Цена не указана', },
-  DE: { callWaiter: 'Kellner-Benachrichtigung gesendet!', waiterBtn: 'Kellner rufen', menuContent: 'Menüinhalte', allProducts: 'Alle Produkte', categories: 'Kategorien', categoriesTitle: 'KATEGORIEN', backToCategories: '← Zurück zu Kategorien', addBtn: 'Hinzufügen', addToOrder: 'Zur Bestellung hinzufügen', allergens: 'Allergene:', noBrochure: 'Menü-Broschürenbild wurde noch nicht hochgeladen.', notFound: 'Restaurant nicht gefunden', loading: 'Menü wird geladen...', workingHours: 'Öffnungszeiten', defaultSubtitle: 'Essen ist unser Geschäft', cartTitle: 'Mein Warenkorb', emptyCart: 'Ihr Warenkorb ist derzeit leer.', total: 'Gesamt', placeOrder: 'Bestellung aufgeben', noPrice: 'Preis nicht angegeben', },
-  EL: { callWaiter: 'Η ειδοποίηση κλήσης σερβιτόρου στάλθηκε!', waiterBtn: 'Καλέστε Σερβιτόρο', menuContent: 'Περιεχόμενο Μενού', allProducts: 'Όλα τα Προϊόντα', categories: 'Κατηγορίες', categoriesTitle: 'ΚΑΤΗΓΟΡΙΕΣ', backToCategories: '← Πίσω στις Κατηγορίες', addBtn: 'Προσθήκη', addToOrder: 'Προσθήκη στην Παραγγελία', allergens: 'Αλλεργιογόνα:', noBrochure: 'Η εικόνα του φυλλαδίου μενού δεν έχει μεταφορτωθεί ακόμα.', notFound: 'Το Εστιατόριο Δεν Βρέθηκε', loading: 'Φόρtωση...', workingHours: 'Ώρες Λειτουργίας', defaultSubtitle: 'Το Φαγητό Είναι η Δουλειά Μας', cartTitle: 'Το Καλάθι μου', emptyCart: 'Το καλάθι σας είναι άδειο.', total: 'Σύνολο', placeOrder: 'Παραγγελία', noPrice: 'Δεν καθορίζεται τιμή', }
+  TR: { callWaiter: 'Garson çağrı bildirimi gönderildi!', waiterBtn: 'Garson Çağır', menuContent: 'Menü İçeriği', allProducts: 'Tüm Ürünler', categories: 'Kategoriler', categoriesTitle: 'KATEGORİLER', backToCategories: '← Kategorilere Dön', addBtn: 'Ekle', addToOrder: 'Siparişe Ekle', allergens: 'Alerjenler:', noBrochure: 'Henüz menü broşür görseli yüklenmedi.', notFound: 'Restoran Bulunamadı', loading: 'Menü Yükleniyor...', workingHours: 'Çalışma Saatleri', defaultSubtitle: 'Yemek Bizim İşimiz', cartTitle: 'Sepetim', emptyCart: 'Sepetiniz şu an boş.', total: 'Toplam', placeOrder: 'Siparişi Tamamla', noPrice: 'Fiyat Belirtilmemiş', selectOption: 'Seçenekler' },
+  EN: { callWaiter: 'Waiter call notification sent!', waiterBtn: 'Call Waiter', menuContent: 'Menu Content', allProducts: 'All Products', categories: 'Categories', categoriesTitle: 'CATEGORIES', backToCategories: '← Back to Categories', addBtn: 'Add', addToOrder: 'Add to Order', allergens: 'Allergens:', noBrochure: 'Menu brochure image has not been uploaded yet.', notFound: 'Restaurant Not Found', loading: 'Loading Menu...', workingHours: 'Working Hours', defaultSubtitle: 'Food is Our Business', cartTitle: 'My Cart', emptyCart: 'Your cart is currently empty.', total: 'Total', placeOrder: 'Place Order', noPrice: 'Price Not Specified', selectOption: 'Options' },
+  RU: { callWaiter: 'Уведомление официанту отправлено!', waiterBtn: 'Вызвать официанта', menuContent: 'Содержание меню', allProducts: 'Все продукты', categories: 'Категории', categoriesTitle: 'КАТЕГОРИИ', backToCategories: '← Назад к категориям', addBtn: 'Добавить', addToOrder: 'Добавить к заказу', allergens: 'Аллергены:', noBrochure: 'Изображение брошюры меню еще не загружено.', notFound: 'Ресторан не найден', loading: 'Загрузка меню...', workingHours: 'Часы работы', defaultSubtitle: 'Еда - это наш бизнес', cartTitle: 'Моя корзина', emptyCart: 'Ваша корзина пуста.', total: 'Итого', placeOrder: 'Оформить заказ', noPrice: 'Цена не указана', selectOption: 'Опции' },
+  DE: { callWaiter: 'Kellner-Benachrichtigung gesendet!', waiterBtn: 'Kellner rufen', menuContent: 'Menüinhalte', allProducts: 'Alle Produkte', categories: 'Kategorien', categoriesTitle: 'KATEGORIEN', backToCategories: '← Zurück zu Kategorien', addBtn: 'Hinzufügen', addToOrder: 'Zur Bestellung hinzufügen', allergens: 'Allergene:', noBrochure: 'Menü-Broschürenbild wurde noch nicht hochgeladen.', notFound: 'Restaurant nicht gefunden', loading: 'Menü wird geladen...', workingHours: 'Öffnungszeiten', defaultSubtitle: 'Essen ist unser Geschäft', cartTitle: 'Mein Warenkorb', emptyCart: 'Ihr Warenkorb ist derzeit leer.', total: 'Gesamt', placeOrder: 'Bestellung aufgeben', noPrice: 'Preis nicht angegeben', selectOption: 'Optionen' },
+  EL: { callWaiter: 'Η ειδοποίηση κλήσης σερβιτόρου στάλθηκε!', waiterBtn: 'Καλέστε Σερβιτόρο', menuContent: 'Περιεχόμενο Μενού', allProducts: 'Όλα τα Προϊόντα', categories: 'Κατηγορίες', categoriesTitle: 'ΚΑΤΗΓΟΡΙΕΣ', backToCategories: '← Πίσω στις Κατηγορίες', addBtn: 'Προσθήκη', addToOrder: 'Προσθήκη στην Παραγγελία', allergens: 'Αλλεργιογόνα:', noBrochure: 'Η εικόνα του φυλλαδίου μενού δεν έχει μεταφορτωθεί ακόμα.', notFound: 'Το Εστιατόριο Δεν Βρέθηκε', loading: 'Φόρtωση...', workingHours: 'Ώρες Λειτουργίας', defaultSubtitle: 'Το Φαγητό Είναι η Δουλειά Μας', cartTitle: 'Το Καλάθι μου', emptyCart: 'Το καλάθι σας είναι άδειο.', total: 'Σύνολο', placeOrder: 'Παραγγελία', noPrice: 'Δεν καθορίζεται τιμή', selectOption: 'Επιλογές' }
 };
 
 export default function PublicMenu({ params }: { params: { slug?: string } }) {
@@ -46,7 +46,9 @@ export default function PublicMenu({ params }: { params: { slug?: string } }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isLangOpen, setIsLangOpen] = useState(false);
   const [currentLang, setCurrentLang] = useState('TR');
+  
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
+  const [selectedVariantIdx, setSelectedVariantIdx] = useState<number>(0); // YENİ: VARYANT SEÇİM STATE'İ
   
   const [cart, setCart] = useState<any[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -120,23 +122,34 @@ export default function PublicMenu({ params }: { params: { slug?: string } }) {
     setLoading(false);
   };
 
-  const addToCart = (product: any, e?: any) => {
+  // YENİ SEPETE EKLEME MANTIĞI (VARYANTLARI DESTEKLER)
+  const addToCart = (product: any, variant: any = null, e?: any) => {
     if(e) e.stopPropagation();
-    const priceNum = parseFloat(product.price);
-    if (isNaN(priceNum) || priceNum <= 0) return; 
+    
+    let priceToUse = parseFloat(product.price);
+    let nameToUse = product.name;
+    let cartId = product.id; 
+
+    if (variant) {
+      priceToUse = parseFloat(variant.price);
+      nameToUse = `${product.name} (${variant.name})`;
+      cartId = `${product.id}-${variant.name}`; // Benzersiz sepet ID'si oluşturulur
+    }
+
+    if (isNaN(priceToUse) || priceToUse <= 0) return; 
 
     setCart(prev => {
-      const existing = prev.find(item => item.id === product.id);
+      const existing = prev.find(item => item.cartId === cartId);
       if (existing) {
-        return prev.map(item => item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item);
+        return prev.map(item => item.cartId === cartId ? { ...item, quantity: item.quantity + 1 } : item);
       }
-      return [...prev, { ...product, quantity: 1 }];
+      return [...prev, { ...product, cartId, name: nameToUse, price: priceToUse, quantity: 1 }];
     });
   };
 
-  const updateCartQuantity = (id: string, delta: number) => {
+  const updateCartQuantity = (cartId: string, delta: number) => {
     setCart(prev => prev.map(item => {
-      if (item.id === id) return { ...item, quantity: Math.max(0, item.quantity + delta) };
+      if (item.cartId === cartId) return { ...item, quantity: Math.max(0, item.quantity + delta) };
       return item;
     }).filter(item => item.quantity > 0));
   };
@@ -212,7 +225,7 @@ export default function PublicMenu({ params }: { params: { slug?: string } }) {
                 {cart.map((item) => {
                   const itemPrice = parseFloat(item.price) || 0;
                   return (
-                    <div key={item.id} className="bg-white p-3 rounded-2xl shadow-sm border border-slate-100 flex gap-3 items-center">
+                    <div key={item.cartId} className="bg-white p-3 rounded-2xl shadow-sm border border-slate-100 flex gap-3 items-center">
                       {item.image_url ? (
                         <img src={item.image_url} alt={item.name} className="w-16 h-16 object-cover rounded-xl flex-shrink-0" />
                       ) : (
@@ -223,11 +236,11 @@ export default function PublicMenu({ params }: { params: { slug?: string } }) {
                         <p className="font-extrabold text-sm" style={{ color: pColor }}>₺<span className="notranslate">{itemPrice * item.quantity}</span></p>
                       </div>
                       <div className="flex items-center gap-3 bg-slate-50 border border-slate-200 rounded-xl px-2 py-1">
-                        <button onClick={() => updateCartQuantity(item.id, -1)} className="text-slate-500 hover:text-slate-800 p-1">
+                        <button onClick={() => updateCartQuantity(item.cartId, -1)} className="text-slate-500 hover:text-slate-800 p-1">
                           {item.quantity === 1 ? <Trash2 size={14} className="text-rose-500" /> : <Minus size={14} />}
                         </button>
                         <span className="font-black text-sm w-4 text-center"><span className="notranslate">{item.quantity}</span></span>
-                        <button onClick={() => updateCartQuantity(item.id, 1)} className="text-slate-500 hover:text-slate-800 p-1">
+                        <button onClick={() => updateCartQuantity(item.cartId, 1)} className="text-slate-500 hover:text-slate-800 p-1">
                           <Plus size={14} />
                         </button>
                       </div>
@@ -256,8 +269,11 @@ export default function PublicMenu({ params }: { params: { slug?: string } }) {
 
   const renderProductModal = () => {
     if (!selectedProduct) return null;
-    const priceNum = parseFloat(selectedProduct.price);
-    const hasValidPrice = !isNaN(priceNum) && priceNum > 0;
+    
+    // VARYANT KONTROLÜ
+    const hasVariants = selectedProduct.variants && selectedProduct.variants.length > 0;
+    const currentPrice = hasVariants ? parseFloat(selectedProduct.variants[selectedVariantIdx]?.price || 0) : parseFloat(selectedProduct.price);
+    const hasValidPrice = !isNaN(currentPrice) && currentPrice > 0;
 
     return (
       <div className="fixed inset-0 z-[9999] flex items-end justify-center sm:items-center p-0 sm:p-4">
@@ -278,7 +294,7 @@ export default function PublicMenu({ params }: { params: { slug?: string } }) {
               <div className="flex justify-between items-start gap-4">
                 <h2 className="text-2xl font-black text-slate-900 leading-tight"><span>{selectedProduct.name}</span></h2>
                 <p className="text-2xl font-extrabold whitespace-nowrap" style={{ color: pColor }}>
-                  {hasValidPrice ? <>₺<span className="notranslate">{selectedProduct.price}</span></> : <span className="text-xs bg-slate-100 text-slate-500 px-2.5 py-1.5 rounded-lg">{t.noPrice}</span>}
+                  {hasValidPrice ? <>₺<span className="notranslate">{currentPrice}</span></> : <span className="text-xs bg-slate-100 text-slate-500 px-2.5 py-1.5 rounded-lg">{t.noPrice}</span>}
                 </p>
               </div>
               
@@ -286,6 +302,27 @@ export default function PublicMenu({ params }: { params: { slug?: string } }) {
                 <p className="text-sm text-slate-600 leading-relaxed font-medium bg-slate-50 p-3 rounded-xl">
                   <span>{selectedProduct.description}</span>
                 </p>
+              )}
+
+              {/* VARYANT (SEÇENEK) RADYO BUTONLARI BURADA ÇIKACAK */}
+              {hasVariants && (
+                <div className="pt-2">
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2"><span>{t.selectOption}</span></p>
+                  <div className="flex flex-col gap-2">
+                    {selectedProduct.variants.map((v: any, idx: number) => (
+                      <label key={idx} className={`flex justify-between items-center p-3 border rounded-xl cursor-pointer transition ${selectedVariantIdx === idx ? 'bg-indigo-50 border-indigo-600' : 'border-slate-200 hover:bg-slate-50'}`} style={selectedVariantIdx === idx ? { borderColor: pColor } : {}}>
+                        <div className="flex items-center gap-3">
+                          <div className="w-4 h-4 rounded-full flex items-center justify-center border" style={{ borderColor: selectedVariantIdx === idx ? pColor : '#cbd5e1' }}>
+                            {selectedVariantIdx === idx && <div className="w-2 h-2 rounded-full" style={{ backgroundColor: pColor }} />}
+                          </div>
+                          <span className="font-bold text-sm text-slate-800"><span>{v.name}</span></span>
+                        </div>
+                        <span className="font-extrabold text-sm" style={{ color: pColor }}>₺<span className="notranslate">{v.price}</span></span>
+                        <input type="radio" name="variant" checked={selectedVariantIdx === idx} onChange={() => setSelectedVariantIdx(idx)} className="hidden" />
+                      </label>
+                    ))}
+                  </div>
+                </div>
               )}
 
               {selectedProduct.allergens && selectedProduct.allergens.length > 0 && (
@@ -302,8 +339,8 @@ export default function PublicMenu({ params }: { params: { slug?: string } }) {
               
               {hasValidPrice && (
                 <button 
-                  onClick={() => { addToCart(selectedProduct); setSelectedProduct(null); }}
-                  className="w-full py-4 rounded-2xl text-white font-black text-sm shadow-lg flex items-center justify-center gap-2 cursor-pointer" 
+                  onClick={() => { addToCart(selectedProduct, hasVariants ? selectedProduct.variants[selectedVariantIdx] : null); setSelectedProduct(null); }}
+                  className="w-full py-4 rounded-2xl text-white font-black text-sm shadow-lg flex items-center justify-center gap-2 cursor-pointer mt-4" 
                   style={{ backgroundColor: pColor }}
                 >
                   <ShoppingBag size={18} /> <span>{t.addToOrder}</span>
@@ -318,7 +355,6 @@ export default function PublicMenu({ params }: { params: { slug?: string } }) {
 
   const renderHeader = () => (
     <header className="text-white p-3 px-4 flex justify-between items-center shadow-md relative z-40 sticky top-0" style={{ backgroundColor: pColor }}>
-      {/* GOOGLE TRANSLATE GİZLİ ELEMENTİ */}
       <div id="google_translate_element" style={{ display: 'none' }}></div>
 
       <div className="flex items-center gap-3">
@@ -529,18 +565,20 @@ export default function PublicMenu({ params }: { params: { slug?: string } }) {
                 )}
 
                 {filteredProducts.map((prod) => {
-                  const priceNum = parseFloat(prod.price);
+                  // MİNİMUM FİYAT HESAPLAMASI VE VARYANT KONTROLÜ
+                  const hasVariants = prod.variants && prod.variants.length > 0;
+                  const priceNum = hasVariants ? Math.min(...prod.variants.map((v:any) => parseFloat(v.price) || 0)) : parseFloat(prod.price);
                   const hasValidPrice = !isNaN(priceNum) && priceNum > 0;
 
                   return (
-                    <div key={prod.id} onClick={() => setSelectedProduct(prod)} className="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-col sm:flex-row gap-4 cursor-pointer hover:shadow-md transition">
+                    <div key={prod.id} onClick={() => { setSelectedProduct(prod); setSelectedVariantIdx(0); }} className="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-col sm:flex-row gap-4 cursor-pointer hover:shadow-md transition">
                       {prod.image_url && <img src={prod.image_url} alt={prod.name} className="w-full sm:w-32 h-40 sm:h-32 object-cover rounded-xl flex-shrink-0" />}
                       <div className="flex-1 flex flex-col justify-between space-y-2">
                         <div>
                           <div className="flex justify-between items-start gap-2">
                             <h3 className="font-extrabold text-base text-slate-900 leading-snug uppercase"><span>{prod.name}</span></h3>
                             <span className="font-black text-sm px-3 py-1 rounded-lg text-white whitespace-nowrap" style={{ backgroundColor: hasValidPrice ? pColor : '#94a3b8' }}>
-                              {hasValidPrice ? <>₺<span className="notranslate">{prod.price}</span></> : <span>{t.noPrice}</span>}
+                              {hasValidPrice ? <>₺<span className="notranslate">{priceNum}{hasVariants ? '+' : ''}</span></> : <span>{t.noPrice}</span>}
                             </span>
                           </div>
                           <p className="text-xs text-slate-500 line-clamp-2 mt-1.5 leading-relaxed"><span>{prod.description}</span></p>
@@ -590,17 +628,19 @@ export default function PublicMenu({ params }: { params: { slug?: string } }) {
 
           <main className="max-w-md mx-auto p-4 space-y-3 mt-4">
             {filteredProducts.map((prod) => {
-              const priceNum = parseFloat(prod.price);
+              // MİNİMUM FİYAT HESAPLAMASI VE VARYANT KONTROLÜ
+              const hasVariants = prod.variants && prod.variants.length > 0;
+              const priceNum = hasVariants ? Math.min(...prod.variants.map((v:any) => parseFloat(v.price) || 0)) : parseFloat(prod.price);
               const hasValidPrice = !isNaN(priceNum) && priceNum > 0;
 
               return (
-                <div key={prod.id} onClick={() => setSelectedProduct(prod)} className="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-sm flex gap-3 items-center cursor-pointer hover:border-slate-300 transition">
+                <div key={prod.id} onClick={() => { setSelectedProduct(prod); setSelectedVariantIdx(0); }} className="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-sm flex gap-3 items-center cursor-pointer hover:border-slate-300 transition">
                   {prod.image_url && <img src={prod.image_url} alt={prod.name} className="w-20 h-20 object-cover rounded-xl flex-shrink-0" />}
                   <div className="flex-1 min-w-0 space-y-1">
                     <div className="flex justify-between items-start">
                       <h3 className="font-bold text-sm text-slate-900 pr-2"><span>{prod.name}</span></h3>
                       <span className="font-extrabold text-sm whitespace-nowrap" style={{ color: hasValidPrice ? pColor : '#94a3b8' }}>
-                        {hasValidPrice ? <>₺<span className="notranslate">{prod.price}</span></> : <span className="text-[10px] text-slate-400">{t.noPrice}</span>}
+                        {hasValidPrice ? <>₺<span className="notranslate">{priceNum}{hasVariants ? '+' : ''}</span></> : <span className="text-[10px] text-slate-400">{t.noPrice}</span>}
                       </span>
                     </div>
                     <p className="text-[11px] text-slate-500 line-clamp-2"><span>{prod.description}</span></p>
@@ -662,23 +702,25 @@ export default function PublicMenu({ params }: { params: { slug?: string } }) {
 
                   <div className="p-3 space-y-3 divide-y divide-slate-100">
                     {catProducts.map((prod) => {
-                      const priceNum = parseFloat(prod.price);
+                      // MİNİMUM FİYAT HESAPLAMASI VE VARYANT KONTROLÜ
+                      const hasVariants = prod.variants && prod.variants.length > 0;
+                      const priceNum = hasVariants ? Math.min(...prod.variants.map((v:any) => parseFloat(v.price) || 0)) : parseFloat(prod.price);
                       const hasValidPrice = !isNaN(priceNum) && priceNum > 0;
 
                       return (
-                        <div key={prod.id} onClick={() => setSelectedProduct(prod)} className="pt-3 first:pt-0 flex gap-3 items-center cursor-pointer hover:bg-slate-50 transition -mx-3 px-3 rounded-lg">
+                        <div key={prod.id} onClick={() => { setSelectedProduct(prod); setSelectedVariantIdx(0); }} className="pt-3 first:pt-0 flex gap-3 items-center cursor-pointer hover:bg-slate-50 transition -mx-3 px-3 rounded-lg">
                           {prod.image_url && <img src={prod.image_url} alt={prod.name} className="w-20 h-20 object-cover rounded-xl border border-slate-100 flex-shrink-0" />}
                           <div className="flex-1 min-w-0 space-y-1 py-1">
                             <div className="flex justify-between items-start gap-1">
                               <h3 className="font-bold text-xs text-slate-900 leading-snug"><span>{prod.name}</span></h3>
-                              {hasValidPrice && (
+                              {hasValidPrice && !hasVariants && (
                                 <button onClick={(e) => { e.stopPropagation(); addToCart(prod); }} className="bg-slate-100 text-[10px] font-extrabold px-3 py-1.5 rounded-lg transition flex-shrink-0 hover:bg-slate-200" style={{ color: pColor }}>
                                   <span>{t.addBtn}</span>
                                 </button>
                               )}
                             </div>
                             <p className="font-extrabold text-sm" style={{ color: hasValidPrice ? pColor : '#94a3b8' }}>
-                              {hasValidPrice ? <>₺<span className="notranslate">{prod.price}</span></> : <span className="text-[10px] text-slate-400">{t.noPrice}</span>}
+                              {hasValidPrice ? <>₺<span className="notranslate">{priceNum}{hasVariants ? '+' : ''}</span></> : <span className="text-[10px] text-slate-400">{t.noPrice}</span>}
                             </p>
                             <p className="text-[10px] text-slate-400 line-clamp-2 pr-2 leading-relaxed"><span>{prod.description}</span></p>
                           </div>
