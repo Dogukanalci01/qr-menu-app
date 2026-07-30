@@ -128,7 +128,7 @@ export default function Dashboard() {
   const [subCatForm, setSubCatForm] = useState({ name: '', description: '', category_id: '' });
   const [editingSubcategoryId, setEditingSubcategoryId] = useState<string | null>(null);
 
-  // --- ÜRÜN FORM STATELERİ ---
+  // --- ÜRÜN FORM STATELERİ (VARYANT EKLENDİ) ---
   const [productForm, setProductForm] = useState({
     name: '',
     description: '',
@@ -137,7 +137,8 @@ export default function Dashboard() {
     image_url: '',
     category_id: '',
     subcategory_id: '',
-    allergens: [] as string[]
+    allergens: [] as string[],
+    variants: [] as { name: string; price: string }[] // VARYANT (SEÇENEK) SİSTEMİ
   });
   const [editingProductId, setEditingProductId] = useState<string | null>(null);
   const [showAllergenDropdown, setShowAllergenDropdown] = useState(false);
@@ -543,8 +544,8 @@ export default function Dashboard() {
   // --- ÜRÜN YÖNETİMİ ---
   const addProduct = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!productForm.name.trim() || !productForm.price || !productForm.category_id || !selectedRestaurantId) {
-      alert('Lütfen ürün adı, fiyatı ve ana kategorisini seçin!');
+    if (!productForm.name.trim() || !productForm.category_id || !selectedRestaurantId) {
+      alert('Lütfen ürün adı ve ana kategorisini seçin!');
       return;
     }
 
@@ -560,16 +561,20 @@ export default function Dashboard() {
     }
     setUploadingImage(false);
 
+    // Eğer varyant varsa base price 0 olabilir, yoksa zorunlu fiyat girilmiş olması lazım
+    const finalPrice = productForm.price ? parseFloat(productForm.price) : 0;
+
     const payload: any = {
       name: productForm.name.trim(),
       description: productForm.description.trim(),
-      price: parseFloat(productForm.price),
+      price: finalPrice,
       calories: productForm.calories ? parseInt(productForm.calories) : 0,
       allergens: productForm.allergens,
       image_url: finalImageUrl,
       category_id: productForm.category_id,
       subcategory_id: productForm.subcategory_id || null,
-      restaurant_id: selectedRestaurantId
+      restaurant_id: selectedRestaurantId,
+      variants: productForm.variants // YENİ: VARYANLARI KAYDET
     };
 
     if (editingProductId) {
@@ -601,7 +606,8 @@ export default function Dashboard() {
       image_url: prod.image_url || '',
       category_id: prod.category_id,
       subcategory_id: prod.subcategory_id || '',
-      allergens: prod.allergens || []
+      allergens: prod.allergens || [],
+      variants: prod.variants || [] // VARYANTLARI GETİR
     });
     setImagePreview(prod.image_url || '');
     setImageFile(null);
@@ -612,7 +618,8 @@ export default function Dashboard() {
     setEditingProductId(null);
     setProductForm({
       name: '', description: '', price: '', calories: '', image_url: '',
-      category_id: categories[0]?.id || '', subcategory_id: '', allergens: []
+      category_id: categories[0]?.id || '', subcategory_id: '', allergens: [],
+      variants: [] // VARYANTLARI TEMİZLE
     });
     setImageFile(null); setImagePreview(''); setShowAllergenDropdown(false);
   };
@@ -1066,12 +1073,35 @@ export default function Dashboard() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="text-xs text-slate-500 uppercase font-bold block mb-1">Fiyat (₺)</label>
-                      <input type="number" placeholder="150" value={productForm.price} onChange={(e) => setProductForm({...productForm, price: e.target.value})} className="w-full px-3 py-2 bg-slate-50 border rounded-xl text-xs h-12" />
+                      <input type="number" step="0.01" min="0" placeholder="Örn: 150" value={productForm.price} onChange={(e) => setProductForm({...productForm, price: e.target.value})} required={productForm.variants.length === 0} className="w-full px-3 py-2 bg-slate-50 border rounded-xl text-xs h-12" />
                     </div>
                     <div>
                       <label className="text-xs text-amber-600 uppercase font-bold block mb-1 flex items-center gap-1"><Flame size={14} /> Kalori (kcal)</label>
                       <input type="number" placeholder="Örn: 450" value={productForm.calories} onChange={(e) => setProductForm({...productForm, calories: e.target.value})} className="w-full px-3 py-2 bg-slate-50 border rounded-xl text-xs h-12" />
                     </div>
+                  </div>
+
+                  {/* VARYANT / PORSİYON BÖLÜMÜ EKLENDİ */}
+                  <div className="border border-indigo-100 bg-indigo-50/50 p-4 rounded-xl space-y-3">
+                    <label className="text-xs font-extrabold text-indigo-900 flex items-center gap-2">
+                      <Layers size={14} /> Boyut / Porsiyon Seçenekleri (S, M, L gibi)
+                    </label>
+                    <p className="text-[10px] text-slate-500 leading-tight mb-2">Eğer üründe farklı boyut/porsiyon seçenekleri (Küçük, Orta, Büyük) varsa buradan ekleyin. Seçenek eklerseniz ürün detayında bu liste çıkar.</p>
+                    
+                    {productForm.variants.map((v, i) => (
+                      <div key={i} className="flex gap-2 items-center bg-white p-2 rounded-lg border border-slate-200">
+                        <input type="text" required placeholder="Boyut/Seçenek Adı (Örn: Küçük S)" value={v.name} onChange={e => { const newV = [...productForm.variants]; newV[i].name = e.target.value; setProductForm({...productForm, variants: newV}); }} className="flex-1 border-none bg-slate-50 px-3 py-2 rounded-md text-xs font-bold outline-none" />
+                        <div className="flex items-center bg-slate-50 px-2 rounded-md">
+                          <span className="text-xs font-bold text-slate-400">₺</span>
+                          <input type="number" required step="0.01" min="0" placeholder="Fiyat" value={v.price} onChange={e => { const newV = [...productForm.variants]; newV[i].price = e.target.value; setProductForm({...productForm, variants: newV}); }} className="w-20 border-none bg-transparent px-2 py-2 text-xs font-bold outline-none" />
+                        </div>
+                        <button type="button" onClick={() => { const newV = productForm.variants.filter((_, idx) => idx !== i); setProductForm({...productForm, variants: newV}); }} className="bg-rose-100 text-rose-600 p-2 rounded-md hover:bg-rose-200 transition"><Trash2 size={14}/></button>
+                      </div>
+                    ))}
+                    
+                    <button type="button" onClick={() => setProductForm({...productForm, variants: [...productForm.variants, {name: '', price: ''}]})} className="bg-white border border-indigo-200 text-indigo-600 px-4 py-2 rounded-lg text-xs font-bold hover:bg-indigo-50 transition flex items-center gap-2">
+                      <Plus size={14} /> Yeni Boyut / Seçenek Ekle
+                    </button>
                   </div>
 
                   <div className="relative">
@@ -1132,7 +1162,13 @@ export default function Dashboard() {
                         <div className="flex-1 min-w-0">
                           <div className="flex justify-between items-start">
                             <div><h3 className="font-bold text-slate-900 text-sm line-clamp-1">{prod.name}</h3><p className="text-[10px] text-indigo-600 font-bold">{prod.categories?.name}</p></div>
-                            <span className="font-black text-sm">₺{prod.price}</span>
+                            <div className="text-right">
+                              {prod.variants && prod.variants.length > 0 ? (
+                                <span className="font-black text-sm text-indigo-600 whitespace-nowrap bg-indigo-50 px-2 py-1 rounded-lg">Seçenekli</span>
+                              ) : (
+                                <span className="font-black text-sm whitespace-nowrap">₺{prod.price}</span>
+                              )}
+                            </div>
                           </div>
                           <p className="text-xs text-slate-500 line-clamp-1 mt-1">{prod.description}</p>
                         </div>
