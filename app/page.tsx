@@ -128,7 +128,7 @@ export default function Dashboard() {
   const [subCatForm, setSubCatForm] = useState({ name: '', description: '', category_id: '' });
   const [editingSubcategoryId, setEditingSubcategoryId] = useState<string | null>(null);
 
-  // --- ÜRÜN FORM STATELERİ (VARYANT EKLENDİ) ---
+  // --- ÜRÜN FORM STATELERİ ---
   const [productForm, setProductForm] = useState({
     name: '',
     description: '',
@@ -138,7 +138,7 @@ export default function Dashboard() {
     category_id: '',
     subcategory_id: '',
     allergens: [] as string[],
-    variants: [] as { name: string; price: string }[] // VARYANT (SEÇENEK) SİSTEMİ
+    variants: [] as { name: string; price: string }[]
   });
   const [editingProductId, setEditingProductId] = useState<string | null>(null);
   const [showAllergenDropdown, setShowAllergenDropdown] = useState(false);
@@ -270,8 +270,14 @@ export default function Dashboard() {
     }
   };
 
+  // --- YENİ EKLENEN ÖZELLİK: SADECE KENDİ RESTORANLARINI ÇEK (MULTI-TENANT) ---
   const fetchAllRestaurants = async () => {
-    const { data, error } = await supabase.from('restaurants').select('*').order('created_at', { ascending: false });
+    const { data, error } = await supabase
+      .from('restaurants')
+      .select('*')
+      .eq('user_id', sessionUser.id) // Sadece giriş yapan kullanıcının restoranları
+      .order('created_at', { ascending: false });
+
     if (!error && data && data.length > 0) {
       setRestaurantsList(data);
       if (!selectedRestaurantId) {
@@ -281,18 +287,22 @@ export default function Dashboard() {
         setCoverPreview(data[0].cover_image || '');
       }
     } else {
+      // Hesabı yeni açan kişiye kendine özel, başkasıyla çakışmayan bir slug ile restoran oluştur
+      const uniqueSlug = 'yeni-restoran-' + Math.floor(Math.random() * 100000);
       const { data: newRest } = await supabase.from('restaurants').insert([{
-        name: 'Livadya Restaurant',
-        slug: 'livadya-restaurant',
+        name: 'Yeni Restoranım',
+        slug: uniqueSlug,
         subtitle: 'Lezzet, Manzara ve Huzurun Adresi',
         primary_color: '#4f46e5',
-        template: 'bistro'
+        template: 'bistro',
+        user_id: sessionUser.id // Restoranı kullanıcıya zimmetle
       }]).select();
+      
       if (newRest) {
         setRestaurantsList(newRest);
         setSelectedRestaurantId(newRest[0].id);
         setRestaurant(newRest[0]);
-        logActivity('Restoran Oluşturuldu', 'Varsayılan Livadya Restaurant sisteme tanımlandı.');
+        logActivity('Restoran Oluşturuldu', 'Sisteme size özel varsayılan restoran tanımlandı.');
       }
     }
   };
@@ -332,12 +342,19 @@ export default function Dashboard() {
     }
   };
 
+  // --- YENİ EKLENEN ÖZELLİK: YENİ RESTORANI KULLANICIYA ZİMMETLE ---
   const handleCreateRestaurant = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newRestForm.name.trim() || !newRestForm.slug.trim()) return alert('Lütfen restoran adı ve URL (slug) girin!');
     const formattedSlug = newRestForm.slug.toLowerCase().trim().replace(/[^a-z0-9-]/g, '-');
+    
     const { data, error } = await supabase.from('restaurants').insert([{
-      name: newRestForm.name.trim(), slug: formattedSlug, subtitle: 'Yemek Bizim İşimiz', primary_color: '#4f46e5', template: 'bistro'
+      name: newRestForm.name.trim(), 
+      slug: formattedSlug, 
+      subtitle: 'Yemek Bizim İşimiz', 
+      primary_color: '#4f46e5', 
+      template: 'bistro',
+      user_id: sessionUser.id // Kullanıcı ID'si ile oluştur
     }]).select();
 
     if (error) alert('Restoran Oluşturma Hatası: ' + error.message);
@@ -561,7 +578,6 @@ export default function Dashboard() {
     }
     setUploadingImage(false);
 
-    // Eğer varyant varsa base price 0 olabilir, yoksa zorunlu fiyat girilmiş olması lazım
     const finalPrice = productForm.price ? parseFloat(productForm.price) : 0;
 
     const payload: any = {
@@ -574,7 +590,7 @@ export default function Dashboard() {
       category_id: productForm.category_id,
       subcategory_id: productForm.subcategory_id || null,
       restaurant_id: selectedRestaurantId,
-      variants: productForm.variants // YENİ: VARYANLARI KAYDET
+      variants: productForm.variants
     };
 
     if (editingProductId) {
@@ -607,7 +623,7 @@ export default function Dashboard() {
       category_id: prod.category_id,
       subcategory_id: prod.subcategory_id || '',
       allergens: prod.allergens || [],
-      variants: prod.variants || [] // VARYANTLARI GETİR
+      variants: prod.variants || []
     });
     setImagePreview(prod.image_url || '');
     setImageFile(null);
@@ -619,7 +635,7 @@ export default function Dashboard() {
     setProductForm({
       name: '', description: '', price: '', calories: '', image_url: '',
       category_id: categories[0]?.id || '', subcategory_id: '', allergens: [],
-      variants: [] // VARYANTLARI TEMİZLE
+      variants: []
     });
     setImageFile(null); setImagePreview(''); setShowAllergenDropdown(false);
   };
@@ -1072,8 +1088,8 @@ export default function Dashboard() {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="text-xs text-slate-500 uppercase font-bold block mb-1">Fiyat (₺)</label>
-                      <input type="number" step="0.01" min="0" placeholder="Örn: 150" value={productForm.price} onChange={(e) => setProductForm({...productForm, price: e.target.value})} required={productForm.variants.length === 0} className="w-full px-3 py-2 bg-slate-50 border rounded-xl text-xs h-12" />
+                      <label className="text-xs text-slate-500 uppercase font-bold block mb-1">Taban Fiyat (₺)</label>
+                      <input type="number" step="0.01" min="0" placeholder="150" value={productForm.price} onChange={(e) => setProductForm({...productForm, price: e.target.value})} required={productForm.variants.length === 0} className="w-full px-3 py-2 bg-slate-50 border rounded-xl text-xs h-12" />
                     </div>
                     <div>
                       <label className="text-xs text-amber-600 uppercase font-bold block mb-1 flex items-center gap-1"><Flame size={14} /> Kalori (kcal)</label>
